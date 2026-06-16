@@ -1,0 +1,446 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:phosphor_flutter/phosphor_flutter.dart';
+
+import '../../../app_providers.dart';
+import '../../../services/locale_provider.dart';
+import '../../../services/location_service.dart';
+import '../../../services/notification_store.dart';
+import '../../../services/websocket_service.dart';
+import '../../../services/offline_queue_service.dart';
+import '../../../theme/status_colors.dart';
+import '../../deliveries/models/delivery_models.dart';
+import '../../deliveries/presentation/delivery_detail_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
+import '../../routes/models/route_models.dart';
+import '../../routes/presentation/calendar_screen.dart';
+import '../../routes/presentation/routes_screen.dart';
+import 'widgets/home_widgets.dart';
+
+class HomeShell extends ConsumerStatefulWidget {
+  const HomeShell({super.key});
+  static const routeName = '/home';
+
+  @override
+  ConsumerState<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends ConsumerState<HomeShell> {
+  Timer? _locationTimer;
+  Timer? _assignmentRefreshTimer;
+  bool _isTracking = false;
+  StreamSubscription<bool>? _connectivitySub;
+
+  final _wsService = WebSocketService();
+
+  @override
+  void initState() {
+    super.initState();
+    _assignmentRefreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
+      _refreshAssignmentsAndNotify();
+    });
+    _initWebSocket();
+    _initConnectivityListener();
+    _initFcmHandlers();
+  }
+
+  void _initFcmHandlers() {
+    final store = ref.read(notificationStoreProvider.notifier);
+    ref.read(fcmServiceProvider).setHandlers(
+      onReceived: (title, body, type) => store.add(title: title, body: body, type: type),
+      onTap: (type, deliveryId) {
+        if (type.startsWith('HANDOFF_') && deliveryId != null && deliveryId.isNotEmpty) {
+          _openHandoffDelivery(deliveryId);
+          return;
+        }
+        ref.read(homeTabIndexProvider.notifier).state = 0;
+        _showNotificationPanel();
+      },
+    );
+  }
+
+  void _showNotificationPanel() {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        builder: (_) => const NotificationPanel(),
+      );
+    });
+  }
+
+  Future<void> _initWebSocket() async {
+    final authState = ref.read(authControllerProvider);
+    final driverId = authState.driver?.id;
+    if (driverId == null || driverId.isEmpty) return;
+
+    final config = ref.read(appConfigProvider);
+    final storage = ref.read(tokenStorageProvider);
+    _wsService.connect(
+      wsBaseUrl: config.apiBaseUrl,
+      driverId: driverId,
+      tokenStorage: storage,
+      onEvent: _handleWsEvent,
+    );
+  }
+
+  void _handleWsEvent(RouteWsEvent event) {
+    if (!mounted) return;
+
+    // S2: an admin force-logged-out this driver — sign out instantly instead of waiting for
+    // the access token to expire. The DriverApp auth listener handles navigation to login.
+    if (event.event == 'session.revoked') {
+      ref.read(authControllerProvider.notifier).logout();
+      return;
+    }
+
+    ref.invalidate(todayRouteProvider);
+    ref.invalidate(weekRoutesProvider(ref.read(calendarWeekProvider)));
+    ref.invalidate(activeDeliveriesProvider);
+
+    if (event.event.startsWith('handoff.')) {
+      ref.invalidate(handoffsProvider);
+      _handleHandoffWsEvent(event);
+      return;
+    }
+
+    final locale = ref.read(localeProvider);
+    final statusColors = Theme.of(context).extension<StatusColors>()!;
+    final routeStr = event.routeName.isNotEmpty ? '\u00ab${event.routeName}\u00bb' : DriverCopy.get('ws_generic_route', locale);
+    final String message;
+    IconData icon;
+    Color color;
+
+    switch (event.event) {
+      case 'ROUTE_ASSIGNED':
+        message = DriverCopy.get('ws_route_assigned', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.checkCircle;
+        color = statusColors.delivered;
+        break;
+      case 'ROUTE_CANCELLED':
+        message = DriverCopy.get('ws_route_cancelled', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.xCircle;
+        color = statusColors.failed;
+        break;
+      case 'ROUTE_REASSIGNED_AWAY':
+        message = DriverCopy.get('ws_route_reassigned_away', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.warning;
+        color = statusColors.cancelled;
+        break;
+      case 'ROUTE_REASSIGNED_TO_YOU':
+        message = DriverCopy.get('ws_route_reassigned_to_you', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.checkCircle;
+        color = statusColors.delivered;
+        break;
+      case 'STOP_ADDED':
+        final addedClient = event.clientName ?? '';
+        message = DriverCopy.get('ws_stop_added', locale)
+            .replaceAll('{client}', addedClient)
+            .replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.mapPin;
+        color = statusColors.scheduled;
+        break;
+      case 'STOP_REMOVED':
+        final removedClient = event.clientName ?? '';
+        final refStr = event.erpOrderId != null ? ' [${event.erpOrderId}]' : '';
+        final why = event.reason != null ? ' \u2014 ${event.reason}' : '';
+        message = DriverCopy.get('ws_stop_removed', locale)
+            .replaceAll('{client}', removedClient)
+            .replaceAll('{ref}', refStr)
+            .replaceAll('{route}', routeStr)
+            .replaceAll('{why}', why);
+        icon = PhosphorIconsRegular.minusCircle;
+        color = statusColors.cancelled;
+        break;
+      case 'ROUTE_UPDATED':
+        message = DriverCopy.get('ws_route_updated', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.info;
+        color = statusColors.unscheduled;
+        break;
+      case 'STOPS_TRANSFERRED_OUT':
+        message = DriverCopy.get('ws_stops_transferred_out', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.arrowsLeftRight;
+        color = statusColors.cancelled;
+        break;
+      case 'STOPS_TRANSFERRED_IN':
+        message = DriverCopy.get('ws_stops_transferred_in', locale).replaceAll('{route}', routeStr);
+        icon = PhosphorIconsRegular.listPlus;
+        color = statusColors.scheduled;
+        break;
+      case 'pickup.overdue':
+        message = DriverCopy.get('ws_pickup_overdue', locale)
+            .replaceAll('{client}', event.clientName ?? '')
+            .replaceAll('{count}', event.reason ?? '')
+            .replaceAll('  ', ' ')
+            .trim();
+        icon = PhosphorIconsRegular.house;
+        color = statusColors.failed;
+        break;
+      default:
+        return;
+    }
+
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message, style: const TextStyle(color: Colors.white))),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _handleHandoffWsEvent(RouteWsEvent event) {
+    if (!mounted) return;
+    final locale = ref.read(localeProvider);
+    final statusColors = Theme.of(context).extension<StatusColors>()!;
+
+    final refStr = (event.erpOrderId != null && event.erpOrderId!.isNotEmpty)
+        ? '#${event.erpOrderId}'
+        : (event.deliveryId != null && event.deliveryId!.length >= 8
+            ? '#${event.deliveryId!.substring(0, 8)}'
+            : '');
+    String build(String key, String? name) => DriverCopy.get(key, locale)
+        .replaceAll('{ref}', refStr)
+        .replaceAll('{name}', (name != null && name.isNotEmpty) ? name : DriverCopy.get('ws_handoff_other', locale))
+        .replaceAll('  ', ' ')
+        .trim();
+
+    switch (event.event) {
+      case 'handoff.incoming':
+      case 'handoff.code_ready':
+        _showHandoffBanner(
+          message: build('ws_handoff_incoming', event.fromDriverName),
+          icon: PhosphorIconsRegular.qrCode,
+          color: statusColors.scheduled,
+          actionLabel: DriverCopy.get('handoff_action_scan', locale),
+          onAction: () => _openHandoffDelivery(event.deliveryId),
+          locale: locale,
+        );
+        break;
+      case 'handoff.outgoing':
+        _showHandoffBanner(
+          message: build('ws_handoff_outgoing', event.toDriverName),
+          icon: PhosphorIconsRegular.arrowsLeftRight,
+          color: statusColors.inTransit,
+          actionLabel: DriverCopy.get('handoff_action_show', locale),
+          onAction: () => _openHandoffDelivery(event.deliveryId),
+          locale: locale,
+        );
+        break;
+      case 'handoff.confirmed':
+        ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+        _showHandoffSnack(build('ws_handoff_confirmed', null), PhosphorIconsRegular.checkCircle, statusColors.delivered);
+        break;
+      case 'handoff.cancelled':
+        ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+        _showHandoffSnack(build('ws_handoff_cancelled', null), PhosphorIconsRegular.xCircle, statusColors.failed);
+        break;
+      default:
+        return;
+    }
+  }
+
+  void _openHandoffDelivery(String? deliveryId) {
+    ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
+    if (deliveryId == null || deliveryId.isEmpty || !mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ref.read(homeTabIndexProvider.notifier).state = 0;
+      Navigator.of(context).pushNamed(
+        DeliveryDetailScreen.routeName,
+        arguments: DeliveryDetailArgs(deliveryId: deliveryId),
+      );
+    });
+  }
+
+  void _showHandoffBanner({
+    required String message,
+    required IconData icon,
+    required Color color,
+    required String actionLabel,
+    required VoidCallback onAction,
+    required String locale,
+  }) {
+    if (!mounted) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final theme = Theme.of(context);
+      messenger.hideCurrentMaterialBanner();
+      messenger.showMaterialBanner(
+      MaterialBanner(
+        backgroundColor: theme.colorScheme.surface,
+        dividerColor: theme.colorScheme.outlineVariant,
+        leading: Icon(icon, color: color),
+        content: Text(
+          message,
+          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => messenger.hideCurrentMaterialBanner(),
+            child: Text(DriverCopy.get('cancel', locale)),
+          ),
+          TextButton(
+            onPressed: () { messenger.hideCurrentMaterialBanner(); onAction(); },
+            style: TextButton.styleFrom(foregroundColor: color),
+            child: Text(actionLabel),
+          ),
+        ],
+      ),
+    );
+    });
+  }
+
+  void _showHandoffSnack(String message, IconData icon, Color color) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 18),
+            const SizedBox(width: 8),
+            Expanded(child: Text(message, style: const TextStyle(color: Colors.white))),
+          ],
+        ),
+        backgroundColor: color,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 5),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _initConnectivityListener() {
+    final connectivity = ref.read(connectivityServiceProvider);
+    _connectivitySub = connectivity.onlineStream.listen((isOnline) {
+      if (!mounted) return;
+      if (isOnline) {
+        ref.read(offlineQueueProvider.notifier).processQueue();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _locationTimer?.cancel();
+    _assignmentRefreshTimer?.cancel();
+    _connectivitySub?.cancel();
+    _wsService.disconnect();
+    super.dispose();
+  }
+
+  void _startTracking() {
+    if (_isTracking) return;
+    _isTracking = true;
+    _locationTimer = Timer.periodic(const Duration(seconds: 20), (_) => _pushLocation());
+    _pushLocation();
+  }
+
+  void _stopTracking() {
+    _isTracking = false;
+    _locationTimer?.cancel();
+    _locationTimer = null;
+  }
+
+  Future<void> _pushLocation() async {
+    try {
+      final point = await LocationService().currentPosition();
+      if (point == null) return;
+      await ref.read(profileRepositoryProvider).updateLocation(point.lat, point.lng);
+    } catch (_) {}
+  }
+
+  Future<void> _refreshAssignmentsAndNotify() async {
+    try {
+      ref.invalidate(todayRouteProvider);
+      ref.invalidate(activeDeliveriesProvider);
+      ref.invalidate(weekRoutesProvider(ref.read(calendarWeekProvider)));
+    } catch (_) {}
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final locale = ref.watch(localeProvider);
+    final colorScheme = theme.colorScheme;
+    final activeIndex = ref.watch(homeTabIndexProvider);
+
+    ref.listen(activeDeliveriesProvider, (_, next) {
+      next.whenData((list) {
+        if (list.any((d) => d.status == DeliveryStatus.inTransit)) {
+          _startTracking();
+        } else if (!_isRouteInProgress()) {
+          _stopTracking();
+        }
+      });
+    });
+
+    ref.listen(todayRouteProvider, (_, next) {
+      next.whenData((route) {
+        if (route?.status == DriverRouteStatus.inProgress) {
+          _startTracking();
+        } else if (!_hasInTransit()) {
+          _stopTracking();
+        }
+      });
+    });
+
+    final pages = [
+      const RoutesScreen(),
+      CalendarScreen(onNavigateToRoute: () => ref.read(homeTabIndexProvider.notifier).state = 0),
+      const SafeArea(child: ProfileScreen()),
+    ];
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: theme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: colorScheme.surface,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+      ),
+      child: Scaffold(
+        body: Column(
+          children: [
+            HomeTopBar(onOpenNotifications: _showNotificationPanel),
+            const OfflineStatusBar(),
+            Expanded(
+              child: IndexedStack(index: activeIndex, children: pages),
+            ),
+          ],
+        ),
+        bottomNavigationBar: ModernBottomNav(
+          selectedIndex: activeIndex,
+          onTabSelected: (i) => ref.read(homeTabIndexProvider.notifier).state = i,
+          locale: locale,
+        ),
+      ),
+    );
+  }
+
+  bool _hasInTransit() {
+    return ref.read(activeDeliveriesProvider).value?.any((d) => d.status == DeliveryStatus.inTransit) ?? false;
+  }
+
+  bool _isRouteInProgress() {
+    return ref.read(todayRouteProvider).value?.status == DriverRouteStatus.inProgress;
+  }
+}
+
