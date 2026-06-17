@@ -46,6 +46,10 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   late Map<String, String?> _itemReasons;
   late Map<String, TextEditingController> _itemCommentControllers;
 
+  /// Admin-configured failure reasons (same referential as the full-failure sheet).
+  /// Empty until loaded / when offline → the per-item cards fall back to the built-in list.
+  List<FailureReasonOption> _adminReasons = const [];
+
   @override
   void initState() {
     super.initState();
@@ -59,6 +63,16 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       _itemOutcomes[key] = 'DELIVERED';
       _itemReasons[key] = null;
       _itemCommentControllers[key] = TextEditingController();
+    }
+    _loadReasons();
+  }
+
+  Future<void> _loadReasons() async {
+    try {
+      final reasons = await ref.read(deliveryRepositoryProvider).fetchFailureReasons();
+      if (mounted) setState(() => _adminReasons = reasons);
+    } catch (_) {
+      // Keep empty → cards fall back to the built-in reason list.
     }
   }
 
@@ -153,6 +167,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       currentQty: _itemsDone[key] ?? plannedQty,
       outcome: _itemOutcomes[key] ?? 'DELIVERED',
       reason: _itemReasons[key],
+      adminReasons: _adminReasons,
       commentController: _itemCommentControllers[key]!,
       locale: locale,
       onOutcome: (v) => setState(() {

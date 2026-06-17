@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../../services/locale_provider.dart';
 import '../../../../theme/tokens.dart';
+import '../../../deliveries/models/delivery_models.dart';
 
 // ─── Outcome descriptors ────────────────────────────────────────────────────
 class PodOutcome {
@@ -39,6 +40,16 @@ const kPodReasonsByOutcome = {
 };
 
 const kPodRequiresReason = {'REFUSED', 'DAMAGED', 'MISSING'};
+
+/// Per-item outcomes whose reasons come from the admin failure-reason referential (same motifs as the
+/// full-failure sheet), mapped to the categories that make sense at the item level. Only REFUSED and
+/// DAMAGED map cleanly; the route-level categories (CLIENT_ABSENT / WRONG_ADDRESS / OTHER) don't apply
+/// to a single parcel. Outcomes NOT listed here (MISSING, short-quantity DELIVERED) use the built-in
+/// operational list [kPodReasonsByOutcome] — the admin referential doesn't model those stock cases.
+const kPodOutcomeCategories = {
+  'REFUSED': ['REFUSED'],
+  'DAMAGED': ['DAMAGED'],
+};
 
 String podOutcomeLabel(String outcome, String locale) {
   if (locale == 'ar') {
@@ -411,6 +422,7 @@ class PodItemOutcomeRow extends StatelessWidget {
     required this.currentQty,
     required this.outcome,
     required this.reason,
+    this.adminReasons = const [],
     required this.commentController,
     required this.locale,
     required this.onOutcome,
@@ -422,11 +434,27 @@ class PodItemOutcomeRow extends StatelessWidget {
   final int currentQty;
   final String outcome;
   final String? reason;
+  final List<FailureReasonOption> adminReasons;
   final TextEditingController commentController;
   final String locale;
   final ValueChanged<String> onOutcome;
   final ValueChanged<int> onQty;
   final ValueChanged<String> onReason;
+
+  /// Resolves the reason chips for the current outcome. REFUSED/DAMAGED pull the admin-configured
+  /// motifs for their category; every other outcome (MISSING, short-quantity) — and any case where the
+  /// admin has no motif in that category, or we're offline — uses the built-in [kPodReasonsByOutcome].
+  List<({String code, String label})> _reasonChips() {
+    final cats = kPodOutcomeCategories[outcome];
+    if (cats != null && adminReasons.isNotEmpty) {
+      final filtered = adminReasons.where((r) => r.category != null && cats.contains(r.category)).toList();
+      if (filtered.isNotEmpty) {
+        return filtered.map((r) => (code: r.code, label: r.label)).toList();
+      }
+    }
+    final codes = kPodReasonsByOutcome[outcome] ?? kPodReasonsByOutcome['REFUSED']!;
+    return codes.map((c) => (code: c, label: podReasonLabel(c, locale))).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -572,10 +600,10 @@ class PodItemOutcomeRow extends StatelessWidget {
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: (kPodReasonsByOutcome[outcome] ?? kPodReasonsByOutcome['REFUSED']!).map((r) {
-                  final selected = reason == r;
+                children: _reasonChips().map((r) {
+                  final selected = reason == r.code;
                   return GestureDetector(
-                    onTap: () => onReason(r),
+                    onTap: () => onReason(r.code),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 120),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
@@ -585,7 +613,7 @@ class PodItemOutcomeRow extends StatelessWidget {
                         border: Border.all(color: selected ? optColor : cs.outlineVariant, width: selected ? 1.5 : 1),
                       ),
                       child: Text(
-                        podReasonLabel(r, locale),
+                        r.label,
                         style: TextStyle(fontSize: 12, fontWeight: AppTokens.fwMedium, color: selected ? optColor : cs.onSurfaceVariant),
                       ),
                     ),
