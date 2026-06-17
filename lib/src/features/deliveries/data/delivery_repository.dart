@@ -138,11 +138,11 @@ class DeliveryRepository {
     );
   }
 
-  /// Online POD upload via multipart — photos stream as binary parts instead of
-  /// base64-in-JSON (smaller request, less app memory). On offline / network
-  /// failure it falls back to the base64 endpoint through the offline queue, so
-  /// a queued POD is never lost.
-  Future<DriverDelivery> submitPodMultipart(
+  /// POD upload via the base64 JSON endpoint (`submitPod`). We use this rather than the multipart
+  /// endpoint because the JSON path is transactional end-to-end on the backend (POD + completion +
+  /// ERP sync in one transaction). `_mutate`/`submitPod` handle the online POST and the offline-queue
+  /// fallback, so a queued POD is never lost.
+  Future<DriverDelivery> submitPodPhotos(
     String id, {
     required Uint8List bonLivraisonBytes,
     required Uint8List packageBytes,
@@ -151,50 +151,11 @@ class DeliveryRepository {
     double? lng,
     bool isPartial = false,
     List<PartialDeliveryItem>? itemsDone,
-  }) async {
-    final online = await _connectivity.isOnline;
-    if (!online) {
-      return _enqueuePodBase64(id, bonLivraisonBytes, packageBytes, comment, lat, lng, isPartial, itemsDone);
-    }
-    try {
-      final form = FormData.fromMap({
-        'bonLivraisonPhoto': MultipartFile.fromBytes(
-          bonLivraisonBytes,
-          filename: 'bon-livraison.jpg',
-          contentType: DioMediaType('image', 'jpeg'),
-        ),
-        'packagePhoto': MultipartFile.fromBytes(
-          packageBytes,
-          filename: 'package.jpg',
-          contentType: DioMediaType('image', 'jpeg'),
-        ),
-        if (comment != null && comment.isNotEmpty) 'comment': comment,
-        if (lat != null) 'lat': lat.toString(),
-        if (lng != null) 'lng': lng.toString(),
-        'partial': isPartial.toString(),
-        if (itemsDone != null) 'itemsDone': jsonEncode(itemsDone.map((e) => e.toJson()).toList()),
-      });
-      final res = await _client.dio.post<Map<String, dynamic>>(
-        '/api/driver/deliveries/$id/pod',
-        data: form,
-        options: Options(headers: {'X-Idempotency-Key': 'pod-$id'}),
-      );
-      return DriverDelivery.fromJson(res.data ?? {});
-    } on DioException catch (e) {
-      final t = e.type;
-      final isNetwork = t == DioExceptionType.connectionError ||
-          t == DioExceptionType.connectionTimeout ||
-          t == DioExceptionType.sendTimeout ||
-          t == DioExceptionType.receiveTimeout ||
-          t == DioExceptionType.unknown;
-      if (isNetwork) {
-        return _enqueuePodBase64(id, bonLivraisonBytes, packageBytes, comment, lat, lng, isPartial, itemsDone);
-      }
-      rethrow;
-    }
+  }) {
+    return _buildAndSubmitPodBase64(id, bonLivraisonBytes, packageBytes, comment, lat, lng, isPartial, itemsDone);
   }
 
-  Future<DriverDelivery> _enqueuePodBase64(
+  Future<DriverDelivery> _buildAndSubmitPodBase64(
     String id,
     Uint8List bonLivraisonBytes,
     Uint8List packageBytes,

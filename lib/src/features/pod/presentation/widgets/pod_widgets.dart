@@ -423,7 +423,6 @@ class PodItemOutcomeRow extends StatelessWidget {
     required this.outcome,
     required this.reason,
     this.adminReasons = const [],
-    required this.commentController,
     required this.locale,
     required this.onOutcome,
     required this.onQty,
@@ -435,7 +434,6 @@ class PodItemOutcomeRow extends StatelessWidget {
   final String outcome;
   final String? reason;
   final List<FailureReasonOption> adminReasons;
-  final TextEditingController commentController;
   final String locale;
   final ValueChanged<String> onOutcome;
   final ValueChanged<int> onQty;
@@ -622,21 +620,7 @@ class PodItemOutcomeRow extends StatelessWidget {
               ),
             ),
           ],
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-            child: TextField(
-              controller: commentController,
-              minLines: 1,
-              maxLines: 3,
-              style: const TextStyle(fontSize: 13),
-              decoration: InputDecoration(
-                hintText: DriverCopy.get('pod_item_comment_hint', locale),
-                hintStyle: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
-              ),
-            ),
-          ),
+          const SizedBox(height: 14),
         ],
       ),
     );

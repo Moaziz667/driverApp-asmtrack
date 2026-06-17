@@ -340,6 +340,20 @@ Map<String, String> _buildNotification(
         };
       }
 
+    case 'ROUTE_CANCELLED':
+      return {
+        'title': _pick(locale, fr: '🚫 Tournée annulée', en: '🚫 Route cancelled', ar: '🚫 أُلغيت الرحلة'),
+        'body': joinLines([
+          _pick(locale,
+              fr: 'La tournée ${routeLabel()} a été annulée.',
+              en: 'Route ${routeLabel()} has been cancelled.',
+              ar: 'تم إلغاء الرحلة ${routeLabel()}.'),
+          reason.isNotEmpty
+              ? _pick(locale, fr: 'Motif : $reason', en: 'Reason: $reason', ar: 'السبب: $reason')
+              : null,
+        ]),
+      };
+
     case 'ROUTE_UPDATED':
     default:
       return {

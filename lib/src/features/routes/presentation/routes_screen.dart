@@ -112,11 +112,6 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
   }
 
   Future<void> _startRoute(String id) => _doAction(() async {
-        final pt = await LocationService().currentPosition();
-        if (pt != null) {
-          await ref.read(profileRepositoryProvider).updateLocation(pt.lat, pt.lng);
-        }
-
         // A route can't run while the driver is offline — auto-pass "En service".
         final status = ref.read(driverProfileProvider).valueOrNull?.onlineStatus;
         if (status != 'ONLINE') {
@@ -128,7 +123,21 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
           }
         }
 
+        // Start immediately — never block the swipe on a GPS fix (getCurrentPosition can take
+        // up to 10s indoors, which makes the button feel dead). The location stamp is non-essential
+        // here and background tracking refreshes it anyway, so do it best-effort after the start.
         await ref.read(routeRepositoryProvider).start(id);
+
+        unawaited(() async {
+          try {
+            final pt = await LocationService().currentPosition();
+            if (pt != null) {
+              await ref.read(profileRepositoryProvider).updateLocation(pt.lat, pt.lng);
+            }
+          } catch (_) {
+            // Best-effort: a missing/slow location must never affect the started route.
+          }
+        }());
       });
 
   Future<void> _confirmPickup(String routeId, String stopId) => _doAction(() async {

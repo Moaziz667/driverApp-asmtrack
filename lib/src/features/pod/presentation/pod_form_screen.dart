@@ -44,7 +44,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   late Map<String, int> _itemsDone;
   late Map<String, String> _itemOutcomes;
   late Map<String, String?> _itemReasons;
-  late Map<String, TextEditingController> _itemCommentControllers;
 
   /// Admin-configured failure reasons (same referential as the full-failure sheet).
   /// Empty until loaded / when offline → the per-item cards fall back to the built-in list.
@@ -56,13 +55,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     _itemsDone = {};
     _itemOutcomes = {};
     _itemReasons = {};
-    _itemCommentControllers = {};
     for (final item in widget.args.delivery.items) {
       final key = item.sku ?? item.name;
       _itemsDone[key] = item.quantity;
       _itemOutcomes[key] = 'DELIVERED';
       _itemReasons[key] = null;
-      _itemCommentControllers[key] = TextEditingController();
     }
     _loadReasons();
   }
@@ -79,9 +76,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   @override
   void dispose() {
     _notesController.dispose();
-    for (final ctrl in _itemCommentControllers.values) {
-      ctrl.dispose();
-    }
     super.dispose();
   }
 
@@ -168,7 +162,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       outcome: _itemOutcomes[key] ?? 'DELIVERED',
       reason: _itemReasons[key],
       adminReasons: _adminReasons,
-      commentController: _itemCommentControllers[key]!,
       locale: locale,
       onOutcome: (v) => setState(() {
         _itemOutcomes[key] = v;
@@ -200,26 +193,27 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
         itemsArray = _itemsDone.entries.map((e) {
           final outcome = _itemOutcomes[e.key] ?? 'DELIVERED';
           final reason = _itemReasons[e.key];
-          final comment = _itemCommentControllers[e.key]?.text.trim();
           final plannedQty = widget.args.delivery.items
               .firstWhere((i) => (i.sku ?? i.name) == e.key, orElse: () => widget.args.delivery.items.first)
               .quantity;
           final isPartialQty = outcome == 'DELIVERED' && e.value < plannedQty;
           final sendReason = kPodRequiresReason.contains(outcome) || isPartialQty;
+          // Per-item free-text removed — the motif (reason) carries the per-line detail; the single
+          // optional POD note ([_notesController]) covers any general remark.
           return PartialDeliveryItem(
             sku: e.key,
             quantityDone: e.value,
             outcome: outcome,
             reason: sendReason ? reason : null,
-            comment: comment?.isNotEmpty == true ? comment : null,
+            comment: null,
           );
         }).toList();
       }
 
       try {
-        // Online → multipart binary upload; offline / network drop → the repo
-        // falls back to the base64 endpoint via the offline queue.
-        await ref.read(deliveryRepositoryProvider).submitPodMultipart(
+        // POD via the base64 JSON endpoint (transactional end-to-end on the backend);
+        // the repo handles the online POST and the offline-queue fallback.
+        await ref.read(deliveryRepositoryProvider).submitPodPhotos(
               widget.args.delivery.id,
               bonLivraisonBytes: _bonLivraisonBytes!,
               packageBytes: _packageBytes!,

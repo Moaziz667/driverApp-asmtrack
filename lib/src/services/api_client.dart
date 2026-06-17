@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode, debugPrint;
 import 'package:flutter_appauth/flutter_appauth.dart';
 import 'package:sentry_dio/sentry_dio.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
@@ -98,6 +98,20 @@ class ApiClient {
         },
       ),
     );
+
+    // DEV-ONLY: print request bodies + responses/errors to the console so API bugs
+    // (wrong payload, 4xx) are visible in `flutter run`. Compiled out of release builds.
+    if (kDebugMode) {
+      dio.interceptors.add(LogInterceptor(
+        request: true,
+        requestHeader: false,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        logPrint: (o) => debugPrint(o.toString()),
+      ));
+    }
 
     // Capture failed HTTP calls + leave request breadcrumbs (path/status only —
     // never bodies/headers, so tokens & PII stay out of Sentry).
