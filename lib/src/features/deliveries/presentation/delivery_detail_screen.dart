@@ -119,7 +119,9 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 onFail: () async {
                   final reasons = await ref.read(deliveryRepositoryProvider).fetchFailureReasons();
                   if (!context.mounted) return;
-                  final reason = await _showFailSheet(context, reasons);
+                  // Full-visit failure: only motifs configured for the FAILURE context.
+                  final failureReasons = reasons.where((r) => r.appliesTo.contains('FAILURE')).toList();
+                  final reason = await _showFailSheet(context, failureReasons);
                   if (reason == null) return;
                   await _perform(() => ref.read(deliveryRepositoryProvider).fail(
                         delivery.id,

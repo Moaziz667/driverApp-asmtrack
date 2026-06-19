@@ -97,20 +97,25 @@ class FailureCode {
 /// Configurable failure reason fetched from the backend referential.
 /// Falls back to the static [FailureReason] enum when offline.
 class FailureReasonOption {
-  const FailureReasonOption({required this.code, required this.label, this.category});
+  const FailureReasonOption({required this.code, required this.label, this.category, this.appliesTo = const ['FAILURE']});
   final String code;
   final String label;
   final String? category;
+
+  /// Where this motif is offered: FAILURE | ITEM_REFUSED | ITEM_DAMAGED | ITEM_MISSING.
+  final List<String> appliesTo;
 
   factory FailureReasonOption.fromJson(Map<String, dynamic> json) => FailureReasonOption(
         code: json['code'] as String? ?? 'OTHER',
         label: json['label'] as String? ?? (json['code'] as String? ?? 'Autre'),
         category: json['category'] as String?,
+        appliesTo: (json['appliesTo'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const ['FAILURE'],
       );
 
   /// Static fallback derived from the legacy enum (used when the API is unreachable).
+  /// Legacy categories are full-visit failures, so they apply to the FAILURE context.
   static List<FailureReasonOption> get fallback => FailureReason.values
-      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.label, category: r.apiCode.value))
+      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.label, category: r.apiCode.value, appliesTo: const ['FAILURE']))
       .toList();
 }
 

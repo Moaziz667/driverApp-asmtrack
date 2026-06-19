@@ -41,14 +41,14 @@ const kPodReasonsByOutcome = {
 
 const kPodRequiresReason = {'REFUSED', 'DAMAGED', 'MISSING'};
 
-/// Per-item outcomes whose reasons come from the admin failure-reason referential (same motifs as the
-/// full-failure sheet), mapped to the categories that make sense at the item level. Only REFUSED and
-/// DAMAGED map cleanly; the route-level categories (CLIENT_ABSENT / WRONG_ADDRESS / OTHER) don't apply
-/// to a single parcel. Outcomes NOT listed here (MISSING, short-quantity DELIVERED) use the built-in
-/// operational list [kPodReasonsByOutcome] — the admin referential doesn't model those stock cases.
-const kPodOutcomeCategories = {
-  'REFUSED': ['REFUSED'],
-  'DAMAGED': ['DAMAGED'],
+/// Per-item outcome → admin applicability context. The reason chips for each outcome come from the
+/// admin failure-reason referential, filtered by the motif's `appliesTo` context (set by the admin —
+/// not hardcoded here). Short-quantity DELIVERED lines map to ITEM_MISSING (a stock shortfall). When the
+/// admin has no motif for a context, or we're offline, the built-in [kPodReasonsByOutcome] is the fallback.
+const kPodOutcomeContexts = {
+  'REFUSED': 'ITEM_REFUSED',
+  'DAMAGED': 'ITEM_DAMAGED',
+  'MISSING': 'ITEM_MISSING',
 };
 
 String podOutcomeLabel(String outcome, String locale) {
@@ -439,13 +439,15 @@ class PodItemOutcomeRow extends StatelessWidget {
   final ValueChanged<int> onQty;
   final ValueChanged<String> onReason;
 
-  /// Resolves the reason chips for the current outcome. REFUSED/DAMAGED pull the admin-configured
-  /// motifs for their category; every other outcome (MISSING, short-quantity) — and any case where the
-  /// admin has no motif in that category, or we're offline — uses the built-in [kPodReasonsByOutcome].
+  /// Resolves the reason chips for the current outcome from the admin referential, filtered by the
+  /// motif's `appliesTo` context. Short-quantity DELIVERED lines use the ITEM_MISSING context. Falls back
+  /// to the built-in [kPodReasonsByOutcome] when the admin has no motif for that context or we're offline.
   List<({String code, String label})> _reasonChips() {
-    final cats = kPodOutcomeCategories[outcome];
-    if (cats != null && adminReasons.isNotEmpty) {
-      final filtered = adminReasons.where((r) => r.category != null && cats.contains(r.category)).toList();
+    final plannedQty = item.quantity as int;
+    final isPartialQty = outcome == 'DELIVERED' && currentQty < plannedQty;
+    final context = isPartialQty ? 'ITEM_MISSING' : kPodOutcomeContexts[outcome];
+    if (context != null && adminReasons.isNotEmpty) {
+      final filtered = adminReasons.where((r) => r.appliesTo.contains(context)).toList();
       if (filtered.isNotEmpty) {
         return filtered.map((r) => (code: r.code, label: r.label)).toList();
       }
