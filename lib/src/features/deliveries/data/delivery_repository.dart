@@ -53,10 +53,17 @@ class DeliveryRepository {
     }
   }
 
-  Future<List<DriverDelivery>> fetchHistory() async {
-    final response = await _client.dio.get<List<dynamic>>('/api/driver/history');
-    final list = response.data ?? [];
-    return list.map((e) => DriverDelivery.fromJson(e as Map<String, dynamic>)).toList();
+  /// Paginated driver history. The endpoint returns `{ items: [...], hasNext }` (server-side paged,
+  /// Slice-based). Returns the page's items plus whether more pages exist (drives infinite scroll).
+  Future<({List<DriverDelivery> items, bool hasNext})> fetchHistory({int page = 0, int size = 20}) async {
+    final response = await _client.dio.get<Map<String, dynamic>>(
+      '/api/driver/history',
+      queryParameters: {'page': page, 'size': size},
+    );
+    final data = response.data ?? <String, dynamic>{};
+    final list = (data['items'] as List<dynamic>? ?? const []);
+    final items = list.map((e) => DriverDelivery.fromJson(e as Map<String, dynamic>)).toList();
+    return (items: items, hasNext: data['hasNext'] as bool? ?? false);
   }
 
   Future<DriverDelivery> fetchById(String id) async {

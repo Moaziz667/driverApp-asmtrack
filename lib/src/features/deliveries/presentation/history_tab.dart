@@ -50,31 +50,55 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final historyAsync = ref.watch(driverHistoryProvider);
+    final state = ref.watch(driverHistoryProvider);
+    final notifier = ref.read(driverHistoryProvider.notifier);
+
     return RefreshIndicator(
       color: cs.primary,
       backgroundColor: cs.surfaceContainerLow,
-      onRefresh: () async => ref.invalidate(driverHistoryProvider),
-      child: historyAsync.when(
-        data: (history) {
-          final filtered = history.where((d) {
-            final matchesStatus = _filter.matches(d.status);
-            if (!matchesStatus) return false;
-            
-            if (_dateRange != null) {
-              final timestamp = d.timestamps['completedAt'] ??
-                  d.timestamps['failedAt'] ??
-                  d.timestamps['cancelledAt'] ??
-                  d.timestamps['createdAt'];
-              if (timestamp == null) return false;
-              return timestamp.isAfter(_dateRange!.start) && 
-                     timestamp.isBefore(_dateRange!.end.add(const Duration(days: 1)));
+      onRefresh: () => notifier.loadFirst(),
+      child: Builder(builder: (context) {
+        // First page in flight (nothing loaded yet).
+        if (state.loading && state.items.isEmpty) {
+          return const LoadingState(message: 'Chargement de l\'archive…');
+        }
+        // Failed before any page loaded → offline/retry state.
+        if (state.error != null && state.items.isEmpty) {
+          return EmptyState(
+            icon: PhosphorIconsRegular.cloudSlash,
+            title: 'Historique hors ligne',
+            action: () => notifier.loadFirst(),
+            actionLabel: 'Réessayer',
+          );
+        }
+
+        // Client-side narrowing over the loaded pages (status/date) — infinite scroll loads more.
+        final filtered = state.items.where((d) {
+          final matchesStatus = _filter.matches(d.status);
+          if (!matchesStatus) return false;
+          if (_dateRange != null) {
+            final timestamp = d.timestamps['completedAt'] ??
+                d.timestamps['failedAt'] ??
+                d.timestamps['cancelledAt'] ??
+                d.timestamps['createdAt'];
+            if (timestamp == null) return false;
+            return timestamp.isAfter(_dateRange!.start) &&
+                   timestamp.isBefore(_dateRange!.end.add(const Duration(days: 1)));
+          }
+          return true;
+        }).toList();
+
+        return NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            if (n.metrics.pixels >= n.metrics.maxScrollExtent - 240 &&
+                state.hasNext && !state.loadingMore) {
+              notifier.loadMore();
             }
-            return true;
-          }).toList();
-          return ListView.builder(
+            return false;
+          },
+          child: ListView.builder(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-            itemCount: filtered.isEmpty ? 2 : filtered.length + 1,
+            itemCount: filtered.isEmpty ? 2 : (filtered.length + 1 + (state.loadingMore ? 1 : 0)),
             itemBuilder: (context, index) {
               if (index == 0) {
                 return _ArchiveHeader(
@@ -93,22 +117,22 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
                   subtitle: 'Les livraisons terminées apparaîtront ici.',
                 );
               }
+              // Trailing loader while the next page is being appended.
+              if (state.loadingMore && index == filtered.length + 1) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
               final delivery = filtered[index - 1];
               return Padding(
                 padding: const EdgeInsets.only(top: 12),
                 child: _HistoryTile(delivery: delivery),
               );
             },
-          );
-        },
-        loading: () => const LoadingState(message: 'Chargement de l\'archive…'),
-        error: (_, __) => EmptyState(
-          icon: PhosphorIconsRegular.cloudSlash,
-          title: 'Historique hors ligne',
-          action: () => ref.invalidate(driverHistoryProvider),
-          actionLabel: 'Réessayer',
-        ),
-      ),
+          ),
+        );
+      }),
     );
   }
 }

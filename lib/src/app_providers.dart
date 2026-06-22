@@ -108,9 +108,77 @@ final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) {
   return repo.fetchActive();
 });
 
-final driverHistoryProvider = FutureProvider<List<DriverDelivery>>((ref) {
-  final repo = ref.watch(deliveryRepositoryProvider);
-  return repo.fetchHistory();
+/// Paginated, infinite-scroll driver history — accumulates pages + tracks whether more exist.
+class HistoryState {
+  const HistoryState({
+    this.items = const [],
+    this.hasNext = false,
+    this.loading = true,
+    this.loadingMore = false,
+    this.error,
+  });
+  final List<DriverDelivery> items;
+  final bool hasNext;
+  final bool loading;      // first page in flight
+  final bool loadingMore;  // appending a page
+  final Object? error;
+
+  HistoryState copyWith({
+    List<DriverDelivery>? items,
+    bool? hasNext,
+    bool? loading,
+    bool? loadingMore,
+    Object? error,
+    bool clearError = false,
+  }) =>
+      HistoryState(
+        items: items ?? this.items,
+        hasNext: hasNext ?? this.hasNext,
+        loading: loading ?? this.loading,
+        loadingMore: loadingMore ?? this.loadingMore,
+        error: clearError ? null : (error ?? this.error),
+      );
+}
+
+class DriverHistoryNotifier extends StateNotifier<HistoryState> {
+  DriverHistoryNotifier(this._repo) : super(const HistoryState()) {
+    loadFirst();
+  }
+  final DeliveryRepository _repo;
+  int _page = 0;
+  static const int _size = 20;
+
+  Future<void> loadFirst() async {
+    state = const HistoryState(loading: true);
+    try {
+      final r = await _repo.fetchHistory(page: 0, size: _size);
+      _page = 0;
+      state = HistoryState(items: r.items, hasNext: r.hasNext, loading: false);
+    } catch (e) {
+      state = HistoryState(loading: false, error: e);
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (state.loadingMore || state.loading || !state.hasNext) return;
+    state = state.copyWith(loadingMore: true);
+    try {
+      final r = await _repo.fetchHistory(page: _page + 1, size: _size);
+      _page += 1;
+      state = state.copyWith(
+        items: [...state.items, ...r.items],
+        hasNext: r.hasNext,
+        loadingMore: false,
+      );
+    } catch (_) {
+      state = state.copyWith(loadingMore: false);
+    }
+  }
+}
+
+final driverHistoryProvider =
+    StateNotifierProvider.autoDispose<DriverHistoryNotifier, HistoryState>((ref) {
+  return DriverHistoryNotifier(ref.watch(deliveryRepositoryProvider));
 });
 
 final driverProfileProvider = FutureProvider<DriverProfile>((ref) {
