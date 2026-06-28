@@ -5,22 +5,64 @@ import 'package:google_fonts/google_fonts.dart';
 import 'status_colors.dart';
 import 'tokens.dart';
 
+/// Branded page transition: a fade combined with a short upward slide — the
+/// "fade-through" motion used across enterprise apps. Applied to every platform
+/// so push/pop feels identical and intentional rather than the stock platform default.
+class _FadeThroughPageTransitionsBuilder extends PageTransitionsBuilder {
+  const _FadeThroughPageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) {
+    final fade = CurvedAnimation(
+      parent: animation,
+      curve: const Interval(0.15, 1.0, curve: Curves.easeOut),
+      reverseCurve: Curves.easeIn,
+    );
+    final slide = Tween<Offset>(begin: const Offset(0, 0.035), end: Offset.zero).animate(
+      CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+    );
+    return FadeTransition(
+      opacity: fade,
+      child: SlideTransition(position: slide, child: child),
+    );
+  }
+}
+
+const PageTransitionsTheme _appPageTransitions = PageTransitionsTheme(
+  builders: {
+    TargetPlatform.android: _FadeThroughPageTransitionsBuilder(),
+    TargetPlatform.iOS: _FadeThroughPageTransitionsBuilder(),
+    TargetPlatform.fuchsia: _FadeThroughPageTransitionsBuilder(),
+    TargetPlatform.linux: _FadeThroughPageTransitionsBuilder(),
+    TargetPlatform.macOS: _FadeThroughPageTransitionsBuilder(),
+    TargetPlatform.windows: _FadeThroughPageTransitionsBuilder(),
+  },
+);
+
 ThemeData buildLightTheme() {
+  // Brand-aligned with the admin app (Control Tower light): ASM blue #0972D3, white surfaces.
   final colorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF5E6AD2),
+    seedColor: const Color(0xFF0972D3),
     secondary: const Color(0xFF10B981),
     brightness: Brightness.light,
-    primary: const Color(0xFF5E6AD2),
-    surface: const Color(0xFFF8FAFC),
-    onSurface: const Color(0xFF0F172A),
-    surfaceContainerLow: Colors.white,
-    outlineVariant: const Color(0xFFE2E8F0),
+    primary: const Color(0xFF0972D3),
+    surface: const Color(0xFFFFFFFF),
+    onSurface: const Color(0xFF0F141A),
+    surfaceContainerLow: const Color(0xFFFFFFFF),
+    outlineVariant: const Color(0xFFE9EBED),
   );
   return ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
-    scaffoldBackgroundColor: colorScheme.surface,
-    textTheme: GoogleFonts.outfitTextTheme().apply(
+    pageTransitionsTheme: _appPageTransitions,
+    scaffoldBackgroundColor: const Color(0xFFFCFCFC), // admin --app-bg (canvas slightly off-white)
+    textTheme: GoogleFonts.openSansTextTheme().apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
     ),
@@ -43,8 +85,8 @@ ThemeData buildLightTheme() {
     ),
     cardTheme: CardThemeData(
       color: colorScheme.surfaceContainerLow,
-      elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         side: BorderSide(color: colorScheme.outlineVariant, width: 1.0),
@@ -125,21 +167,24 @@ ThemeData buildLightTheme() {
 }
 
 ThemeData buildDarkTheme() {
+  // Brand-aligned with the admin app (Control Tower dark): Signal Blue #539FE5 on graphite navy
+  // (canvas #0F1B2A, cards #1B2530), so the driver app reads as the same product as the dashboard.
   final colorScheme = ColorScheme.fromSeed(
-    seedColor: const Color(0xFF5E6AD2),
+    seedColor: const Color(0xFF539FE5),
     secondary: const Color(0xFF10B981),
     brightness: Brightness.dark,
-    primary: const Color(0xFF5E6AD2),
-    surface: const Color(0xFF0A0B10),
-    onSurface: const Color(0xFFF8FAFC),
-    surfaceContainerLow: const Color(0xFF121824),
-    outlineVariant: const Color(0xFF1E293B),
+    primary: const Color(0xFF539FE5),
+    surface: const Color(0xFF1B2530),
+    onSurface: const Color(0xFFE9EBED),
+    surfaceContainerLow: const Color(0xFF232F3E),
+    outlineVariant: const Color(0xFF2B3640),
   );
   return ThemeData(
     useMaterial3: true,
     colorScheme: colorScheme,
-    scaffoldBackgroundColor: colorScheme.surface,
-    textTheme: GoogleFonts.outfitTextTheme().apply(
+    pageTransitionsTheme: _appPageTransitions,
+    scaffoldBackgroundColor: const Color(0xFF0F1B2A), // admin --app-bg (canvas darker than cards)
+    textTheme: GoogleFonts.openSansTextTheme().apply(
       bodyColor: colorScheme.onSurface,
       displayColor: colorScheme.onSurface,
     ),
@@ -162,8 +207,8 @@ ThemeData buildDarkTheme() {
     ),
     cardTheme: CardThemeData(
       color: colorScheme.surfaceContainerLow,
-      elevation: 8,
-      shadowColor: Colors.black.withValues(alpha: 0.3),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         side: BorderSide(color: colorScheme.outlineVariant, width: 1.0),

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../app_providers.dart';
+import '../../../theme/tokens.dart';
 import 'login_screen.dart';
 
 class SetupAccountScreen extends ConsumerStatefulWidget {
@@ -189,7 +190,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     return Scaffold(
       body: Column(
         children: [
-          Container(
+          SizedBox(
             width: double.infinity,
             child: SafeArea(
               bottom: false,
@@ -248,7 +249,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                       decoration: BoxDecoration(
                         color: colorScheme.primaryContainer,
                         border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -314,7 +315,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         decoration: BoxDecoration(
                           color: colorScheme.surfaceContainerHighest,
                           border: Border.all(color: colorScheme.outlineVariant),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +362,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer,
                           border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                         ),
                         child: Row(
                           children: [

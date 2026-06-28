@@ -118,7 +118,10 @@ class ApiClient {
     dio.addSentry(captureFailedRequests: true);
   }
 
-  final AppConfig config;
+  // Mutable: updated in place when the workspace/server URL changes (see apiClientProvider), so the
+  // OIDC endpoints used at login (derived from config.keycloakBaseUrl) follow the new host too —
+  // without rebuilding the client (which would dispose the auth chain mid-flight).
+  AppConfig config;
   final TokenStorage tokenStorage;
 
   /// Invoked once when the session ends. Carries the [SessionEndReason] so the

@@ -10,10 +10,31 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:driver_app/src/app.dart';
+import 'package:driver_app/src/app_providers.dart';
+import 'package:driver_app/src/services/token_storage.dart';
+import 'package:driver_app/src/models/auth_tokens.dart';
+
+class FakeTokenStorage extends TokenStorage {
+  @override
+  Future<String?> readApiBaseUrl() async => 'http://10.86.194.125';
+
+  @override
+  Future<AuthTokens?> readTokens() async => null;
+
+  @override
+  Future<List<int>> getOrCreateDbKey() async => List<int>.generate(32, (i) => i);
+}
 
 void main() {
   testWidgets('Driver shell renders without crashing', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: DriverApp()));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(FakeTokenStorage()),
+        ],
+        child: const DriverApp(),
+      ),
+    );
 
     expect(find.byType(MaterialApp), findsOneWidget);
   });

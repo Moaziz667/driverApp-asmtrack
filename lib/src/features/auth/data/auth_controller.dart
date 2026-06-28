@@ -20,26 +20,42 @@ class AuthController extends StateNotifier<AuthState> {
   final Ref _ref;
 
   Future<void> bootstrap() async {
-    final apiUrl = await _tokenStorage.readApiBaseUrl();
-    if (!mounted) return;
-    if (apiUrl == null || apiUrl.isEmpty) {
-      state = const AuthState(status: AuthStatus.needsWorkspace);
-      return;
-    }
-    
-    // Set the state provider synchronously so ApiClient is updated before tokens are validated
-    _ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(apiUrl);
+    debugPrint('[BOOT] start');
+    try {
+      final apiUrl = await _tokenStorage.readApiBaseUrl();
+      debugPrint('[BOOT] apiUrl read (mounted=$mounted)');
+      if (!mounted) return;
 
-    final tokens = await _tokenStorage.readTokens();
-    if (!mounted) return;
-    if (tokens == null) {
-      state = const AuthState(status: AuthStatus.unauthenticated);
-      return;
+      final resolvedUrl = (apiUrl == null || apiUrl.isEmpty)
+          ? const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.86.194.125')
+          : apiUrl;
+
+      // Set the state provider synchronously so ApiClient is updated before tokens are validated
+      _ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(resolvedUrl);
+      debugPrint('[BOOT] config set -> $resolvedUrl');
+
+      final tokens = await _tokenStorage.readTokens();
+      debugPrint('[BOOT] tokens read: hasToken=${tokens != null} (mounted=$mounted)');
+      if (!mounted) return;
+      if (tokens == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        debugPrint('[BOOT] -> unauthenticated');
+        return;
+      }
+      state = state.copyWith(status: AuthStatus.authenticated, isLoading: false, error: null);
+      debugPrint('[BOOT] -> authenticated');
+      // Defer FCM init so any overlay-driven navigation (FCM notification tap)
+      // doesn't race against the Navigator's overlay being laid out.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _fcm.init().ignore());
+    } catch (e, stack) {
+      debugPrint('[AuthController bootstrap error] $e\n$stack');
+      try {
+        await _tokenStorage.clear();
+      } catch (_) {}
+      if (mounted) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+      }
     }
-    state = state.copyWith(status: AuthStatus.authenticated, isLoading: false, error: null);
-    // Defer FCM init so any overlay-driven navigation (FCM notification tap)
-    // doesn't race against the Navigator's overlay being laid out.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fcm.init().ignore());
   }
 
   Future<void> login({String? email, String? password}) async {

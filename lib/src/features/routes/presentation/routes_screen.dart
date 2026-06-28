@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -13,7 +12,7 @@ import '../../deliveries/presentation/delivery_detail_screen.dart';
 import '../../deliveries/presentation/handoff_scanner_screen.dart';
 import '../../deliveries/presentation/handoff_token_sheet.dart';
 import '../models/route_models.dart';
-import 'widgets/route_map_view.dart';
+import 'widgets/route_list_view.dart';
 
 class RoutesScreen extends ConsumerStatefulWidget {
   const RoutesScreen({super.key});
@@ -23,14 +22,10 @@ class RoutesScreen extends ConsumerStatefulWidget {
 }
 
 class _RoutesScreenState extends ConsumerState<RoutesScreen> {
-  final _mapController = MapController();
   bool _isWorking = false;
-  final _sheetController = DraggableScrollableController();
 
   @override
   void dispose() {
-    _mapController.dispose();
-    _sheetController.dispose();
     super.dispose();
   }
 
@@ -241,12 +236,10 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: routeAsync.when(
-        data: (route) => RouteMapView(
+        data: (route) => RouteListView(
           route: route,
           isWorking: _isWorking,
           locale: locale,
-          mapController: _mapController,
-          sheetController: _sheetController,
           onStart: route == null ? null : () => _startRoute(route.id),
           onConfirmPickup: route == null ? null : (stopId) => _confirmPickup(route.id, stopId),
           onStartTransit: _startTransit,

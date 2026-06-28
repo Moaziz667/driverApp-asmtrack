@@ -422,7 +422,25 @@ class _HomeShellState extends ConsumerState<HomeShell> {
             HomeTopBar(onOpenNotifications: _showNotificationPanel),
             const OfflineStatusBar(),
             Expanded(
-              child: IndexedStack(index: activeIndex, children: pages),
+              // Cross-fade between tabs (enterprise "fade-through") while keeping
+              // every page alive so scroll position and state survive tab switches.
+              child: Stack(
+                children: [
+                  for (var i = 0; i < pages.length; i++)
+                    AnimatedOpacity(
+                      opacity: i == activeIndex ? 1.0 : 0.0,
+                      duration: const Duration(milliseconds: 220),
+                      curve: i == activeIndex ? Curves.easeOut : Curves.easeIn,
+                      child: IgnorePointer(
+                        ignoring: i != activeIndex,
+                        child: TickerMode(
+                          enabled: i == activeIndex,
+                          child: pages[i],
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ],
         ),

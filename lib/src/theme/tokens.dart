@@ -22,18 +22,19 @@ class AppTokens {
   static const double space48 = 48.0;
   static const double space56 = 56.0;
 
-  // ── Radius scale ───────────────────────────────────────────────────────────
-  static const double radiusSm   = 8.0;
-  static const double radiusMd   = 12.0;
-  static const double radiusLg   = 16.0;
-  static const double radiusXl   = 24.0;
-  static const double radius2xl  = 28.0;
+  // ── Radius scale ── aligned with the admin app (Control Tower) so cards/inputs/sheets share the
+  //    same roundness as the dashboard: xs2 / sm4 / md8 / lg8 / xl12 / 2xl16.
+  static const double radiusSm   = 4.0;
+  static const double radiusMd   = 8.0;
+  static const double radiusLg   = 8.0;
+  static const double radiusXl   = 12.0;
+  static const double radius2xl  = 16.0;
   static const double radiusFull = 9999.0;
 
   // ── Semantic colors ────────────────────────────────────────────────────────
   static const Color successGreen = Color(0xFF10B981);
   static const Color warningAmber = Color(0xFFF59E0B);
-  static const Color infoBlue     = Color(0xFF5E6AD2);
+  static const Color infoBlue     = Color(0xFF3E6AE1);
   static const Color dangerRed    = Color(0xFFC7372F);
 
   // ── Elevation (shadows) ────────────────────────────────────────────────────

@@ -34,12 +34,19 @@ final connectionStatusProvider = StreamProvider<bool>((ref) {
 });
 
 final apiClientProvider = Provider<ApiClient>((Ref ref) {
-  final config = ref.watch(appConfigProvider);
-  final storage = ref.watch(tokenStorageProvider);
-  return ApiClient(
-    config: config,
-    tokenStorage: storage,
+  // Read (don't watch) the config so a workspace/server-URL change does NOT rebuild this provider.
+  // Watching it would dispose the whole dependent chain — including the AuthController — mid-flight
+  // (e.g. when bootstrap() sets appConfig), aborting startup and freezing the app on the splash.
+  // Instead, update the base URL in place when the config changes.
+  final client = ApiClient(
+    config: ref.read(appConfigProvider),
+    tokenStorage: ref.read(tokenStorageProvider),
   );
+  ref.listen<AppConfig>(appConfigProvider, (_, next) {
+    client.config = next;                          // OIDC endpoints (login) follow the new host
+    client.dio.options.baseUrl = next.apiBaseUrl;  // REST calls follow the new host
+  });
+  return client;
 });
 
 final authRepositoryProvider = Provider<AuthRepository>((Ref ref) {

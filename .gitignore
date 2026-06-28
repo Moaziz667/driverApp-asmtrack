@@ -27,6 +27,9 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+
+# Golden-test failure artifacts (regenerated on each failing run)
+test/**/failures/
 .flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
@@ -43,3 +46,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local backend config (use env.example.json as template)
+/env.json

@@ -214,36 +214,41 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                       itemBuilder: (_, i) {
                         final reason = options[i];
                         final isSelected = reason.code == selected.code;
-                        return GestureDetector(
-                          onTap: () => setModal(() => selected = reason),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                            decoration: BoxDecoration(
-                              color: isSelected ? cs.errorContainer : cs.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isSelected ? cs.error.withValues(alpha: 0.4) : cs.outlineVariant,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(
-                                  isSelected ? PhosphorIconsFill.radioButton : PhosphorIconsRegular.circle,
-                                  color: isSelected ? cs.error : cs.onSurfaceVariant,
-                                  size: 18,
+                        return Material(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () => setModal(() => selected = reason),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              decoration: BoxDecoration(
+                                color: isSelected ? cs.errorContainer : cs.surfaceContainerLow,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: isSelected ? cs.error.withValues(alpha: 0.4) : cs.outlineVariant,
                                 ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    reason.label,
-                                    style: TextStyle(
-                                      color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
-                                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                                      fontSize: 14,
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isSelected ? PhosphorIconsFill.radioButton : PhosphorIconsRegular.circle,
+                                    color: isSelected ? cs.error : cs.onSurfaceVariant,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: Text(
+                                      reason.label,
+                                      style: TextStyle(
+                                        color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
+                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         );
@@ -262,14 +267,20 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
+                    height: 56,
                     child: FilledButton.icon(
                       onPressed: () => Navigator.pop(context, true),
                       icon: const Icon(PhosphorIconsBold.flagPennant),
-                      label: Text(DriverCopy.get('delivery_detail_fail_submit', locale)),
+                      label: Text(
+                        DriverCopy.get('delivery_detail_fail_submit', locale),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
                       style: FilledButton.styleFrom(
                         backgroundColor: cs.error,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
