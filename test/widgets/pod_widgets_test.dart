@@ -1,8 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 import 'package:driver_app/src/features/pod/presentation/widgets/pod_widgets.dart';
 import 'package:driver_app/src/services/locale_provider.dart';
@@ -43,6 +44,7 @@ void main() {
           onCapture: () {},
           onClear: () {},
           locale: 'fr',
+          icon: LucideIcons.fileText,
         ),
       );
       expect(find.text(DriverCopy.get('pod_photo_tap_hint', 'fr')), findsOneWidget);
@@ -60,6 +62,7 @@ void main() {
           onCapture: () {},
           onClear: () {},
           locale: 'en',
+          icon: LucideIcons.fileText,
         ),
       );
       expect(find.text(DriverCopy.get('pod_photo_retake', 'en')), findsOneWidget);
@@ -77,6 +80,7 @@ void main() {
           onCapture: () {},
           onClear: () {},
           locale: 'fr',
+          icon: LucideIcons.fileText,
         ),
       );
       await expectLater(
@@ -95,7 +99,6 @@ void main() {
           currentQty: 5,
           outcome: 'DELIVERED',
           reason: null,
-          commentController: TextEditingController(),
           locale: 'fr',
           onOutcome: (_) {},
           onQty: (_) {},

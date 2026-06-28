@@ -96,7 +96,7 @@ class AuthRepository {
   }
 
   Future<AuthPayload> register({required String name, required String phone, required String password}) async {
-    throw UnimplementedError('Registration is now handled via Keycloak invites.');
+    throw UnimplementedError('Registration is handled via admin invitation.');
   }
 
   Future<void> logout() async {

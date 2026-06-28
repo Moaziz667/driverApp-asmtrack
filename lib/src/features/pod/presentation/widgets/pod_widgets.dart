@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' show PathMetric;
 
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -145,6 +146,63 @@ class _Card extends StatelessWidget {
   }
 }
 
+// ─── Dashed Border Painter ───────────────────────────────────────────────────
+class DashedRectPainter extends CustomPainter {
+  DashedRectPainter({
+    required this.color,
+    this.strokeWidth = 1.5,
+    this.gap = 6.0,
+  });
+
+  final Color color;
+  final double strokeWidth;
+  final double gap;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = strokeWidth
+      ..style = PaintingStyle.stroke;
+
+    final path = Path()
+      ..addRRect(RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(8),
+      ));
+
+    final dashPath = _buildDashPath(path, gap);
+    canvas.drawPath(dashPath, paint);
+  }
+
+  Path _buildDashPath(Path source, double gap) {
+    final Path dest = Path();
+    for (final PathMetric metric in source.computeMetrics()) {
+      double distance = 0.0;
+      bool draw = true;
+      while (distance < metric.length) {
+        final double len = draw ? gap : gap;
+        if (draw) {
+          dest.addPath(
+            metric.extractPath(distance, distance + len),
+            Offset.zero,
+          );
+        }
+        distance += len;
+        draw = !draw;
+      }
+    }
+    return dest;
+  }
+
+  @override
+  bool shouldRepaint(covariant DashedRectPainter oldDelegate) {
+    return oldDelegate.color != color ||
+        oldDelegate.strokeWidth != strokeWidth ||
+        oldDelegate.gap != gap;
+  }
+}
+
 // ─── Instructions banner ─────────────────────────────────────────────────────
 class PodInstructionsCard extends StatelessWidget {
   const PodInstructionsCard({super.key, required this.locale});
@@ -156,21 +214,26 @@ class PodInstructionsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppTokens.space16),
       decoration: BoxDecoration(
-        color: cs.tertiary.withValues(alpha: 0.08),
+        color: cs.primary.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-        border: Border.all(color: cs.tertiary.withValues(alpha: 0.2)),
+        border: Border.all(color: cs.primary.withValues(alpha: 0.25)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(LucideIcons.clipboardCheck, size: 18, color: cs.tertiary),
+          Icon(LucideIcons.info, size: 20, color: cs.primary),
           const SizedBox(width: AppTokens.space12),
           Expanded(
             child: Text(
               '${DriverCopy.get('pod_step_1', locale)}\n'
               '${DriverCopy.get('pod_step_2', locale)}\n'
               '${DriverCopy.get('pod_step_3', locale)}',
-              style: TextStyle(fontSize: 13, color: cs.tertiary, height: 1.5, fontWeight: AppTokens.fwMedium),
+              style: TextStyle(
+                fontSize: 13,
+                color: cs.onSurface.withValues(alpha: 0.7),
+                height: 1.6,
+                fontWeight: AppTokens.fwMedium,
+              ),
             ),
           ),
         ],
@@ -188,13 +251,21 @@ class PodViewBlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return OutlinedButton.icon(
       onPressed: loading ? null : onTap,
       icon: loading
           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(LucideIcons.fileText, size: 18),
       label: Text(loading ? DriverCopy.get('pod_downloading', locale) : DriverCopy.get('pod_view_print_bl', locale)),
-      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size.fromHeight(48),
+        side: BorderSide(color: cs.outlineVariant),
+        foregroundColor: cs.onSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        ),
+      ),
     );
   }
 }
@@ -210,6 +281,7 @@ class PodPhotoSection extends StatelessWidget {
     required this.onCapture,
     required this.onClear,
     required this.locale,
+    required this.icon,
   });
 
   final String title;
@@ -219,6 +291,7 @@ class PodPhotoSection extends StatelessWidget {
   final VoidCallback onCapture;
   final VoidCallback onClear;
   final String locale;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -236,11 +309,13 @@ class PodPhotoSection extends StatelessWidget {
                   children: [
                     Row(
                       children: [
+                        Icon(icon, size: 20, color: cs.primary),
+                        const SizedBox(width: 8),
                         Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: AppTokens.fwBold)),
                         if (isRequired) Text(' *', style: TextStyle(color: cs.error, fontWeight: AppTokens.fwBold)),
                       ],
                     ),
-                    const SizedBox(height: AppTokens.space2),
+                    const SizedBox(height: AppTokens.space6),
                     Text(subtitle, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
                   ],
                 ),
@@ -258,39 +333,54 @@ class PodPhotoSection extends StatelessWidget {
           if (captured)
             ClipRRect(
               borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-              child: Image.memory(bytes!, height: 170, width: double.infinity, fit: BoxFit.cover),
+              child: Image.memory(bytes!, height: 200, width: double.infinity, fit: BoxFit.cover),
             )
           else
             GestureDetector(
               onTap: onCapture,
-              child: Container(
-                height: 130,
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainerHighest.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-                  border: Border.all(color: cs.outlineVariant),
+              child: CustomPaint(
+                painter: DashedRectPainter(
+                  color: cs.outlineVariant,
+                  strokeWidth: 1.5,
                 ),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(LucideIcons.camera, size: 30, color: cs.primary),
-                      const SizedBox(height: AppTokens.space8),
-                      Text(DriverCopy.get('pod_photo_tap_hint', locale),
-                          style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant, fontWeight: AppTokens.fwMedium)),
-                    ],
+                child: Container(
+                  height: 200,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: cs.surfaceContainerHighest.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                  ),
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: cs.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(LucideIcons.camera, size: 24, color: cs.primary),
+                        ),
+                        const SizedBox(height: AppTokens.space12),
+                        Text(
+                          DriverCopy.get('pod_photo_tap_hint', locale),
+                          style: TextStyle(fontSize: 14, color: cs.primary, fontWeight: AppTokens.fwBold),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
             ),
-          const SizedBox(height: AppTokens.space10),
+          const SizedBox(height: AppTokens.space12),
           Row(
             children: [
               OutlinedButton.icon(
                 onPressed: onCapture,
                 icon: const Icon(LucideIcons.camera, size: 16),
                 label: Text(captured ? DriverCopy.get('pod_photo_retake', locale) : DriverCopy.get('pod_photo_take', locale)),
-                // Inline (content-sized) — override the theme's full-width minimumSize.
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   minimumSize: Size.zero,
@@ -335,8 +425,10 @@ class PodNotesField extends StatelessWidget {
             children: [
               Icon(LucideIcons.stickyNote, size: 16, color: cs.onSurfaceVariant),
               const SizedBox(width: AppTokens.space8),
-              Text(DriverCopy.get('pod_comments_label', locale),
-                  style: TextStyle(fontWeight: AppTokens.fwSemiBold, color: cs.onSurface)),
+              Text(
+                locale == 'ar' ? 'تعليق' : locale == 'en' ? 'Comment' : 'Commentaire',
+                style: TextStyle(fontWeight: AppTokens.fwSemiBold, color: cs.onSurfaceVariant, fontSize: 12),
+              ),
             ],
           ),
           const SizedBox(height: AppTokens.space10),
@@ -344,7 +436,13 @@ class PodNotesField extends StatelessWidget {
             controller: controller,
             minLines: 2,
             maxLines: 5,
-            decoration: InputDecoration(hintText: DriverCopy.get('pod_comments_label', locale)),
+            decoration: InputDecoration(
+              hintText: locale == 'ar' ? 'تعليق (اختياري)' : locale == 'en' ? 'Comment (optional)' : 'Commentaire (optionnel)',
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              contentPadding: EdgeInsets.zero,
+            ),
           ),
         ],
       ),

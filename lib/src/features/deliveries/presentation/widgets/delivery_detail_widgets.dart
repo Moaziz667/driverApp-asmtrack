@@ -94,39 +94,79 @@ class HeroCard extends ConsumerWidget {
                 const SizedBox(height: 18),
                 if (delivery.clientName != null) ...[
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(PhosphorIconsRegular.user, size: 16, color: cs.primary),
-                      const SizedBox(width: 8),
-                      Text(
-                        delivery.clientName!, 
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: cs.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          PhosphorIconsFill.user, 
+                          size: 20, 
+                          color: cs.primary,
+                        ),
                       ),
-                      if (delivery.clientPhone != null) ...[
-                        const SizedBox(width: 12),
-                        GestureDetector(
-                          onTap: () => launchUrlString('tel:${delivery.clientPhone}'),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: cs.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              delivery.clientName!,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
                             ),
-                            child: Row(
-                              children: [
-                                Icon(PhosphorIconsBold.phoneCall, size: 12, color: cs.primary),
-                                const SizedBox(width: 4),
-                                Text(
-                                  delivery.clientPhone!, 
-                                  style: TextStyle(fontSize: 11, color: cs.primary, fontWeight: FontWeight.w800),
-                                ),
-                              ],
+                            if (delivery.city != null) ...[
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Icon(
+                                    PhosphorIconsRegular.mapPin, 
+                                    size: 14, 
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    delivery.city!,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: cs.onSurfaceVariant,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      if (delivery.clientPhone != null)
+                        Material(
+                          color: cs.primary,
+                          shape: const CircleBorder(),
+                          elevation: 2,
+                          child: InkWell(
+                            onTap: () => launchUrlString('tel:${delivery.clientPhone}'),
+                            customBorder: const CircleBorder(),
+                            child: const SizedBox(
+                              width: 40,
+                              height: 40,
+                              child: Icon(
+                                PhosphorIconsFill.phone, 
+                                size: 20, 
+                                color: Colors.white,
+                              ),
                             ),
                           ),
                         ),
-                      ],
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 16),
                 ],
                 Text(
                   delivery.address ?? 'Aucune adresse fournie',
@@ -137,19 +177,6 @@ class HeroCard extends ConsumerWidget {
                         letterSpacing: -0.5,
                       ),
                 ),
-                if (delivery.city != null) ...[
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(PhosphorIconsRegular.mapPin, size: 14, color: cs.onSurfaceVariant),
-                      const SizedBox(width: 6),
-                      Text(
-                        delivery.city!, 
-                        style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ],
                 const SizedBox(height: 18),
                 Divider(color: cs.outlineVariant.withValues(alpha: 0.5), height: 1),
                 const SizedBox(height: 18),
@@ -296,13 +323,13 @@ class ItemsCard extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: cs.surfaceContainerHighest,
+                          color: cs.primary.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: cs.outlineVariant),
+                          border: Border.all(color: cs.primary.withValues(alpha: 0.1)),
                         ),
                         child: Text(
                           'x${e.value.quantity}',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: cs.primary),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary),
                         ),
                       ),
                     ],

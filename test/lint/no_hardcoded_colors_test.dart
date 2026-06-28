@@ -15,7 +15,6 @@ void main() {
     'lib/src/features/home/presentation/widgets/home_widgets.dart',
     'lib/src/features/routes/presentation/route_detail_sheet.dart',
     'lib/src/features/routes/presentation/widgets/calendar_widgets.dart',
-    'lib/src/features/routes/presentation/widgets/route_map_view.dart',
   };
 
   test('no new hardcoded Color(0x…) outside lib/src/theme/', () {

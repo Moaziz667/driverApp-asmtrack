@@ -134,183 +134,192 @@ class HomeTopBar extends ConsumerWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final locale = ref.watch(localeProvider);
     final profile = ref.watch(driverProfileProvider).value;
-    final todayRoutes = ref.watch(todayRouteProvider).value;
+    final locale = ref.watch(localeProvider);
     final statusColors = theme.extension<StatusColors>()!;
 
-    final driverName = profile?.name.isNotEmpty == true ? profile!.name.split(' ').first : 'Driver';
+    final driverName = profile?.name.isNotEmpty == true ? profile!.name : 'Driver';
     final driverStatus = profile?.onlineStatus ?? 'OFFLINE';
     final initial = profile != null && profile.name.isNotEmpty
         ? profile.name[0].toUpperCase()
         : 'D';
     final statusColor = statusColors.forDriverStatus(driverStatus);
+    
+    final label = driverStatus == 'ONLINE'
+        ? DriverCopy.get('status_online_upper', locale)
+        : (driverStatus == 'ON_BREAK' ? DriverCopy.get('status_on_break_upper', locale) : DriverCopy.get('status_offline_upper', locale));
 
-    final totalStops = todayRoutes?.totalStops ?? todayRoutes?.stops.length ?? 0;
-    final completedStops = todayRoutes?.completedStops ?? 0;
-    final progress = totalStops > 0 ? completedStops / totalStops : 0.0;
-
-    final greeting = _greeting(locale);
+    final surfaceLowest = isDark ? const Color(0xFF0A0B10) : Colors.white;
 
     return SafeArea(
       bottom: false,
       child: Container(
-        padding: const EdgeInsets.fromLTRB(AppTokens.space16, AppTokens.space12, AppTokens.space16, AppTokens.space12),
+        height: 64,
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space12),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0A0B10) : const Color(0xFFF8FAFC),
+          color: surfaceLowest,
           border: Border(
             bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        // Three-zone row: identity (left) · brand (centre) · actions (right).
+        // Equal-flex sides keep the wordmark optically centred while guaranteeing
+        // the identity text truncates instead of colliding with it.
+        child: Row(
           children: [
-            Row(
-              children: [
-                // Avatar with status ring
-                Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: statusColor, width: 2.5),
-                  ),
-                  child: CircleAvatar(
-                    radius: 22,
-                    backgroundColor: cs.surfaceContainerLow,
-                    child: Text(
-                      initial,
-                      style: TextStyle(
-                        fontWeight: AppTokens.fwBold,
-                        fontSize: 15,
-                        color: cs.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppTokens.space12),
-
-                // Greeting + progress
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '$greeting, $driverName',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: AppTokens.fwBold,
-                          color: cs.onSurface,
+            // Left: identity (avatar + status/name)
+            Expanded(
+              child: Row(
+                children: [
+                  // Avatar with Status Dot
+                  SizedBox(
+                    width: 40,
+                    height: 40,
+                    child: Stack(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: cs.primary.withValues(alpha: 0.25),
+                              width: 2,
+                            ),
+                          ),
+                          child: CircleAvatar(
+                            backgroundColor: cs.surfaceContainerLow,
+                            child: Text(
+                              initial,
+                              style: TextStyle(
+                                fontWeight: AppTokens.fwBold,
+                                fontSize: 14,
+                                color: cs.primary,
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                      if (totalStops > 0) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          '$completedStops/$totalStops ${_stopsLabel(completedStops, totalStops, locale)}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: cs.onSurfaceVariant,
-                            fontWeight: AppTokens.fwMedium,
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            width: 12,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: statusColor,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: surfaceLowest,
+                                width: 2,
+                              ),
+                            ),
                           ),
                         ),
                       ],
-                    ],
+                    ),
                   ),
-                ),
-
-                // Status pill
-                _DriverStatusPill(status: driverStatus, statusColor: statusColor),
-                const SizedBox(width: AppTokens.space8),
-
-                // Handoff inbox
-                const _HandoffButton(),
-                const SizedBox(width: AppTokens.space8),
-
-                // Notification bell
-                _NotifButton(onTap: onOpenNotifications),
-              ],
-            ),
-            if (totalStops > 0) ...[
-              const SizedBox(height: AppTokens.space10),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor: cs.surfaceContainerHighest,
-                  valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
-                ),
+                  const SizedBox(width: AppTokens.space10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          label.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: AppTokens.fwBold,
+                            color: statusColor,
+                            letterSpacing: 1.2,
+                            height: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          driverName.split(' ').first,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: AppTokens.fwSemiBold,
+                            color: cs.onSurface,
+                            height: 1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
+
+            // Centre: brand wordmark
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'ASM',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w900,
+                      color: cs.primary,
+                      letterSpacing: -0.5,
+                      height: 1,
+                    ),
+                  ),
+                  Text(
+                    'TRACK',
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: AppTokens.fwBold,
+                      color: cs.primary.withValues(alpha: 0.6),
+                      letterSpacing: 1,
+                      height: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Right: actions
+            Expanded(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  const _HandoffButton(),
+                  const SizedBox(width: 2),
+                  // Sync button
+                  Material(
+                    color: Colors.transparent,
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                      onTap: () {
+                        ref.invalidate(todayRouteProvider);
+                        ref.invalidate(activeDeliveriesProvider);
+                      },
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        alignment: Alignment.center,
+                        child: Icon(
+                          PhosphorIconsRegular.arrowsClockwise,
+                          size: 22,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  _NotifButton(onTap: onOpenNotifications),
+                ],
+              ),
+            ),
           ],
         ),
-      ),
-    );
-  }
-
-  String _greeting(String locale) {
-    final hour = DateTime.now().hour;
-    if (locale == 'ar') {
-      if (hour < 12) return 'صباح الخير';
-      if (hour < 17) return 'مساء الخير';
-      return 'مساء الخير';
-    }
-    if (locale == 'en') {
-      if (hour < 12) return 'Good morning';
-      if (hour < 17) return 'Good afternoon';
-      return 'Good evening';
-    }
-    if (hour < 12) return 'Bonjour';
-    if (hour < 17) return 'Bon après-midi';
-    return 'Bonsoir';
-  }
-
-  String _stopsLabel(int done, int total, String locale) {
-    if (locale == 'ar') return 'توقف';
-    if (locale == 'en') return total == 1 ? 'stop' : 'stops';
-    return total == 1 ? 'arrêt' : 'arrêts';
-  }
-}
-
-class _DriverStatusPill extends ConsumerWidget {
-  const _DriverStatusPill({required this.status, required this.statusColor});
-  final String status;
-  final Color statusColor;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final locale = ref.watch(localeProvider);
-    final label = status == 'ONLINE'
-        ? DriverCopy.get('status_online_upper', locale)
-        : (status == 'ON_BREAK' ? DriverCopy.get('status_on_break_upper', locale) : DriverCopy.get('status_offline_upper', locale));
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space10, vertical: AppTokens.space4),
-      decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-        border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: statusColor,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: AppTokens.space6),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: AppTokens.fwBold,
-              color: statusColor,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -322,46 +331,45 @@ class _NotifButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final unread = ref.watch(unreadNotifCountProvider);
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerLow,
-          shape: BoxShape.circle,
-          border: Border.all(color: cs.outlineVariant),
-        ),
-        child: Stack(
+    
+    return Material(
+      color: cs.primary.withValues(alpha: 0.1),
+      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+        onTap: onTap,
+        child: Container(
+          width: 40,
+          height: 40,
           alignment: Alignment.center,
-          children: [
-            Icon(PhosphorIconsRegular.bell, size: 20, color: cs.onSurfaceVariant),
-            if (unread > 0)
-              Positioned(
-                top: 6,
-                right: 6,
-                child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFC7372F),
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                  child: Text(
-                    unread > 9 ? '9+' : '$unread',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 8,
-                      fontWeight: AppTokens.fwBold,
-                      height: 1,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Icon(PhosphorIconsRegular.bell, size: 22, color: cs.primary),
+              if (unread > 0)
+                Positioned(
+                  top: -2,
+                  right: -2,
+                  child: Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      color: theme.extension<StatusColors>()!.failed,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isDark ? const Color(0xFF0A0B10) : Colors.white,
+                        width: 2,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -373,33 +381,42 @@ class _HandoffButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final cs = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final count = ref.watch(handoffsProvider).valueOrNull?.length ?? 0;
-    return GestureDetector(
-      onTap: () => Navigator.of(context).pushNamed(HandoffInboxScreen.routeName),
-      child: Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          color: cs.surfaceContainerLow,
-          shape: BoxShape.circle,
-          border: Border.all(color: cs.outlineVariant),
-        ),
-        child: Stack(
+    
+    if (count == 0) return const SizedBox.shrink();
+
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+        onTap: () => Navigator.of(context).pushNamed(HandoffInboxScreen.routeName),
+        child: Container(
+          width: 40,
+          height: 40,
           alignment: Alignment.center,
-          children: [
-            Icon(PhosphorIconsRegular.arrowsLeftRight, size: 20, color: cs.onSurfaceVariant),
-            if (count > 0)
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Icon(PhosphorIconsRegular.arrowsLeftRight, size: 22, color: cs.onSurfaceVariant),
               Positioned(
-                top: 6,
-                right: 6,
+                top: -2,
+                right: -2,
                 child: Container(
-                  padding: const EdgeInsets.all(3),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFC7372F),
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: cs.primary,
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: isDark ? const Color(0xFF0A0B10) : Colors.white,
+                      width: 2,
+                    ),
                   ),
-                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
                   child: Text(
                     count > 9 ? '9+' : '$count',
                     style: const TextStyle(
@@ -412,7 +429,8 @@ class _HandoffButton extends ConsumerWidget {
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );

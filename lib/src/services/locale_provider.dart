@@ -108,7 +108,7 @@ class DriverCopy {
 
       // Splash Screen
       'splash_sub': 'Pilotage logistique',
-      'splash_loading': 'Connexion au réseau...',
+      'splash_loading': 'Chargement…',
       'splash_copyright': '(c) 2026 Opérations logistiques ASM',
 
       // Login Screen
@@ -122,7 +122,7 @@ class DriverCopy {
       'login_action_change_workspace': "Changer d'espace de travail",
       'login_action_setup_sub': 'Première connexion · définir le mot de passe',
       'login_action_change_workspace_sub': 'Se connecter à un autre serveur',
-      'login_secure_sso': 'Connexion sécurisée · SSO Keycloak',
+      'login_secure_sso': 'Connexion sécurisée · ASM Track',
       'login_version': 'Version',
       // Route screen CTAs
       'route_swipe_start': 'Glisser pour démarrer la tournée',
@@ -177,9 +177,9 @@ class DriverCopy {
       'pod_step_3': '3. Photographiez la remise du colis.',
       'pod_view_print_bl': 'Voir / Imprimer bon de livraison',
       'pod_downloading': 'Téléchargement…',
-      'pod_photo_bl_title': '📄 Bon de livraison signé',
+      'pod_photo_bl_title': 'Bon de livraison signé',
       'pod_photo_bl_sub': 'Photographiez le bon signé par le client',
-      'pod_photo_pkg_title': '📦 Remise du colis',
+      'pod_photo_pkg_title': 'Remise du colis',
       'pod_photo_pkg_sub': 'Photographiez le colis au moment de la remise',
       'pod_photo_take': 'Prendre une photo',
       'pod_photo_retake': 'Reprendre',
@@ -283,7 +283,7 @@ class DriverCopy {
 
       // Splash Screen
       'splash_sub': 'Logistics management',
-      'splash_loading': 'Connecting to network...',
+      'splash_loading': 'Loading…',
       'splash_copyright': '(c) 2026 ASM Logistics Operations',
 
       // Login Screen
@@ -297,7 +297,7 @@ class DriverCopy {
       'login_action_change_workspace': 'Change workspace',
       'login_action_setup_sub': 'First time · set your password',
       'login_action_change_workspace_sub': 'Connect to a different server',
-      'login_secure_sso': 'Secure sign-in · Keycloak SSO',
+      'login_secure_sso': 'Secure sign-in · ASM Track',
       'login_version': 'Version',
       // Route screen CTAs
       'route_swipe_start': 'Swipe to start the route',
@@ -352,9 +352,9 @@ class DriverCopy {
       'pod_step_3': '3. Take a photo of the package handover.',
       'pod_view_print_bl': 'View / Print Delivery Note',
       'pod_downloading': 'Downloading...',
-      'pod_photo_bl_title': '📄 Signed Delivery Note',
+      'pod_photo_bl_title': 'Signed Delivery Note',
       'pod_photo_bl_sub': 'Photograph the note signed by the customer',
-      'pod_photo_pkg_title': '📦 Package Handover',
+      'pod_photo_pkg_title': 'Package Handover',
       'pod_photo_pkg_sub': 'Photograph the package at the moment of handover',
       'pod_photo_take': 'Take photo',
       'pod_photo_retake': 'Retake',
@@ -458,7 +458,7 @@ class DriverCopy {
 
       // Splash Screen
       'splash_sub': 'إدارة العمليات اللوجستية',
-      'splash_loading': 'جاري الاتصال بالشبكة...',
+      'splash_loading': 'جارٍ التحميل…',
       'splash_copyright': '© ٢٠٢٦ العمليات اللوجستية ASM',
 
       // Login Screen
@@ -472,7 +472,7 @@ class DriverCopy {
       'login_action_change_workspace': 'تغيير فضاء العمل',
       'login_action_setup_sub': 'أول تسجيل · تعيين كلمة المرور',
       'login_action_change_workspace_sub': 'الاتصال بخادم آخر',
-      'login_secure_sso': 'دخول آمن · Keycloak SSO',
+      'login_secure_sso': 'دخول آمن · ASM Track',
       'login_version': 'الإصدار',
       // Route screen CTAs
       'route_swipe_start': 'اسحب لبدء الجولة',
@@ -527,9 +527,9 @@ class DriverCopy {
       'pod_step_3': '3. التقط صورة لتسليم الطرد.',
       'pod_view_print_bl': 'عرض / طباعة إذن التسليم',
       'pod_downloading': 'جاري التحميل...',
-      'pod_photo_bl_title': '📄 إذن التسليم الموقع',
+      'pod_photo_bl_title': 'إذن التسليم الموقع',
       'pod_photo_bl_sub': 'التقط صورة لإذن التسليم الموقع من العميل',
-      'pod_photo_pkg_title': '📦 تسليم الطرد',
+      'pod_photo_pkg_title': 'تسليم الطرد',
       'pod_photo_pkg_sub': 'التقط صورة للطرد عند التسليم',
       'pod_photo_take': 'التقاط صورة',
       'pod_photo_retake': 'إعادة الالتقاط',

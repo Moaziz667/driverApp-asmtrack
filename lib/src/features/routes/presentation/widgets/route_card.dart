@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../app_providers.dart';
 import '../../../../services/locale_provider.dart';
-import '../../../../theme/status_colors.dart';
 import '../../../../theme/tokens.dart';
 import '../../models/route_models.dart';
 
@@ -22,8 +20,6 @@ class RouteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark;
-    final statusColors = theme.extension<StatusColors>()!;
     final locale = ref.watch(localeProvider);
 
     final total = route.totalStops ?? route.stops.length;

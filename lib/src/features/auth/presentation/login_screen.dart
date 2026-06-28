@@ -10,7 +10,6 @@ import '../../../services/locale_provider.dart';
 import '../../../theme/tokens.dart';
 import '../../../theme/widgets.dart';
 import 'setup_account_screen.dart';
-import 'workspace_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -32,6 +31,51 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  /// Lets the driver point this installed build at a different backend (local vs dev server)
+  /// WITHOUT rebuilding. Persisted in TokenStorage; updating appConfigProvider rebuilds the Dio
+  /// client + derives the matching Keycloak host automatically (api host : 8089).
+  Future<void> _editServerUrl() async {
+    final current = ref.read(appConfigProvider).apiBaseUrl;
+    final ctrl = TextEditingController(text: current);
+    final entered = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Server URL'),
+        content: TextField(
+          controller: ctrl,
+          autocorrect: false,
+          keyboardType: TextInputType.url,
+          decoration: const InputDecoration(
+            hintText: 'http://192.168.1.10  (local)  ·  https://dev.asm…',
+            helperText: 'Authentication follows this host automatically.',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('Enregistrer')),
+        ],
+      ),
+    );
+    if (entered == null || entered.isEmpty) return;
+    final uri = Uri.tryParse(entered);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+          ..clearSnackBars()
+          ..showSnackBar(const SnackBar(content: Text('URL invalide (ex: http://192.168.1.10)')));
+      }
+      return;
+    }
+    final normalized = entered.endsWith('/') ? entered.substring(0, entered.length - 1) : entered;
+    await ref.read(tokenStorageProvider).saveApiBaseUrl(normalized);
+    ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(normalized);
+    if (mounted) {
+      ScaffoldMessenger.of(context)
+        ..clearSnackBars()
+        ..showSnackBar(SnackBar(content: Text('Serveur: ${uri.host}')));
+    }
+  }
+
   Future<void> _onSubmit() async {
     final locale = ref.read(localeProvider);
     try {
@@ -48,17 +92,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ..clearSnackBars()
           ..showSnackBar(SnackBar(content: Text(message)));
       }
-    }
-  }
-
-  Future<void> _changeWorkspace() async {
-    final storage = ref.read(tokenStorageProvider);
-    await storage.saveApiBaseUrl('');
-    final current = ref.read(appConfigProvider);
-    ref.read(appConfigProvider.notifier).state =
-        AppConfig(apiBaseUrl: '', discoveryUrl: current.discoveryUrl);
-    if (mounted) {
-      Navigator.of(context).pushReplacementNamed(WorkspaceScreen.routeName);
     }
   }
 
@@ -246,15 +279,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         subtitle: DriverCopy.get('login_action_setup_sub', locale),
                         onTap: () => Navigator.of(context).pushNamed(SetupAccountScreen.routeName),
                       ),
-                      const SizedBox(height: 10),
-                      _ActionTile(
-                        icon: LucideIcons.arrowLeftRight,
-                        title: DriverCopy.get('login_action_change_workspace', locale),
-                        subtitle: DriverCopy.get('login_action_change_workspace_sub', locale),
-                        onTap: _changeWorkspace,
-                      ),
                       const SizedBox(height: 16),
                       _VersionLabel(locale: locale),
+                      const SizedBox(height: 2),
+                      // Backend switcher: lets one installed build target local vs dev without a rebuild.
+                      TextButton.icon(
+                        onPressed: _editServerUrl,
+                        icon: Icon(LucideIcons.server, size: 13, color: cs.onSurfaceVariant.withValues(alpha: 0.7)),
+                        label: Text(
+                          Uri.tryParse(ref.watch(appConfigProvider).apiBaseUrl)?.host ?? '—',
+                          style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant.withValues(alpha: 0.7), fontWeight: FontWeight.w600),
+                        ),
+                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                      ),
                       const SizedBox(height: 8),
                     ],
                   ),
@@ -295,21 +332,26 @@ class _LangSwitcher extends StatelessWidget {
   Widget _pill(BuildContext context, String l) {
     final cs = Theme.of(context).colorScheme;
     final active = locale == l;
-    return GestureDetector(
-      onTap: () => onPick(l),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        decoration: BoxDecoration(
-          color: active ? cs.primary : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-        ),
-        child: Text(
-          l.toUpperCase(),
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            color: active ? Colors.white : cs.onSurfaceVariant,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+      child: InkWell(
+        onTap: () => onPick(l),
+        borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: active ? cs.primary : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+          ),
+          child: Text(
+            l.toUpperCase(),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: active ? Colors.white : cs.onSurfaceVariant,
+            ),
           ),
         ),
       ),

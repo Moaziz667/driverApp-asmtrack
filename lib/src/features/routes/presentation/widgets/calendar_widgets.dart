@@ -75,32 +75,37 @@ class CalendarHeader extends StatelessWidget {
             ),
           ),
           if (!isCurrentWeek)
-            GestureDetector(
-              onTap: onJumpToday,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.space14, vertical: AppTokens.space8),
-                decoration: BoxDecoration(
-                  color: cs.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-                  border: Border.all(
-                    color: cs.primary.withValues(alpha: 0.35),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(PhosphorIconsBold.calendar, size: 13, color: cs.primary),
-                    const SizedBox(width: AppTokens.space6),
-                    Text(
-                      "Aujourd'hui",
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: AppTokens.fwSemiBold,
-                        color: cs.primary,
-                      ),
+            Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+              child: InkWell(
+                onTap: onJumpToday,
+                borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: AppTokens.space14, vertical: AppTokens.space8),
+                  decoration: BoxDecoration(
+                    color: cs.primary.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                    border: Border.all(
+                      color: cs.primary.withValues(alpha: 0.35),
+                      width: 1,
                     ),
-                  ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(PhosphorIconsBold.calendar, size: 13, color: cs.primary),
+                      const SizedBox(width: AppTokens.space6),
+                      Text(
+                        "Aujourd'hui",
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: AppTokens.fwSemiBold,
+                          color: cs.primary,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -438,7 +443,7 @@ class DaySummaryBar extends StatelessWidget {
                 const Spacer(),
                 if (totalMontant > 0)
                   _SummaryItem(
-                    value: '${totalMontant.toStringAsFixed(0)} MAD',
+                    value: '${totalMontant.toStringAsFixed(3)} TND',
                     label: 'Montant',
                     icon: PhosphorIconsRegular.currencyCircleDollar,
                     color: const Color(0xFFC4881A),
@@ -878,7 +883,7 @@ class _StopCard extends StatelessWidget {
                         Icon(PhosphorIconsRegular.currencyCircleDollar, size: 13, color: const Color(0xFFC4881A)),
                         const SizedBox(width: AppTokens.space4),
                         Text(
-                          '${montant.toStringAsFixed(0)} MAD',
+                          '${montant.toStringAsFixed(3)} TND',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: AppTokens.fwBold,

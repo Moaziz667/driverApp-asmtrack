@@ -134,9 +134,45 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   }
 
   Future<void> _pickPhoto(ValueChanged<Uint8List> onDone, String locale) async {
+    final cs = Theme.of(context).colorScheme;
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      backgroundColor: cs.surfaceContainerLow,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTokens.radiusLg)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(LucideIcons.camera, color: cs.primary),
+                title: Text(
+                  locale == 'ar' ? 'التقاط صورة الكاميرا' : locale == 'fr' ? 'Prendre une photo' : 'Take a photo',
+                  style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
+                ),
+                onTap: () => Navigator.of(context).pop(ImageSource.camera),
+              ),
+              ListTile(
+                leading: Icon(LucideIcons.image, color: cs.primary),
+                title: Text(
+                  locale == 'ar' ? 'اختيار من معرض الصور' : locale == 'fr' ? 'Choisir de la galerie' : 'Choose from gallery',
+                  style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
+                ),
+                onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (source == null) return;
+
     try {
       final file = await _picker.pickImage(
-        source: ImageSource.camera,
+        source: source,
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 70,
@@ -276,6 +312,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               onCapture: () => _pickPhoto((b) => setState(() => _bonLivraisonBytes = b), locale),
               onClear: () => setState(() => _bonLivraisonBytes = null),
               locale: locale,
+              icon: LucideIcons.fileText,
             ),
             const SizedBox(height: AppTokens.space16),
             PodPhotoSection(
@@ -286,6 +323,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               onCapture: () => _pickPhoto((b) => setState(() => _packageBytes = b), locale),
               onClear: () => setState(() => _packageBytes = null),
               locale: locale,
+              icon: LucideIcons.package,
             ),
             const SizedBox(height: AppTokens.space20),
 
@@ -318,32 +356,60 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: AppTokens.space24),
-
-            if (!_canSubmit)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppTokens.space8),
-                child: Text(
-                  _missingReasonItem != null
-                      ? '${DriverCopy.get('pod_reason_mandatory', locale)} $_missingReasonItem'
-                      : DriverCopy.get('pod_photos_mandatory', locale),
-                  style: TextStyle(fontSize: 12, color: cs.error.withValues(alpha: 0.8)),
-                  textAlign: TextAlign.center,
+            const SizedBox(height: AppTokens.space8),
+          ],
+        ),
+      ),
+      // Primary action pinned to the bottom (Stitch "Fixed Button & Refined Layout")
+      // so "Confirmer la livraison" stays reachable without scrolling the form.
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: cs.surface,
+          border: Border(top: BorderSide(color: cs.outlineVariant)),
+        ),
+        child: SafeArea(
+          top: false,
+          minimum: const EdgeInsets.fromLTRB(
+            AppTokens.space20, AppTokens.space12, AppTokens.space20, AppTokens.space12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (!_canSubmit)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: AppTokens.space8),
+                  child: Text(
+                    _missingReasonItem != null
+                        ? '${DriverCopy.get('pod_reason_mandatory', locale)} $_missingReasonItem'
+                        : (locale == 'ar'
+                            ? 'الصورتان إلزاميتان'
+                            : locale == 'en'
+                                ? 'Both photos are mandatory'
+                                : 'Les 2 photos sont obligatoires'),
+                    style: TextStyle(fontSize: 13, color: cs.error, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: FilledButton.icon(
+                  onPressed: (_submitting || !_canSubmit) ? null : _submit,
+                  icon: _submitting
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(LucideIcons.checkCircle, size: 20),
+                  label: Text(
+                    DriverCopy.get('pod_confirm_delivery', locale),
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                  ),
+                  style: FilledButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                    ),
+                  ),
                 ),
               ),
-
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: FilledButton.icon(
-                onPressed: (_submitting || !_canSubmit) ? null : _submit,
-                icon: _submitting
-                    ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Icon(LucideIcons.check, size: 20),
-                label: Text(DriverCopy.get('pod_confirm_delivery', locale)),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

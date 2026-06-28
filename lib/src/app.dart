@@ -7,7 +7,6 @@ import 'features/auth/presentation/login_screen.dart';
 import 'features/auth/presentation/register_screen.dart';
 import 'features/auth/presentation/setup_account_screen.dart';
 import 'features/auth/presentation/splash_screen.dart';
-import 'features/auth/presentation/workspace_screen.dart';
 import 'features/deliveries/presentation/delivery_detail_screen.dart';
 import 'features/deliveries/presentation/handoff_inbox_screen.dart';
 import 'features/home/presentation/home_shell.dart';
@@ -38,8 +37,10 @@ class _DriverAppState extends ConsumerState<DriverApp> {
     // logout, token expiry, or an admin suspending the account — route to the
     // right screen from a single place instead of each screen doing it ad hoc.
     ref.listen<AuthState>(authControllerProvider, (prev, next) {
+      debugPrint('[ROUTE] status ${prev?.status} -> ${next.status} (loading=${next.isLoading})');
       if (prev?.status == next.status || next.isLoading) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        debugPrint('[NAV] navigateToHome ctx=${rootNavigatorKey.currentContext != null} status=${next.status}');
         navigateToHome(rootNavigatorKey.currentContext, next.status);
       });
     });
@@ -56,7 +57,6 @@ class _DriverAppState extends ConsumerState<DriverApp> {
         LoginScreen.routeName: (_) => const LoginScreen(),
         RegisterScreen.routeName: (_) => const RegisterScreen(),
         SetupAccountScreen.routeName: (_) => const SetupAccountScreen(),
-        WorkspaceScreen.routeName: (_) => const WorkspaceScreen(),
         HomeShell.routeName: (_) => const HomeShell(),
         HandoffInboxScreen.routeName: (_) => const HandoffInboxScreen(),
       },
@@ -86,9 +86,7 @@ void navigateToHome(BuildContext? context, AuthStatus status) {
   if (context == null) return;
   if (status == AuthStatus.authenticated) {
     Navigator.of(context).pushNamedAndRemoveUntil(HomeShell.routeName, (route) => false);
-  } else if (status == AuthStatus.unauthenticated) {
+  } else {
     Navigator.of(context).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
-  } else if (status == AuthStatus.needsWorkspace) {
-    Navigator.of(context).pushNamedAndRemoveUntil(WorkspaceScreen.routeName, (route) => false);
   }
 }
