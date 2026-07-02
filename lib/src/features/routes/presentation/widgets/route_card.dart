@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
-import '../../../../services/locale_provider.dart';
 import '../../../../theme/tokens.dart';
 import '../../models/route_models.dart';
+import '../../../deliveries/models/status_labels.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class RouteCard extends ConsumerWidget {
   const RouteCard({
@@ -20,7 +21,6 @@ class RouteCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final locale = ref.watch(localeProvider);
 
     final total = route.totalStops ?? route.stops.length;
     final done = route.completedStops ?? 0;
@@ -104,7 +104,7 @@ class RouteCard extends ConsumerWidget {
                       if (route.plannedStart != null || route.plannedEnd != null)
                         _MetaPill(
                           icon: PhosphorIconsRegular.clock,
-                          label: _formatTimeWindow(route.plannedStart, route.plannedEnd),
+                          label: _formatTimeWindow(route.plannedStart, route.plannedEnd, l10n: AppLocalizations.of(context)),
                         ),
                       if (route.zone != null && route.zone!.isNotEmpty)
                         _MetaPill(
@@ -118,7 +118,7 @@ class RouteCard extends ConsumerWidget {
                         ),
                       _MetaPill(
                         icon: PhosphorIconsRegular.package,
-                        label: '$total ${total > 1 ? (locale == 'en' ? 'stops' : 'arrêts') : (locale == 'en' ? 'stop' : 'arrêt')}',
+                        label: total > 1 ? AppLocalizations.of(context).routeStopCount(total.toString()) : AppLocalizations.of(context).routeStopCountSingular(total.toString()),
                       ),
                     ],
                   ),
@@ -173,6 +173,28 @@ class RouteCard extends ConsumerWidget {
                       ],
                     ),
                   ],
+
+                  // Vehicle info
+                  if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty) ...[
+                    const SizedBox(height: AppTokens.space8),
+                    Row(
+                      children: [
+                        Icon(
+                          PhosphorIconsRegular.car,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: AppTokens.space4),
+                        Text(
+                          '${route.vehicleName ?? ''} · ${route.vehiclePlate!}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -182,10 +204,10 @@ class RouteCard extends ConsumerWidget {
     );
   }
 
-  static String _formatTimeWindow(String? start, String? end) {
+  static String _formatTimeWindow(String? start, String? end, {AppLocalizations? l10n}) {
     if (start != null && end != null) return '$start – $end';
-    if (start != null) return 'Dès $start';
-    if (end != null) return 'Avant $end';
+    if (start != null) return l10n?.routeTimeFrom(start) ?? 'Dès $start';
+    if (end != null) return l10n?.routeTimeBefore(end) ?? 'Avant $end';
     return '';
   }
 
@@ -225,7 +247,7 @@ class _StatusBadge extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
       ),
       child: Text(
-        status.label,
+        routeStatusLabel(status, AppLocalizations.of(context)),
         style: TextStyle(
           fontSize: 9,
           fontWeight: AppTokens.fwBold,
@@ -294,7 +316,7 @@ class StatusChip extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
       ),
       child: Text(
-        status.label,
+        routeStatusLabel(status, AppLocalizations.of(context)),
         style: TextStyle(
           fontSize: 9,
           fontWeight: AppTokens.fwBold,

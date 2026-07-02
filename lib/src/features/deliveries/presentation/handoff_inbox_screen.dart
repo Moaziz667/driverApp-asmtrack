@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../app_providers.dart';
-import '../../../services/locale_provider.dart';
 import '../../../theme/tokens.dart';
 import '../../../theme/widgets.dart';
 import '../models/handoff_models.dart';
 import 'handoff_scanner_screen.dart';
 import 'handoff_token_sheet.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 /// Persistent inbox of the driver's open custody transfers — the recoverable
 /// counterpart to the transient realtime banner. Receiving driver scans the
@@ -20,7 +20,6 @@ class HandoffInboxScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final locale = ref.watch(localeProvider);
     final async = ref.watch(handoffsProvider);
     final myId = ref.watch(driverProfileProvider).valueOrNull?.id;
 
@@ -32,15 +31,15 @@ class HandoffInboxScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(DriverCopy.get('handoff_inbox_title', locale)),
+        title: Text(AppLocalizations.of(context).handoff_inbox_title),
       ),
       body: async.when(
         loading: () => const LoadingState(),
         error: (_, __) => EmptyState(
           icon: LucideIcons.alertTriangle,
-          title: DriverCopy.get('handoff_inbox_error', locale),
+          title: AppLocalizations.of(context).handoff_inbox_error,
           action: refresh,
-          actionLabel: DriverCopy.get('handoff_inbox_retry', locale),
+          actionLabel: AppLocalizations.of(context).handoff_inbox_retry,
         ),
         data: (list) {
           final incoming = list.where((h) => h.isIncomingFor(myId)).toList();
@@ -55,8 +54,8 @@ class HandoffInboxScreen extends ConsumerWidget {
                   SizedBox(height: MediaQuery.of(context).size.height * 0.18),
                   EmptyState(
                     icon: LucideIcons.arrowLeftRight,
-                    title: DriverCopy.get('handoff_inbox_empty_title', locale),
-                    subtitle: DriverCopy.get('handoff_inbox_empty_sub', locale),
+                    title: AppLocalizations.of(context).handoff_inbox_empty_title,
+                    subtitle: AppLocalizations.of(context).handoff_inbox_empty_sub,
                   ),
                 ],
               ),
@@ -69,12 +68,11 @@ class HandoffInboxScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (incoming.isNotEmpty) ...[
-                  _SectionHeader(label: DriverCopy.get('handoff_inbox_incoming', locale)),
+                  _SectionHeader(label: AppLocalizations.of(context).handoff_inbox_incoming),
                   for (final h in incoming)
                     _HandoffCard(
                       handoff: h,
                       incoming: true,
-                      locale: locale,
                       onAction: () async {
                         final result = await Navigator.of(context).push<bool>(
                           MaterialPageRoute(builder: (_) => const HandoffScannerScreen()),
@@ -84,7 +82,7 @@ class HandoffInboxScreen extends ConsumerWidget {
                       onManual: h.deliveryId == null ? null : () async {
                         final code = await showDialog<String>(
                           context: context,
-                          builder: (_) => _ManualCodeDialog(locale: locale),
+                          builder: (_) => const _ManualCodeDialog(),
                         );
                         if (code == null || code.trim().isEmpty) return;
                         try {
@@ -92,7 +90,7 @@ class HandoffInboxScreen extends ConsumerWidget {
                               .confirmHandoff(h.deliveryId!, code.trim().toUpperCase());
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(DriverCopy.get('handoff_manual_success', locale))),
+                              SnackBar(content: Text(AppLocalizations.of(context).handoff_manual_success)),
                             );
                           }
                           await refresh();
@@ -100,7 +98,7 @@ class HandoffInboxScreen extends ConsumerWidget {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text(DriverCopy.get('handoff_manual_error', locale)),
+                                content: Text(AppLocalizations.of(context).handoff_manual_error),
                                 backgroundColor: Theme.of(context).colorScheme.error,
                               ),
                             );
@@ -111,12 +109,11 @@ class HandoffInboxScreen extends ConsumerWidget {
                 ],
                 if (outgoing.isNotEmpty) ...[
                   if (incoming.isNotEmpty) const SizedBox(height: 8),
-                  _SectionHeader(label: DriverCopy.get('handoff_inbox_outgoing', locale)),
+                  _SectionHeader(label: AppLocalizations.of(context).handoff_inbox_outgoing),
                   for (final h in outgoing)
                     _HandoffCard(
                       handoff: h,
                       incoming: false,
-                      locale: locale,
                       onAction: h.deliveryId == null
                           ? null
                           : () => showModalBottomSheet(
@@ -161,14 +158,12 @@ class _HandoffCard extends StatelessWidget {
   const _HandoffCard({
     required this.handoff,
     required this.incoming,
-    required this.locale,
     required this.onAction,
     this.onManual,
   });
 
   final HandoffSummary handoff;
   final bool incoming;
-  final String locale;
   final VoidCallback? onAction;
   final VoidCallback? onManual;
 
@@ -178,8 +173,8 @@ class _HandoffCard extends StatelessWidget {
     final cs = theme.colorScheme;
 
     final counterpartLabel = incoming
-        ? DriverCopy.get('handoff_inbox_from', locale)
-        : DriverCopy.get('handoff_inbox_to', locale);
+        ? AppLocalizations.of(context).handoff_inbox_from
+        : AppLocalizations.of(context).handoff_inbox_to;
     final counterpartName = incoming ? handoff.fromDriverName : handoff.toDriverName;
     final subtitle = handoff.dropoffAddress ?? handoff.erpOrderId;
 
@@ -248,7 +243,7 @@ class _HandoffCard extends StatelessWidget {
                 onPressed: onAction,
                 icon: Icon(incoming ? LucideIcons.scanLine : LucideIcons.qrCode, size: 16),
                 label: Text(
-                  DriverCopy.get(incoming ? 'handoff_action_scan' : 'handoff_action_show', locale),
+                  incoming ? AppLocalizations.of(context).handoff_action_scan : AppLocalizations.of(context).handoff_action_show,
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
@@ -258,7 +253,7 @@ class _HandoffCard extends StatelessWidget {
                   onPressed: onManual,
                   icon: const Icon(LucideIcons.keyboard, size: 14),
                   label: Text(
-                    DriverCopy.get('handoff_manual_action', locale),
+                    AppLocalizations.of(context).handoff_manual_action,
                     style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
                   ),
                   style: TextButton.styleFrom(
@@ -277,8 +272,7 @@ class _HandoffCard extends StatelessWidget {
 
 /// Manual code entry — fallback when the receiver's camera is unusable.
 class _ManualCodeDialog extends StatefulWidget {
-  const _ManualCodeDialog({required this.locale});
-  final String locale;
+  const _ManualCodeDialog();
 
   @override
   State<_ManualCodeDialog> createState() => _ManualCodeDialogState();
@@ -295,9 +289,8 @@ class _ManualCodeDialogState extends State<_ManualCodeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = widget.locale;
     return AlertDialog(
-      title: Text(DriverCopy.get('handoff_manual_title', locale)),
+      title: Text(AppLocalizations.of(context).handoff_manual_title),
       content: TextField(
         controller: _controller,
         autofocus: true,
@@ -306,7 +299,7 @@ class _ManualCodeDialogState extends State<_ManualCodeDialog> {
         textAlign: TextAlign.center,
         style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 4),
         decoration: InputDecoration(
-          hintText: DriverCopy.get('handoff_manual_hint', locale),
+          hintText: AppLocalizations.of(context).handoff_manual_hint,
           counterText: '',
         ),
         onSubmitted: (v) => Navigator.of(context).pop(v),
@@ -314,11 +307,11 @@ class _ManualCodeDialogState extends State<_ManualCodeDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(DriverCopy.get('cancel', locale)),
+          child: Text(AppLocalizations.of(context).cancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(_controller.text),
-          child: Text(DriverCopy.get('handoff_manual_confirm', locale)),
+          child: Text(AppLocalizations.of(context).handoff_manual_confirm),
         ),
       ],
     );

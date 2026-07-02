@@ -24,21 +24,6 @@ extension DriverRouteStatusX on DriverRouteStatus {
         return DriverRouteStatus.validated;
     }
   }
-
-  String get label {
-    switch (this) {
-      case DriverRouteStatus.draft:
-        return 'Brouillon';
-      case DriverRouteStatus.validated:
-        return 'Validée';
-      case DriverRouteStatus.inProgress:
-        return 'En cours';
-      case DriverRouteStatus.closed:
-        return 'Clôturée';
-      case DriverRouteStatus.cancelled:
-        return 'Annulée';
-    }
-  }
 }
 
 enum DriverRouteStopStatus {
@@ -65,21 +50,6 @@ extension DriverRouteStopStatusX on DriverRouteStopStatus {
         return DriverRouteStopStatus.pending;
     }
   }
-
-  String get label {
-    switch (this) {
-      case DriverRouteStopStatus.pending:
-        return 'En attente';
-      case DriverRouteStopStatus.arrived:
-        return 'Arrivé';
-      case DriverRouteStopStatus.completed:
-        return 'Mission terminée';
-      case DriverRouteStopStatus.failed:
-        return 'Échec';
-      case DriverRouteStopStatus.partial:
-        return 'Partiel';
-    }
-  }
 }
 
 class DriverRouteStop {
@@ -104,6 +74,8 @@ class DriverRouteStop {
     this.sourceDepotName,
     this.sourceDepotLat,
     this.sourceDepotLng,
+    this.startTimeWindow,
+    this.endTimeWindow,
   });
 
   factory DriverRouteStop.fromJson(Map<String, dynamic> json) {
@@ -128,6 +100,8 @@ class DriverRouteStop {
       sourceDepotName: json['sourceDepotName'] as String?,
       sourceDepotLat: (json['sourceDepotLat'] as num?)?.toDouble(),
       sourceDepotLng: (json['sourceDepotLng'] as num?)?.toDouble(),
+      startTimeWindow: json['startTimeWindow'] as String?,
+      endTimeWindow: json['endTimeWindow'] as String?,
     );
   }
 
@@ -153,6 +127,8 @@ class DriverRouteStop {
   final String? sourceDepotName;
   final double? sourceDepotLat;
   final double? sourceDepotLng;
+  final String? startTimeWindow;
+  final String? endTimeWindow;
 
   bool get isPickup => stopType == 'PICKUP';
 
@@ -163,6 +139,11 @@ class DriverRouteStop {
 
   String? get formattedEta => _formatTime(etaAt);
   String? get formattedSla => _formatTime(slaDeadline);
+
+  String? get formattedTimeWindow {
+    if (startTimeWindow == null || endTimeWindow == null) return null;
+    return '$startTimeWindow – $endTimeWindow';
+  }
 
   static String? _formatTime(String? iso) {
     if (iso == null) return null;
@@ -190,6 +171,8 @@ class DriverRoute {
     this.routeGeometry,
     this.depotName,
     this.depotAddress,
+    this.vehicleName,
+    this.vehiclePlate,
     this.fromCache = false,
   });
 
@@ -218,6 +201,8 @@ class DriverRoute {
       routeGeometry: json['routeGeometry'] as String?,
       depotName: json['depotName'] as String?,
       depotAddress: json['depotAddress'] as String?,
+      vehicleName: json['vehicleName'] as String?,
+      vehiclePlate: json['vehiclePlate'] as String?,
       stops: stops,
     );
   }
@@ -240,6 +225,8 @@ class DriverRoute {
   final String? routeGeometry;
   final String? depotName;
   final String? depotAddress;
+  final String? vehicleName;
+  final String? vehiclePlate;
 
   /// True when this route was loaded from the local SharedPreferences cache
   /// because the network was unavailable.

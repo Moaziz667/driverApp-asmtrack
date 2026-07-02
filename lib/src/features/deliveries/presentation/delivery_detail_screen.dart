@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../app_providers.dart';
-import '../../../services/locale_provider.dart';
 import '../../../services/location_service.dart';
 import '../../../theme/widgets.dart';
 import '../../pod/presentation/pod_form_screen.dart';
 import '../models/delivery_models.dart';
+import '../models/status_labels.dart';
 import 'handoff_scanner_screen.dart';
 import 'widgets/delivery_detail_widgets.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class DeliveryDetailArgs {
   const DeliveryDetailArgs({required this.deliveryId});
@@ -36,7 +37,6 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   }
 
   Future<void> _perform(Future<DriverDelivery> Function() task) async {
-    final locale = ref.read(localeProvider);
     setState(() => _isWorking = true);
     try {
       await task();
@@ -45,13 +45,13 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(DriverCopy.get('delivery_detail_offline_queue', locale))),
+            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${DriverCopy.get('delivery_detail_error_prefix', locale)}: $e')),
+            SnackBar(content: Text('${AppLocalizations.of(context).delivery_detail_error_prefix}: $e')),
           );
         }
       }
@@ -63,7 +63,6 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final locale = ref.watch(localeProvider);
     final asyncDetail = ref.watch(deliveryDetailProvider(widget.args.deliveryId));
     return Scaffold(
       backgroundColor: cs.surface,
@@ -73,7 +72,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
           icon: const Icon(PhosphorIconsBold.caretLeft, size: 18),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(DriverCopy.get('delivery_detail_title', locale)),
+        title: Text(AppLocalizations.of(context).delivery_detail_title),
       ),
       body: asyncDetail.when(
         data: (delivery) => RefreshIndicator(
@@ -93,7 +92,15 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 ItemsCard(items: delivery.items),
                 const SizedBox(height: 16),
               ],
+              FailureReasonCard(delivery: delivery),
+              if (delivery.proofOfDelivery != null) ...[
+                const SizedBox(height: 16),
+                PodImagesCard(pod: delivery.proofOfDelivery!),
+              ],
+              const SizedBox(height: 16),
               TimestampCard(delivery: delivery),
+              const SizedBox(height: 16),
+              StatusHistoryCard(delivery: delivery),
               const SizedBox(height: 16),
               BonLivraisonCard(deliveryId: delivery.id),
               const SizedBox(height: 24),
@@ -140,16 +147,16 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
             ],
           ),
         ),
-        loading: () => LoadingState(message: DriverCopy.get('delivery_detail_loading', locale)),
+        loading: () => LoadingState(message: AppLocalizations.of(context).delivery_detail_loading),
         error: (error, _) {
           final isUnauthorized = error.toString().contains('403') || error.toString().contains('unauthorized');
           return EmptyState(
             icon: PhosphorIconsRegular.warningCircle,
             title: isUnauthorized 
-                ? DriverCopy.get('delivery_detail_unauthorized_link', locale)
-                : DriverCopy.get('delivery_detail_load_failed', locale),
+                ? AppLocalizations.of(context).delivery_detail_unauthorized_link
+                : AppLocalizations.of(context).delivery_detail_load_failed,
             action: _refresh,
-            actionLabel: DriverCopy.get('delivery_detail_retry', locale),
+            actionLabel: AppLocalizations.of(context).delivery_detail_retry,
           );
         },
       ),
@@ -158,7 +165,6 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
 
   Future<(String, String?)?> _showFailSheet(BuildContext context, List<FailureReasonOption> reasons) async {
     final cs = Theme.of(context).colorScheme;
-    final locale = ref.read(localeProvider);
     final options = reasons.isNotEmpty ? reasons : FailureReasonOption.fallback;
     FailureReasonOption selected = options.first;
     final commentCtrl = TextEditingController();
@@ -191,7 +197,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    DriverCopy.get('delivery_detail_fail_report', locale), 
+                    AppLocalizations.of(context).delivery_detail_fail_report, 
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w700, 
                           color: cs.onSurface,
@@ -199,7 +205,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    DriverCopy.get('delivery_detail_fail_select', locale), 
+                    AppLocalizations.of(context).delivery_detail_fail_select, 
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
@@ -260,7 +266,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     controller: commentCtrl,
                     style: TextStyle(color: cs.onSurface),
                     decoration: InputDecoration(
-                      hintText: DriverCopy.get('delivery_detail_comment_hint', locale),
+                      hintText: AppLocalizations.of(context).delivery_detail_comment_hint,
                       prefixIcon: const Icon(PhosphorIconsRegular.notePencil, size: 18),
                     ),
                   ),
@@ -272,7 +278,7 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                       onPressed: () => Navigator.pop(context, true),
                       icon: const Icon(PhosphorIconsBold.flagPennant),
                       label: Text(
-                        DriverCopy.get('delivery_detail_fail_submit', locale),
+                        AppLocalizations.of(context).delivery_detail_fail_submit,
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                       ),
                       style: FilledButton.styleFrom(

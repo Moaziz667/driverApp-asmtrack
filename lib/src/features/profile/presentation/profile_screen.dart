@@ -1,19 +1,23 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:profile_picker_plus/profile_picker_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_providers.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 import '../../../services/locale_provider.dart';
 import '../../../services/location_service.dart';
 import '../../../theme/widgets.dart';
 import '../../../theme/status_colors.dart';
 import '../../../theme/tokens.dart';
 
-/// Driver profile — enterprise settings layout: identity header, availability,
-/// performance KPIs, then grouped setting/account rows, language, and sign-out.
+/// Driver profile — SAP Fiori-inspired layout: centered hero avatar,
+/// quick-action grid, grouped settings sections, sign-out.
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
@@ -24,6 +28,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _locationSending = false;
   bool _availabilityLoading = false;
+  bool _photoUploading = false;
 
   Future<void> _setAvailability(String status) async {
     setState(() => _availabilityLoading = true);
@@ -34,7 +39,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur : $e'),
+            content: Text(AppLocalizations.of(context).profileError(e.toString())),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
@@ -53,10 +58,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (point != null) {
         await ref.read(profileRepositoryProvider).updateLocation(point.lat, point.lng);
         if (mounted) {
-          final locale = ref.read(localeProvider);
+          final loc = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(DriverCopy.get('position_sent', locale)),
+              content: Text(loc.position_sent),
               behavior: SnackBarBehavior.floating,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
             ),
@@ -68,9 +73,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     }
   }
 
+  Future<void> _onPhotoSelected(File? file) async {
+    if (file == null || _photoUploading) return;
+    setState(() => _photoUploading = true);
+    try {
+      await ref.read(profileRepositoryProvider).uploadPhoto(file.path);
+      ref.invalidate(driverProfileProvider);
+    } catch (_) {
+      if (mounted) {
+        final loc = AppLocalizations.of(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(loc.profileUploadFailed)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _photoUploading = false);
+    }
+  }
+
   Future<void> _changePassword() async {
     try {
-      // Passwords are owned by Keycloak — open its account console (same realm).
       final client = ref.read(apiClientProvider);
       final accountUrl = Uri.parse(client.config.accountConsoleUrl);
       if (await canLaunchUrl(accountUrl)) {
@@ -82,20 +104,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Future<void> _logout() async {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final locale = ref.read(localeProvider);
+    final loc = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text(DriverCopy.get('logout_confirm_title', locale)),
-        content: Text(DriverCopy.get('logout_confirm_body', locale), style: TextStyle(color: cs.onSurfaceVariant)),
+        title: Text(loc.logout_confirm_title),
+        content: Text(loc.logout_confirm_body, style: TextStyle(color: cs.onSurfaceVariant)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text(DriverCopy.get('cancel', locale)),
+            child: Text(loc.cancel),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text(DriverCopy.get('logout', locale), style: TextStyle(color: cs.error)),
+            child: Text(loc.logout, style: TextStyle(color: cs.error)),
           ),
         ],
       ),
@@ -111,86 +133,163 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final statusColors = theme.extension<StatusColors>()!;
     final profileAsync = ref.watch(driverProfileProvider);
     final statsAsync = ref.watch(driverStatsProvider);
-    final locale = ref.watch(localeProvider);
+    final loc = AppLocalizations.of(context);
 
     return profileAsync.when(
-      loading: () => LoadingState(
-        message: locale == 'ar' ? 'جاري تحميل الملف الشخصي…' : (locale == 'en' ? 'Loading profile…' : 'Chargement du profil…'),
-      ),
+      loading: () => LoadingState(message: loc.profileLoading),
       error: (_, __) => EmptyState(
         icon: LucideIcons.userX,
-        title: locale == 'ar' ? 'الملف الشخصي غير متاح' : (locale == 'en' ? 'Profile unavailable' : 'Profil indisponible'),
+        title: loc.profileUnavailable,
         action: () => ref.invalidate(driverProfileProvider),
-        actionLabel: locale == 'ar' ? 'إعادة المحاولة' : (locale == 'en' ? 'Retry' : 'Réessayer'),
+        actionLabel: loc.profileRetry,
       ),
       data: (profile) {
         final driverColor = statusColors.forDriverStatus(profile.onlineStatus);
+        final initials = profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'D';
         return ListView(
           padding: const EdgeInsets.fromLTRB(
             AppTokens.space16, AppTokens.space16, AppTokens.space16, AppTokens.space32),
           children: [
-            // ── Identity header ──
-            _ProfileHeader(
-              name: profile.name.isNotEmpty ? profile.name : 'Driver',
-              phone: profile.phone,
-              city: profile.city,
-              onlineStatus: profile.onlineStatus,
-              statusColor: driverColor,
-              locale: locale,
+            // ── Hero avatar (centered, tappable) ──
+            Center(
+              child: ProfilePicker(
+                radius: 48,
+                fallbackInitials: initials,
+                initialImageUrl: (profile.photoUrl?.isNotEmpty == true) ? profile.photoUrl : null,
+                onImageSelected: _onPhotoSelected,
+                allowRemove: false,
+                badgePosition: BadgePosition.bottomRight,
+                theme: ProfilePickerTheme(
+                  primaryColor: cs.primary,
+                  backgroundColor: cs.surfaceContainerLow,
+                ),
+                pickerStrings: ProfilePickerStrings(
+                  cameraLabel: loc.profileTakePhoto,
+                  galleryLabel: loc.profileChooseGallery,
+                  cancelLabel: loc.cancel,
+                ),
+              ),
             ),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: AppTokens.space16),
+
+            // ── Name + contact (centered) ──
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    profile.name.isNotEmpty ? profile.name : 'Driver',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: AppTokens.fwBold,
+                      color: cs.onSurface,
+                      letterSpacing: -0.3,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppTokens.space4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(LucideIcons.phone, size: 12, color: cs.onSurfaceVariant),
+                      const SizedBox(width: AppTokens.space6),
+                      Flexible(
+                        child: Text(
+                          profile.phone,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: cs.onSurfaceVariant,
+                            fontWeight: AppTokens.fwMedium,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (profile.city != null && profile.city!.isNotEmpty) ...[
+                    const SizedBox(height: AppTokens.space2),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(LucideIcons.mapPin, size: 12, color: cs.onSurfaceVariant),
+                        const SizedBox(width: AppTokens.space6),
+                        Flexible(
+                          child: Text(
+                            profile.city!,
+                            style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: AppTokens.space10),
+                  _StatusPill(status: profile.onlineStatus, color: driverColor),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppTokens.space24),
+
+            // ── Quick actions (2-column grid) ──
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionCard(
+                    icon: LucideIcons.navigation2,
+                    iconColor: cs.primary,
+                    label: loc.send_location,
+                    loading: _locationSending,
+                    onTap: _locationSending ? null : _sendLocation,
+                  ),
+                ),
+                const SizedBox(width: AppTokens.space12),
+                Expanded(
+                  child: _QuickActionCard(
+                    icon: LucideIcons.key,
+                    iconColor: cs.secondary,
+                    label: loc.change_password,
+                    onTap: _changePassword,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppTokens.space24),
 
             // ── Availability ──
-            _SectionTitle(
-              icon: LucideIcons.activity,
-              label: locale == 'ar' ? 'الحالة' : locale == 'en' ? 'Availability' : 'Disponibilité',
-            ),
+            _SectionHeader(label: loc.section_availability),
             const SizedBox(height: AppTokens.space12),
             _ShiftControls(
               status: profile.onlineStatus,
               loading: _availabilityLoading,
               onSetStatus: _setAvailability,
-              locale: locale,
             ),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: AppTokens.space24),
 
             // ── Performance ──
-            _SectionTitle(
-              icon: LucideIcons.trendingUp,
-              label: locale == 'ar' ? 'الأداء' : locale == 'en' ? 'Performance' : 'Performance',
-            ),
+            _SectionHeader(label: loc.section_performance),
             const SizedBox(height: AppTokens.space12),
             statsAsync.when(
               data: (stats) => _StatsCard(
                 delivered: stats.delivered,
                 failed: stats.failed,
                 total: stats.totalDeliveries,
-                locale: locale,
                 statusColors: statusColors,
               ),
               loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
               error: (_, __) => const SizedBox.shrink(),
             ),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: AppTokens.space24),
 
             // ── Account (read-only) ──
-            _SectionTitle(
-              icon: LucideIcons.user,
-              label: locale == 'ar' ? 'الحساب' : locale == 'en' ? 'Account' : 'Compte',
-            ),
+            _SectionHeader(label: loc.section_account),
             const SizedBox(height: AppTokens.space12),
             _GroupCard(
               children: [
                 _InfoTile(
                   icon: LucideIcons.hash,
-                  label: DriverCopy.get('driver_id', locale),
+                  label: loc.driver_id,
                   value: profile.id,
                 ),
                 if (profile.lastLocationAt != null) ...[
                   const _GroupDivider(),
                   _InfoTile(
                     icon: LucideIcons.clock,
-                    label: DriverCopy.get('last_ping', locale),
+                    label: loc.last_ping,
                     value: DateFormat('MMM d · HH:mm').format(profile.lastLocationAt!.toLocal()),
                   ),
                 ],
@@ -198,66 +297,34 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   const _GroupDivider(),
                   _InfoTile(
                     icon: LucideIcons.globe,
-                    label: DriverCopy.get('gps', locale),
+                    label: loc.gps,
                     value: '${profile.currentLat!.toStringAsFixed(4)}, ${profile.currentLng!.toStringAsFixed(4)}',
                     valueColor: cs.primary,
                   ),
                 ],
               ],
             ),
-            const SizedBox(height: AppTokens.space20),
-
-            // ── Settings / actions ──
-            _SectionTitle(
-              icon: LucideIcons.settings,
-              label: DriverCopy.get('section_actions', locale),
-            ),
-            const SizedBox(height: AppTokens.space12),
-            _GroupCard(
-              children: [
-                _ActionTile(
-                  icon: LucideIcons.navigation2,
-                  iconColor: cs.primary,
-                  title: DriverCopy.get('send_location', locale),
-                  trailing: _locationSending
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                      : Icon(LucideIcons.chevronRight, size: 18, color: cs.onSurfaceVariant),
-                  onTap: _locationSending ? null : _sendLocation,
-                ),
-                const _GroupDivider(indent: AppTokens.space56),
-                _ActionTile(
-                  icon: LucideIcons.key,
-                  iconColor: cs.secondary,
-                  title: DriverCopy.get('change_password', locale),
-                  trailing: Icon(LucideIcons.chevronRight, size: 18, color: cs.onSurfaceVariant),
-                  onTap: _changePassword,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppTokens.space20),
+            const SizedBox(height: AppTokens.space24),
 
             // ── Language ──
-            _SectionTitle(
-              icon: LucideIcons.languages,
-              label: DriverCopy.get('language_setting', locale),
-            ),
+            _SectionHeader(label: loc.language_setting),
             const SizedBox(height: AppTokens.space12),
-            _LanguageSelector(locale: locale),
-            const SizedBox(height: AppTokens.space20),
+            _LanguageSelector(),
+            const SizedBox(height: AppTokens.space24),
 
             // ── Sign out ──
-            SizedBox(
-              width: double.infinity,
+            Align(
+              alignment: Alignment.centerRight,
               child: OutlinedButton.icon(
                 onPressed: _logout,
-                icon: const Icon(LucideIcons.logOut, size: 18),
-                label: Text(DriverCopy.get('logout', locale)),
+                icon: const Icon(LucideIcons.logOut, size: 16),
+                label: Text(loc.logout),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.error,
                   side: BorderSide(color: cs.error.withValues(alpha: 0.4)),
-                  minimumSize: const Size.fromHeight(52),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusLg)),
-                  textStyle: const TextStyle(fontWeight: AppTokens.fwBold, fontSize: 15),
+                  padding: const EdgeInsets.symmetric(horizontal: AppTokens.space20, vertical: AppTokens.space12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                  textStyle: const TextStyle(fontWeight: AppTokens.fwSemiBold, fontSize: 13),
                 ),
               ),
             ),
@@ -272,157 +339,76 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 }
 
-// ─── Identity header ──────────────────────────────────────────────────────────
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({
-    required this.name,
-    required this.phone,
-    required this.city,
-    required this.onlineStatus,
-    required this.statusColor,
-    required this.locale,
+// ─── Quick action card ────────────────────────────────────────────────────────
+class _QuickActionCard extends StatelessWidget {
+  const _QuickActionCard({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    this.loading = false,
+    this.onTap,
   });
 
-  final String name;
-  final String phone;
-  final String? city;
-  final String onlineStatus;
-  final Color statusColor;
-  final String locale;
+  final IconData icon;
+  final Color iconColor;
+  final String label;
+  final bool loading;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'D';
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            statusColor.withValues(alpha: 0.14),
-            cs.surfaceContainerLow,
-          ],
-        ),
+    return Material(
+      color: cs.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6)),
-        boxShadow: AppTokens.shadowSm(brightness: theme.brightness),
-      ),
-      padding: const EdgeInsets.all(AppTokens.space20),
-      child: Row(
-        children: [
-          // Avatar with status ring
-          SizedBox(
-            width: 64,
-            height: 64,
-            child: Stack(
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: cs.primary.withValues(alpha: 0.12),
-                    border: Border.all(color: cs.primary.withValues(alpha: 0.25), width: 2),
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    initial,
-                    style: TextStyle(fontSize: 26, fontWeight: AppTokens.fwBold, color: cs.primary),
-                  ),
-                ),
-                Positioned(
-                  bottom: 2,
-                  right: 2,
-                  child: Container(
-                    width: 14,
-                    height: 14,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: cs.surfaceContainerLow, width: 2.5),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: AppTokens.space16, horizontal: AppTokens.space12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+            border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1),
           ),
-          const SizedBox(width: AppTokens.space16),
-          // Identity
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    fontWeight: AppTokens.fwBold,
-                    color: cs.onSurface,
-                    letterSpacing: -0.3,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              loading
+                  ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: iconColor))
+                  : Icon(icon, size: 22, color: iconColor),
+              const SizedBox(height: AppTokens.space8),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: AppTokens.fwSemiBold,
+                  color: cs.onSurface,
                 ),
-                const SizedBox(height: AppTokens.space4),
-                Row(
-                  children: [
-                    Icon(LucideIcons.phone, size: 12, color: cs.onSurfaceVariant),
-                    const SizedBox(width: AppTokens.space6),
-                    Flexible(
-                      child: Text(
-                        phone,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: cs.onSurfaceVariant,
-                          fontWeight: AppTokens.fwMedium,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (city != null && city!.isNotEmpty) ...[
-                  const SizedBox(height: AppTokens.space2),
-                  Row(
-                    children: [
-                      Icon(LucideIcons.mapPin, size: 12, color: cs.onSurfaceVariant),
-                      const SizedBox(width: AppTokens.space6),
-                      Flexible(
-                        child: Text(
-                          city!,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                const SizedBox(height: AppTokens.space10),
-                _StatusPill(status: onlineStatus, color: statusColor, locale: locale),
-              ],
-            ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
+// ─── Status pill ──────────────────────────────────────────────────────────────
 class _StatusPill extends StatelessWidget {
-  const _StatusPill({required this.status, required this.color, required this.locale});
+  const _StatusPill({required this.status, required this.color});
   final String status;
   final Color color;
-  final String locale;
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final label = status == 'ONLINE'
-        ? DriverCopy.get('status_online_upper', locale)
-        : (status == 'ON_BREAK' ? DriverCopy.get('status_on_break_upper', locale) : DriverCopy.get('status_offline_upper', locale));
+        ? loc.status_online_upper
+        : (status == 'ON_BREAK' ? loc.status_on_break_upper : loc.status_offline_upper);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppTokens.space10, vertical: AppTokens.space4),
@@ -446,30 +432,21 @@ class _StatusPill extends StatelessWidget {
   }
 }
 
-// ─── Section title ────────────────────────────────────────────────────────────
-class _SectionTitle extends StatelessWidget {
-  const _SectionTitle({required this.label, this.icon});
+// ─── Section header ───────────────────────────────────────────────────────────
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
   final String label;
-  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Row(
-      children: [
-        if (icon != null) ...[
-          Icon(icon, size: 14, color: cs.primary),
-          const SizedBox(width: AppTokens.space8),
-        ],
-        Text(
-          label.toUpperCase(),
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            fontWeight: AppTokens.fwBold,
-            color: cs.primary,
-            letterSpacing: 0.8,
-          ),
-        ),
-      ],
+    return Text(
+      label.toUpperCase(),
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        fontWeight: AppTokens.fwBold,
+        color: cs.onSurfaceVariant,
+        letterSpacing: 0.8,
+      ),
     );
   }
 }
@@ -488,7 +465,6 @@ class _GroupCard extends StatelessWidget {
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
-        boxShadow: AppTokens.shadowSm(brightness: theme.brightness),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: children),
@@ -497,8 +473,7 @@ class _GroupCard extends StatelessWidget {
 }
 
 class _GroupDivider extends StatelessWidget {
-  const _GroupDivider({this.indent});
-  final double? indent;
+  const _GroupDivider();
 
   @override
   Widget build(BuildContext context) {
@@ -507,7 +482,7 @@ class _GroupDivider extends StatelessWidget {
       height: 1,
       thickness: 1,
       color: cs.outlineVariant.withValues(alpha: 0.4),
-      indent: indent ?? AppTokens.space16,
+      indent: AppTokens.space16,
       endIndent: AppTokens.space16,
     );
   }
@@ -564,75 +539,22 @@ class _InfoTile extends StatelessWidget {
   }
 }
 
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.trailing,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final Widget trailing;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space16),
-        child: Row(
-          children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: iconColor.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-              ),
-              child: Icon(icon, size: 18, color: iconColor),
-            ),
-            const SizedBox(width: AppTokens.space16),
-            Expanded(
-              child: Text(
-                title,
-                style: TextStyle(
-                  fontWeight: AppTokens.fwSemiBold,
-                  fontSize: 14,
-                  color: cs.onSurface,
-                ),
-              ),
-            ),
-            trailing,
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 // ─── Availability (shift) control ─────────────────────────────────────────────
 class _ShiftControls extends StatelessWidget {
   const _ShiftControls({
     required this.status,
     required this.loading,
     required this.onSetStatus,
-    required this.locale,
   });
   final String status;
   final bool loading;
   final Future<void> Function(String) onSetStatus;
-  final String locale;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final statusColors = Theme.of(context).extension<StatusColors>()!;
+    final loc = AppLocalizations.of(context);
 
     if (loading) {
       return Container(
@@ -652,19 +574,19 @@ class _ShiftControls extends StatelessWidget {
       child: Row(
         children: [
           _StatusSegmentButton(
-            label: DriverCopy.get('status_offline', locale),
+            label: loc.status_offline,
             active: status != 'ONLINE' && status != 'ON_BREAK',
             activeColor: statusColors.offline,
             onTap: () => onSetStatus('OFFLINE'),
           ),
           _StatusSegmentButton(
-            label: DriverCopy.get('status_on_break', locale),
+            label: loc.status_on_break,
             active: status == 'ON_BREAK',
             activeColor: statusColors.onBreak,
             onTap: () => onSetStatus('ON_BREAK'),
           ),
           _StatusSegmentButton(
-            label: DriverCopy.get('status_online', locale),
+            label: loc.statusOnline,
             active: status == 'ONLINE',
             activeColor: statusColors.online,
             onTap: () => onSetStatus('ONLINE'),
@@ -703,10 +625,6 @@ class _StatusSegmentButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: active ? activeColor : Colors.transparent,
               borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-              boxShadow: [
-                if (active)
-                  BoxShadow(color: activeColor.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2)),
-              ],
             ),
             child: Center(
               child: Text(
@@ -730,12 +648,12 @@ class _StatusSegmentButton extends StatelessWidget {
 
 // ─── Language selector ────────────────────────────────────────────────────────
 class _LanguageSelector extends ConsumerWidget {
-  const _LanguageSelector({required this.locale});
-  final String locale;
+  const _LanguageSelector();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final currentLocale = ref.watch(localeProvider);
     return Container(
       padding: const EdgeInsets.all(AppTokens.space6),
       decoration: BoxDecoration(
@@ -745,9 +663,9 @@ class _LanguageSelector extends ConsumerWidget {
       ),
       child: Row(
         children: [
-          _LangButton(label: 'FR', active: locale == 'fr', onTap: () => ref.read(localeProvider.notifier).setLocale('fr')),
-          _LangButton(label: 'EN', active: locale == 'en', onTap: () => ref.read(localeProvider.notifier).setLocale('en')),
-          _LangButton(label: 'AR', active: locale == 'ar', onTap: () => ref.read(localeProvider.notifier).setLocale('ar')),
+          _LangButton(label: 'FR', active: currentLocale == 'fr', onTap: () => ref.read(localeProvider.notifier).setLocale('fr')),
+          _LangButton(label: 'EN', active: currentLocale == 'en', onTap: () => ref.read(localeProvider.notifier).setLocale('en')),
+          _LangButton(label: 'AR', active: currentLocale == 'ar', onTap: () => ref.read(localeProvider.notifier).setLocale('ar')),
         ],
       ),
     );
@@ -776,10 +694,6 @@ class _LangButton extends StatelessWidget {
             decoration: BoxDecoration(
               color: active ? cs.primary : Colors.transparent,
               borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-              boxShadow: [
-                if (active)
-                  BoxShadow(color: cs.primary.withValues(alpha: 0.25), blurRadius: 8, offset: const Offset(0, 2)),
-              ],
             ),
             child: Center(
               child: Text(
@@ -804,22 +718,18 @@ class _StatsCard extends StatelessWidget {
     required this.delivered,
     required this.failed,
     required this.total,
-    required this.locale,
     required this.statusColors,
   });
   final int delivered;
   final int failed;
   final int total;
-  final String locale;
   final StatusColors statusColors;
-
-  String get _rateLabel =>
-      locale == 'ar' ? 'نسبة النجاح' : (locale == 'en' ? 'Success rate' : 'Taux de réussite');
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
+    final loc = AppLocalizations.of(context);
     final rate = total > 0 ? (delivered / total * 100).round() : 0;
     final progress = total > 0 ? delivered / total : 0.0;
     final accent = statusColors.delivered;
@@ -829,7 +739,6 @@ class _StatsCard extends StatelessWidget {
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
-        boxShadow: AppTokens.shadowSm(brightness: theme.brightness),
       ),
       padding: const EdgeInsets.all(AppTokens.space20),
       child: Column(
@@ -842,7 +751,7 @@ class _StatsCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _rateLabel.toUpperCase(),
+                      loc.profileSuccessRate.toUpperCase(),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: AppTokens.fwBold,
@@ -870,14 +779,14 @@ class _StatsCard extends StatelessWidget {
                 ),
               ),
               Container(
-                width: 52,
-                height: 52,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                   border: Border.all(color: accent.withValues(alpha: 0.2)),
                 ),
-                child: Icon(LucideIcons.trendingUp, color: accent, size: 24),
+                child: Icon(LucideIcons.trendingUp, color: accent, size: 22),
               ),
             ],
           ),
@@ -886,7 +795,7 @@ class _StatsCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppTokens.radiusFull),
             child: LinearProgressIndicator(
               value: progress,
-              minHeight: 8,
+              minHeight: 6,
               backgroundColor: cs.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(accent),
             ),
@@ -896,11 +805,11 @@ class _StatsCard extends StatelessWidget {
           const SizedBox(height: AppTokens.space14),
           Row(
             children: [
-              Expanded(child: _StatSegment(value: '$delivered', label: DriverCopy.get('metric_delivered', locale), color: accent, icon: LucideIcons.checkCircle2)),
+              Expanded(child: _StatSegment(value: '$delivered', label: loc.metric_delivered, color: accent, icon: LucideIcons.checkCircle2)),
               _SegDivider(),
-              Expanded(child: _StatSegment(value: '$failed', label: DriverCopy.get('metric_failed', locale), color: cs.error, icon: LucideIcons.xCircle)),
+              Expanded(child: _StatSegment(value: '$failed', label: loc.metric_failed, color: cs.error, icon: LucideIcons.xCircle)),
               _SegDivider(),
-              Expanded(child: _StatSegment(value: '$total', label: DriverCopy.get('metric_total', locale), color: cs.primary, icon: LucideIcons.package)),
+              Expanded(child: _StatSegment(value: '$total', label: loc.metric_total, color: cs.primary, icon: LucideIcons.package)),
             ],
           ),
         ],

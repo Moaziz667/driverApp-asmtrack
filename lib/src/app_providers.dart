@@ -18,7 +18,6 @@ import 'services/pdf_service.dart';
 import 'services/route_cache_service.dart';
 import 'services/offline_queue_service.dart';
 import 'services/token_storage.dart';
-import 'services/vehicle_service.dart';
 
 final appConfigProvider = StateProvider<AppConfig>((ref) => AppConfig.fromEnvironment());
 
@@ -91,11 +90,6 @@ final routeRepositoryProvider = Provider<RouteRepository>((ref) {
   return RouteRepository(client, cache, queue, connectivity);
 });
 
-final vehicleServiceProvider = Provider<VehicleService>((ref) {
-  final client = ref.watch(apiClientProvider);
-  return VehicleService(client);
-});
-
 final pdfServiceProvider = Provider<PdfService>((ref) {
   final client = ref.watch(apiClientProvider);
   return PdfService(client);
@@ -104,10 +98,6 @@ final pdfServiceProvider = Provider<PdfService>((ref) {
 final fcmServiceProvider = Provider<FcmService>((ref) {
   final client = ref.watch(apiClientProvider);
   return FcmService(client);
-});
-
-final myVehicleProvider = FutureProvider<Map<String, dynamic>>((ref) {
-  return ref.watch(vehicleServiceProvider).getMyVehicle();
 });
 
 final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) {

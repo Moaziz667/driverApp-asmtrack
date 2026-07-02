@@ -11,6 +11,7 @@ import '../../../services/location_service.dart';
 import '../../../theme/tokens.dart';
 import '../../deliveries/models/delivery_models.dart';
 import 'widgets/pod_widgets.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class PodFormArgs {
   const PodFormArgs({required this.delivery});
@@ -41,9 +42,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
   /// Per-item state — this State is the single source of truth; the widgets are
   /// purely presentational and report changes through callbacks.
-  late Map<String, int> _itemsDone;
-  late Map<String, String> _itemOutcomes;
-  late Map<String, String?> _itemReasons;
+  late Map<int, int> _itemsDone;
+  late Map<int, String> _itemOutcomes;
+  late Map<int, String?> _itemReasons;
 
   /// Admin-configured failure reasons (same referential as the full-failure sheet).
   /// Empty until loaded / when offline → the per-item cards fall back to the built-in list.
@@ -55,11 +56,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     _itemsDone = {};
     _itemOutcomes = {};
     _itemReasons = {};
-    for (final item in widget.args.delivery.items) {
-      final key = item.sku ?? item.name;
-      _itemsDone[key] = item.quantity;
-      _itemOutcomes[key] = 'DELIVERED';
-      _itemReasons[key] = null;
+    // Key per-item state by list index, never sku/name: two lines can share a SKU (or both have a
+    // null SKU), and a shared map key made one line's outcome/qty bleed into the other.
+    final items = widget.args.delivery.items;
+    for (var i = 0; i < items.length; i++) {
+      _itemsDone[i] = items[i].quantity;
+      _itemOutcomes[i] = 'DELIVERED';
+      _itemReasons[i] = null;
     }
     _loadReasons();
   }
@@ -82,11 +85,12 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   bool get _canSubmit {
     if (_bonLivraisonBytes == null || _packageBytes == null) return false;
     if (!_isPartial) return true;
-    for (final item in widget.args.delivery.items) {
-      final key = item.sku ?? item.name;
-      final outcome = _itemOutcomes[key] ?? 'DELIVERED';
-      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[key] ?? item.quantity) < item.quantity;
-      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[key] == null) {
+    final items = widget.args.delivery.items;
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final outcome = _itemOutcomes[i] ?? 'DELIVERED';
+      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[i] ?? item.quantity) < item.quantity;
+      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[i] == null) {
         return false;
       }
     }
@@ -96,11 +100,12 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   /// First item still missing a reason — drives the hint message.
   String? get _missingReasonItem {
     if (!_isPartial) return null;
-    for (final item in widget.args.delivery.items) {
-      final key = item.sku ?? item.name;
-      final outcome = _itemOutcomes[key] ?? 'DELIVERED';
-      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[key] ?? item.quantity) < item.quantity;
-      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[key] == null) {
+    final items = widget.args.delivery.items;
+    for (var i = 0; i < items.length; i++) {
+      final item = items[i];
+      final outcome = _itemOutcomes[i] ?? 'DELIVERED';
+      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[i] ?? item.quantity) < item.quantity;
+      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[i] == null) {
         return item.name;
       }
     }
@@ -108,7 +113,6 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   }
 
   Future<void> _openBonLivraison() async {
-    final locale = ref.read(localeProvider);
     if (_openingBl) return;
     setState(() => _openingBl = true);
     try {
@@ -119,13 +123,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(DriverCopy.get('pod_pdf_open_error', locale))),
+          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_open_error)),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(DriverCopy.get('pod_pdf_download_error', locale))),
+          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_download_error)),
         );
       }
     } finally {
@@ -149,7 +153,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               ListTile(
                 leading: Icon(LucideIcons.camera, color: cs.primary),
                 title: Text(
-                  locale == 'ar' ? 'التقاط صورة الكاميرا' : locale == 'fr' ? 'Prendre une photo' : 'Take a photo',
+                  locale == 'ar' ? 'التقاط صورة الكاميرا' : AppLocalizations.of(context).podTakePhoto,
                   style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
                 ),
                 onTap: () => Navigator.of(context).pop(ImageSource.camera),
@@ -157,7 +161,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               ListTile(
                 leading: Icon(LucideIcons.image, color: cs.primary),
                 title: Text(
-                  locale == 'ar' ? 'اختيار من معرض الصور' : locale == 'fr' ? 'Choisir de la galerie' : 'Choose from gallery',
+                  locale == 'ar' ? 'اختيار من معرض الصور' : AppLocalizations.of(context).podChooseGallery,
                   style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
                 ),
                 onTap: () => Navigator.of(context).pop(ImageSource.gallery),
@@ -184,33 +188,38 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(DriverCopy.get('pod_photo_access_error', locale))),
+        SnackBar(content: Text(AppLocalizations.of(context).pod_photo_access_error)),
       );
     }
   }
 
-  Widget _itemRow(dynamic item, String locale) {
-    final key = (item.sku ?? item.name) as String;
+  Widget _itemRow(int index, dynamic item, String locale) {
     final plannedQty = item.quantity as int;
     return PodItemOutcomeRow(
+      key: ValueKey(index),
       item: item,
-      currentQty: _itemsDone[key] ?? plannedQty,
-      outcome: _itemOutcomes[key] ?? 'DELIVERED',
-      reason: _itemReasons[key],
+      currentQty: _itemsDone[index] ?? plannedQty,
+      outcome: _itemOutcomes[index] ?? 'DELIVERED',
+      reason: _itemReasons[index],
       adminReasons: _adminReasons,
       locale: locale,
       onOutcome: (v) => setState(() {
-        _itemOutcomes[key] = v;
-        _itemReasons[key] = null;
-        _itemsDone[key] = v == 'DELIVERED' ? plannedQty : 0;
+        _itemOutcomes[index] = v;
+        _itemReasons[index] = null;
+        _itemsDone[index] = v == 'DELIVERED' ? plannedQty : 0;
       }),
-      onQty: (q) => setState(() => _itemsDone[key] = q),
-      onReason: (r) => setState(() => _itemReasons[key] = r),
+      onQty: (q) => setState(() {
+        _itemsDone[index] = q;
+        if (q < plannedQty && _itemOutcomes[index] == 'DELIVERED') {
+          _itemOutcomes[index] = 'REFUSED';
+          _itemReasons[index] = null;
+        }
+      }),
+      onReason: (r) => setState(() => _itemReasons[index] = r),
     );
   }
 
   Future<void> _submit() async {
-    final locale = ref.read(localeProvider);
     if (!_canSubmit) return;
     setState(() => _submitting = true);
     try {
@@ -226,18 +235,18 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
       List<PartialDeliveryItem>? itemsArray;
       if (_isPartial) {
+        final items = widget.args.delivery.items;
         itemsArray = _itemsDone.entries.map((e) {
+          final item = items[e.key];
           final outcome = _itemOutcomes[e.key] ?? 'DELIVERED';
           final reason = _itemReasons[e.key];
-          final plannedQty = widget.args.delivery.items
-              .firstWhere((i) => (i.sku ?? i.name) == e.key, orElse: () => widget.args.delivery.items.first)
-              .quantity;
-          final isPartialQty = outcome == 'DELIVERED' && e.value < plannedQty;
+          final isPartialQty = outcome == 'DELIVERED' && e.value < item.quantity;
           final sendReason = kPodRequiresReason.contains(outcome) || isPartialQty;
           // Per-item free-text removed — the motif (reason) carries the per-line detail; the single
-          // optional POD note ([_notesController]) covers any general remark.
+          // optional POD note ([_notesController]) covers any general remark. Submit the real SKU
+          // (falling back to name) so the backend can still match the line; the index is UI-only.
           return PartialDeliveryItem(
-            sku: e.key,
+            sku: item.sku ?? item.name,
             quantityDone: e.value,
             outcome: outcome,
             reason: sendReason ? reason : null,
@@ -260,13 +269,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               itemsDone: itemsArray,
             );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(DriverCopy.get('pod_success_message', locale))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).pod_success_message)));
         Navigator.of(context).pop(true);
       } catch (e) {
         if (e == 'OFFLINE_QUEUED') {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(DriverCopy.get('delivery_detail_offline_queue', locale))),
+            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
           );
           Navigator.of(context).pop(true);
         } else {
@@ -276,7 +285,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${DriverCopy.get('delivery_detail_error_prefix', locale)}: $error')));
+          .showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).delivery_detail_error_prefix}: $error')));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -289,7 +298,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(DriverCopy.get('pod_title', locale)),
+        title: Text(AppLocalizations.of(context).pod_title),
         leading: IconButton(
           icon: const Icon(LucideIcons.chevronLeft, size: 22),
           onPressed: () => Navigator.of(context).pop(),
@@ -305,8 +314,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             const SizedBox(height: AppTokens.space20),
 
             PodPhotoSection(
-              title: DriverCopy.get('pod_photo_bl_title', locale),
-              subtitle: DriverCopy.get('pod_photo_bl_sub', locale),
+              title: AppLocalizations.of(context).pod_photo_bl_title,
+              subtitle: AppLocalizations.of(context).pod_photo_bl_sub,
               bytes: _bonLivraisonBytes,
               isRequired: true,
               onCapture: () => _pickPhoto((b) => setState(() => _bonLivraisonBytes = b), locale),
@@ -316,8 +325,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             ),
             const SizedBox(height: AppTokens.space16),
             PodPhotoSection(
-              title: DriverCopy.get('pod_photo_pkg_title', locale),
-              subtitle: DriverCopy.get('pod_photo_pkg_sub', locale),
+              title: AppLocalizations.of(context).pod_photo_pkg_title,
+              subtitle: AppLocalizations.of(context).pod_photo_pkg_sub,
               bytes: _packageBytes,
               isRequired: true,
               onCapture: () => _pickPhoto((b) => setState(() => _packageBytes = b), locale),
@@ -333,8 +342,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             PodToggleCard(
               icon: LucideIcons.mapPin,
               iconColor: cs.tertiary,
-              title: DriverCopy.get('pod_gps_label', locale),
-              subtitle: DriverCopy.get('pod_gps_sub', locale),
+              title: AppLocalizations.of(context).pod_gps_label,
+              subtitle: AppLocalizations.of(context).pod_gps_sub,
               value: _attachLocation,
               onChanged: (v) => setState(() => _attachLocation = v),
             ),
@@ -343,16 +352,16 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             PodToggleCard(
               icon: LucideIcons.packageCheck,
               iconColor: cs.secondary,
-              title: DriverCopy.get('pod_partial_label', locale),
-              subtitle: DriverCopy.get('pod_partial_sub', locale),
+              title: AppLocalizations.of(context).pod_partial_label,
+              subtitle: AppLocalizations.of(context).pod_partial_sub,
               value: _isPartial,
               onChanged: (v) => setState(() => _isPartial = v),
               expanded: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(DriverCopy.get('pod_item_outcome_header', locale), style: Theme.of(context).textTheme.titleSmall),
+                  Text(AppLocalizations.of(context).pod_item_outcome_header, style: Theme.of(context).textTheme.titleSmall),
                   const SizedBox(height: AppTokens.space12),
-                  ...widget.args.delivery.items.map((item) => _itemRow(item, locale)),
+                  ...widget.args.delivery.items.asMap().entries.map((e) => _itemRow(e.key, e.value, locale)),
                 ],
               ),
             ),
@@ -379,12 +388,10 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                   padding: const EdgeInsets.only(bottom: AppTokens.space8),
                   child: Text(
                     _missingReasonItem != null
-                        ? '${DriverCopy.get('pod_reason_mandatory', locale)} $_missingReasonItem'
+                        ? '${AppLocalizations.of(context).pod_reason_mandatory} $_missingReasonItem'
                         : (locale == 'ar'
                             ? 'الصورتان إلزاميتان'
-                            : locale == 'en'
-                                ? 'Both photos are mandatory'
-                                : 'Les 2 photos sont obligatoires'),
+                            : AppLocalizations.of(context).podPhotosRequired),
                     style: TextStyle(fontSize: 13, color: cs.error, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
@@ -398,7 +405,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                       ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(LucideIcons.checkCircle, size: 20),
                   label: Text(
-                    DriverCopy.get('pod_confirm_delivery', locale),
+                    AppLocalizations.of(context).pod_confirm_delivery,
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                   ),
                   style: FilledButton.styleFrom(

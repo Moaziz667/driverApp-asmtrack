@@ -5,9 +5,10 @@ import '../../../../theme/widgets.dart';
 import '../../../../theme/swipe_button.dart';
 import '../../../../theme/status_colors.dart';
 import '../../../../theme/tokens.dart';
-import '../../../../services/locale_provider.dart';
 import '../../../deliveries/models/delivery_models.dart';
+import '../../../deliveries/models/status_labels.dart';
 import '../../models/route_models.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class RouteListView extends StatelessWidget {
   const RouteListView({
@@ -54,21 +55,21 @@ class RouteListView extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
+                  width: 72,
+                  height: 72,
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest,
-                    borderRadius: BorderRadius.circular(16),
+                    color: colorScheme.primary.withValues(alpha: 0.10),
+                    shape: BoxShape.circle,
                   ),
                   child: Icon(
-                    LucideIcons.ban,
+                    LucideIcons.coffee,
                     size: 32,
-                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                    color: colorScheme.primary,
                   ),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  DriverCopy.get('route_empty_title', locale),
+                  AppLocalizations.of(context).route_empty_title,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontWeight: AppTokens.fwBold,
                     color: colorScheme.onSurface,
@@ -77,7 +78,7 @@ class RouteListView extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  DriverCopy.get('route_empty_subtitle', locale),
+                  AppLocalizations.of(context).route_empty_subtitle,
                   style: theme.textTheme.bodySmall?.copyWith(
                     color: colorScheme.onSurfaceVariant,
                   ),
@@ -87,7 +88,7 @@ class RouteListView extends StatelessWidget {
                 OutlinedButton.icon(
                   onPressed: onRefresh,
                   icon: const Icon(LucideIcons.refreshCw, size: 14),
-                  label: Text(locale == 'ar' ? 'تحديث' : locale == 'en' ? 'Refresh' : 'Actualiser'),
+                  label: Text(AppLocalizations.of(context).routeRefresh),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: colorScheme.primary,
                     side: BorderSide(color: colorScheme.outlineVariant),
@@ -131,7 +132,7 @@ class RouteListView extends StatelessWidget {
           // Primary Swipe CTA
           if (currentRoute.status == DriverRouteStatus.validated) ...[
             SwipeButton(
-              label: locale == 'ar' ? 'اسحب لبدء الجولة' : locale == 'en' ? 'Swipe to start route' : 'Glisser pour démarrer la tournée',
+              label: AppLocalizations.of(context).routeSwipeStartHint,
               onSwipe: isWorking ? null : onStart,
               isWorking: isWorking,
               icon: LucideIcons.play,
@@ -139,13 +140,13 @@ class RouteListView extends StatelessWidget {
             const SizedBox(height: 12),
           ] else if (currentRoute.status == DriverRouteStatus.inProgress) ...[
             if (nextPending == null)
-              const _InfoChip(
-                label: 'Tous les arrêts validés',
+              _InfoChip(
+                label: AppLocalizations.of(context).routeAllStopsDone,
                 color: AppTokens.successGreen,
               )
             else if (nextPending.isPickup)
               SwipeButton(
-                label: locale == 'ar' ? 'اسحب للشحن' : locale == 'en' ? 'Swipe to load' : 'Glisser pour charger',
+                label: AppLocalizations.of(context).routeSwipeLoadHint,
                 onSwipe: isWorking ? null : () => onConfirmPickup?.call(nextPending.id),
                 isWorking: isWorking,
                 icon: LucideIcons.package,
@@ -153,8 +154,8 @@ class RouteListView extends StatelessWidget {
               ),
             const SizedBox(height: 12),
           ] else if (currentRoute.status == DriverRouteStatus.closed) ...[
-            const _InfoChip(
-              label: 'Tournée terminée',
+            _InfoChip(
+              label: AppLocalizations.of(context).routeFinishedLabel,
               color: AppTokens.successGreen,
             ),
             const SizedBox(height: 12),
@@ -166,7 +167,7 @@ class RouteListView extends StatelessWidget {
               if (onNavigate != null)
                 Expanded(
                   child: _ActionButton(
-                    label: locale == 'ar' ? 'توجيه' : locale == 'en' ? 'Navigate' : 'Naviguer',
+                    label: AppLocalizations.of(context).route_navigate,
                     icon: LucideIcons.compass,
                     color: colorScheme.primary,
                     onTap: onNavigate!,
@@ -177,7 +178,7 @@ class RouteListView extends StatelessWidget {
               if (onDownloadPdf != null && currentRoute.status == DriverRouteStatus.validated)
                 Expanded(
                   child: _ActionButton(
-                    label: locale == 'ar' ? 'تحميل PDF' : locale == 'en' ? 'PDF' : 'Télécharger PDF',
+                    label: AppLocalizations.of(context).route_download_pdf,
                     icon: LucideIcons.fileText,
                     color: colorScheme.primary,
                     onTap: onDownloadPdf!,
@@ -193,7 +194,7 @@ class RouteListView extends StatelessWidget {
               Icon(LucideIcons.package, size: 16, color: colorScheme.primary),
               const SizedBox(width: 8),
               Text(
-                '${locale == 'ar' ? 'الوقفات' : locale == 'en' ? 'STOPS' : 'ARRÊTS'} ($total)',
+                '${AppLocalizations.of(context).routeStopsHeader} ($total)',
                 style: theme.textTheme.labelMedium?.copyWith(
                   fontWeight: AppTokens.fwBold,
                   letterSpacing: 0.8,
@@ -296,7 +297,7 @@ class _RouteHeaderCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        route.status.label.toUpperCase(),
+                        routeStatusLabel(route.status, AppLocalizations.of(context)).toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -312,18 +313,25 @@ class _RouteHeaderCard extends StatelessWidget {
                   runSpacing: AppTokens.space6,
                   children: [
                     if (route.plannedStart != null || route.plannedEnd != null)
-                      _HeaderMetaPill(
-                        icon: LucideIcons.clock,
-                        label: _fmtTimeWindow(route.plannedStart, route.plannedEnd),
-                      ),
+                    _HeaderMetaPill(
+                      icon: LucideIcons.clock,
+                      label: _fmtTimeWindow(route.plannedStart, route.plannedEnd, l10n: AppLocalizations.of(context)),
+                    ),
                     if (route.zone != null && route.zone!.isNotEmpty)
                       _HeaderMetaPill(icon: LucideIcons.mapPin, label: route.zone!)
                     else if (route.city != null && route.city!.isNotEmpty)
                       _HeaderMetaPill(icon: LucideIcons.mapPin, label: route.city!),
                     _HeaderMetaPill(
                       icon: LucideIcons.package,
-                      label: '$total ${total > 1 ? (locale == 'en' ? 'stops' : locale == 'ar' ? 'محطات' : 'arrêts') : (locale == 'en' ? 'stop' : locale == 'ar' ? 'محطة' : 'arrêt')}',
+                      label: total > 1 ? AppLocalizations.of(context).routeStopCount(total.toString()) : AppLocalizations.of(context).routeStopCountSingular(total.toString()),
                     ),
+                    if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty)
+                      _HeaderMetaPill(
+                        icon: LucideIcons.truck,
+                        label: route.vehicleName != null && route.vehicleName!.isNotEmpty
+                            ? '${route.vehicleName} · ${route.vehiclePlate}'
+                            : route.vehiclePlate!,
+                      ),
                   ],
                 ),
                 if (route.depotName != null || route.depotAddress != null) ...[
@@ -443,9 +451,7 @@ class _PickupStopCard extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    DriverCopy.get('route_load_parcels', locale)
-                        .replaceAll('{count}', '$parcelCount')
-                        .replaceAll('{depot}', stop.sourceDepotName ?? ''),
+                    AppLocalizations.of(context).route_load_parcels(parcelCount, stop.sourceDepotName ?? ''),
                     style: theme.textTheme.labelLarge?.copyWith(
                       fontSize: 13,
                       fontWeight: AppTokens.fwBold,
@@ -510,7 +516,7 @@ class _StopListItem extends StatelessWidget {
       onTap: depotPicked
           ? () => onOpenDetails(stop.deliveryId)
           : () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Confirmez d\'abord le chargement au dépôt')),
+                SnackBar(content: Text(AppLocalizations.of(context).routeConfirmPickup)),
               ),
       behavior: HitTestBehavior.opaque,
       child: Card(
@@ -549,7 +555,7 @@ class _StopListItem extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        stop.clientName ?? 'Client',
+                        stop.clientName ?? AppLocalizations.of(context).calendarClient,
                         style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwBold),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -596,6 +602,30 @@ class _StopListItem extends StatelessWidget {
                     ],
                   ),
                 ],
+                if (stop.formattedTimeWindow != null) ...[
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(LucideIcons.calendarClock, size: 12, color: colorScheme.onSurfaceVariant),
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          stop.formattedTimeWindow!,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: AppTokens.fwMedium,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (stop.formattedEta != null || stop.formattedSla != null) ...[
                   const SizedBox(height: 8),
                   Row(
@@ -639,11 +669,7 @@ class _StopListItem extends StatelessWidget {
                       onPressed: () => onOpenPod(stop.deliveryId),
                       icon: const Icon(LucideIcons.checkCircle2, size: 18),
                       label: Text(
-                        locale == 'ar'
-                            ? 'تأكيد التسليم'
-                            : locale == 'en'
-                                ? 'Confirm delivery'
-                                : 'Confirmer la livraison',
+                        AppLocalizations.of(context).routeConfirmDelivery,
                         style: const TextStyle(fontWeight: AppTokens.fwBold, fontSize: 14),
                       ),
                       // Own height via the style (not a SizedBox) so the label is never
@@ -692,7 +718,7 @@ class _DeliveryStatusBadge extends StatelessWidget {
         border: Border.all(color: color.withValues(alpha: 0.25), width: 0.5),
       ),
       child: Text(
-        status.label.toUpperCase(),
+        deliveryStatusLabel(status, AppLocalizations.of(context)).toUpperCase(),
         style: TextStyle(fontSize: 8.5, fontWeight: AppTokens.fwBold, color: color),
       ),
     );
@@ -743,13 +769,13 @@ class _OfflineBanner extends StatelessWidget {
         color: Colors.amber.shade700,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
+      child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(LucideIcons.cloudOff, size: 14, color: Colors.white),
           SizedBox(width: 8),
           Text(
-            'Mode hors ligne — Données en cache',
+            AppLocalizations.of(context).routeOfflineBanner,
             style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
           ),
         ],
@@ -786,10 +812,10 @@ class _InfoChip extends StatelessWidget {
       );
 }
 
-String _fmtTimeWindow(String? start, String? end) {
+String _fmtTimeWindow(String? start, String? end, {AppLocalizations? l10n}) {
   if (start != null && end != null) return '$start – $end';
-  if (start != null) return 'Dès $start';
-  if (end != null) return 'Avant $end';
+  if (start != null) return l10n?.routeTimeFrom(start) ?? 'Dès $start';
+  if (end != null) return l10n?.routeTimeBefore(end) ?? 'Avant $end';
   return '';
 }
 
@@ -828,7 +854,7 @@ class MapPlaceholderLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: LoadingState(message: 'Chargement de la tournée...'),
+        body: LoadingState(message: AppLocalizations.of(context).routeLoadingRoute),
       );
 }
 
@@ -840,9 +866,9 @@ class MapError extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         body: EmptyState(
           icon: PhosphorIconsRegular.cloudSlash,
-          title: 'Impossible de charger la tournée',
+          title: AppLocalizations.of(context).routeLoadError,
           action: onRetry,
-          actionLabel: 'Réessayer',
+          actionLabel: AppLocalizations.of(context).routeRetry,
         ),
       );
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_providers.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -64,7 +65,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                     const SizedBox(width: 16),
                     Text(
-                      'Creer un compte',
+                      AppLocalizations.of(context).registerTitle,
                       style: theme.textTheme.titleMedium,
                     ),
                   ],
@@ -80,25 +81,25 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Inscription chauffeur', style: theme.textTheme.headlineSmall),
+                    Text(AppLocalizations.of(context).registerSubtitle, style: theme.textTheme.headlineSmall),
                     const SizedBox(height: 4),
-                    Text('Remplissez vos informations pour commencer.',
+                    Text(AppLocalizations.of(context).registerDescription,
                         style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 28),
-                    _Field(label: 'Nom complet', child: TextFormField(
+                    _Field(label: AppLocalizations.of(context).registerFullName, child: TextFormField(
                       controller: _nameCtrl,
                       decoration: const InputDecoration(hintText: 'John Doe', prefixIcon: Icon(Icons.person_outline_rounded, size: 18)),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+                      validator: (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context).registerRequired : null,
                     )),
                     const SizedBox(height: 18),
-                    _Field(label: 'Numero de telephone', child: TextFormField(
+                    _Field(label: AppLocalizations.of(context).registerPhone, child: TextFormField(
                       controller: _phoneCtrl,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(hintText: '+213 6xx xxx xxx', prefixIcon: Icon(Icons.phone_outlined, size: 18)),
-                      validator: (v) => (v == null || v.isEmpty) ? 'Requis' : null,
+                      validator: (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context).registerRequired : null,
                     )),
                     const SizedBox(height: 18),
-                    _Field(label: 'Mot de passe', child: TextFormField(
+                    _Field(label: AppLocalizations.of(context).registerPasswordField, child: TextFormField(
                       controller: _passwordCtrl,
                       obscureText: _obscure,
                       decoration: InputDecoration(
@@ -109,7 +110,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
-                      validator: (v) => (v == null || v.length < 6) ? 'Min 6 caracteres' : null,
+                      validator: (v) => (v == null || v.length < 6) ? AppLocalizations.of(context).registerMinChars : null,
                     )),
                     const SizedBox(height: 28),
                     SizedBox(
@@ -120,7 +121,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         icon: auth.isLoading
                             ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                             : const Icon(Icons.arrow_forward_rounded),
-                        label: Text(auth.isLoading ? 'Inscription...' : 'Creer un compte'),
+                        label: Text(auth.isLoading ? AppLocalizations.of(context).registerLoading : AppLocalizations.of(context).registerButton),
                       ),
                     ),
                     if (auth.error != null) ...[
@@ -143,10 +144,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Vous avez deja un compte ?', style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
+                        Text(AppLocalizations.of(context).registerHasAccount, style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text('Se connecter', style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.primary)),
+                          child: Text(AppLocalizations.of(context).registerSignIn, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.primary)),
                         ),
                       ],
                     ),

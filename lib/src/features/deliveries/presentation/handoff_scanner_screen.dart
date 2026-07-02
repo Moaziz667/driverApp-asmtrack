@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 import '../../../app_providers.dart';
 import '../../../services/location_service.dart';
@@ -142,13 +143,13 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
               children: [
                 Icon(LucideIcons.scanLine, color: cs.primary, size: 30),
                 const SizedBox(height: 14),
-                const Text(
-                  'Scanner le QR de l\'expéditeur',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
+                Text(
+                  AppLocalizations.of(context).handoffScanGuidance,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Alignez le code QR de l\'autre chauffeur dans le cadre pour confirmer le transfert de responsabilité.',
+                  AppLocalizations.of(context).handoffScanDescription,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                   textAlign: TextAlign.center,
                 ),
@@ -271,13 +272,13 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                   ),
                 ),
                 const SizedBox(height: 22),
-                const Text(
-                  'Maintenez le code bien aligné…',
-                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+                Text(
+                  AppLocalizations.of(context).handoffKeepAligned,
+                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  'Lecture en cours',
+                  AppLocalizations.of(context).handoffReading,
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
                 ),
               ],
@@ -291,7 +292,7 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
   Widget _buildValidating() {
     return Container(
       color: Colors.black.withValues(alpha: 0.82),
-      child: const LoadingState(message: 'Validation du transfert…'),
+      child: LoadingState(message: AppLocalizations.of(context).handoffValidating),
     );
   }
 
@@ -316,13 +317,13 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              'Transfert confirmé',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
+            Text(
+              AppLocalizations.of(context).handoffTransferConfirmed,
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
             ),
             const SizedBox(height: 6),
             Text(
-              'Le colis vous a été transféré.',
+              AppLocalizations.of(context).handoffTransferComplete,
               style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
             ),
           ],
@@ -339,7 +340,7 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
   void _beginCapture(String raw) {
     final parts = raw.split('|');
     if (parts.length != 2 || parts[0].isEmpty || parts[1].isEmpty) {
-      _failGracefully('Ce QR code n\'est pas un jeton de transfert valide.');
+      _failGracefully(AppLocalizations.of(context).handoffInvalidQr);
       return;
     }
     _pendingDeliveryId = parts[0];
@@ -370,7 +371,7 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
       await Future.delayed(const Duration(milliseconds: 1100));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      await _failGracefully(_friendlyError(e));
+      await _failGracefully(_friendlyError(context, e));
     }
   }
 
@@ -395,24 +396,25 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
 
   /// Maps backend / transport failures to a driver-friendly message —
   /// never surfaces a raw exception string.
-  String _friendlyError(Object e) {
+  String _friendlyError(BuildContext context, Object e) {
+    final l10n = AppLocalizations.of(context);
     final s = e.toString().toLowerCase();
     if (s.contains('expired') || s.contains('expir')) {
-      return 'Ce jeton a expiré. Demandez à l\'expéditeur d\'en générer un nouveau.';
+      return l10n.handoffTokenExpiredDetail;
     }
     if (s.contains('not found') || s.contains('404') || s.contains('invalid')) {
-      return 'Jeton invalide ou déjà utilisé. Réessayez avec un nouveau code.';
+      return l10n.handoffTokenUsed;
     }
     if (s.contains('403') || s.contains('forbidden') || s.contains('not authorized')) {
-      return 'Ce transfert ne vous est pas destiné.';
+      return l10n.handoffNotForYou;
     }
     if (s.contains('concurrent') || s.contains('409') || s.contains('conflict')) {
-      return 'Ce transfert vient d\'être mis à jour. Actualisez puis réessayez.';
+      return l10n.handoffTransferUpdated;
     }
     if (s.contains('socket') || s.contains('timeout') || s.contains('connection') || s.contains('network')) {
-      return 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+      return l10n.handoffConnectionError;
     }
-    return 'Échec du transfert. Veuillez réessayer.';
+    return l10n.handoffGenerateFailed;
   }
 }
 
@@ -463,15 +465,15 @@ class _CameraError extends StatelessWidget {
             const Icon(LucideIcons.cameraOff, color: Colors.white70, size: 48),
             const SizedBox(height: 16),
             Text(
-              denied ? 'Accès à la caméra refusé' : 'Caméra indisponible',
+              denied ? AppLocalizations.of(context).cameraAccessDenied : AppLocalizations.of(context).cameraUnavailable,
               style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               denied
-                  ? 'Autorisez l\'accès à la caméra dans les réglages pour scanner les transferts.'
-                  : 'Impossible de démarrer la caméra. Réessayez plus tard.',
+                  ? AppLocalizations.of(context).cameraPermInstructions
+                  : AppLocalizations.of(context).cameraStartFailed,
               style: const TextStyle(color: Colors.white70, fontSize: 13),
               textAlign: TextAlign.center,
             ),

@@ -32,27 +32,6 @@ extension DeliveryStatusX on DeliveryStatus {
         return DeliveryStatus.unscheduled;
     }
   }
-
-  String get label {
-    switch (this) {
-      case DeliveryStatus.unscheduled:
-        return 'Non planifié';
-      case DeliveryStatus.scheduled:
-        return 'Planifié';
-      case DeliveryStatus.pickedUp:
-        return 'Chargé';
-      case DeliveryStatus.inTransit:
-        return 'En transit';
-      case DeliveryStatus.delivered:
-        return 'Livré';
-      case DeliveryStatus.partially_delivered:
-        return 'Livré partiel';
-      case DeliveryStatus.failed:
-        return 'Échec';
-      case DeliveryStatus.cancelled:
-        return 'Annulé';
-    }
-  }
 }
 
 enum FailureReason { clientAbsent, refused, wrongAddress, damaged, other }
@@ -73,20 +52,6 @@ extension FailureReasonX on FailureReason {
     }
   }
 
-  String get label {
-    switch (this) {
-      case FailureReason.clientAbsent:
-        return 'Client absent';
-      case FailureReason.refused:
-        return 'Refusé par le client';
-      case FailureReason.wrongAddress:
-        return 'Mauvaise adresse';
-      case FailureReason.damaged:
-        return 'Colis endommagé';
-      case FailureReason.other:
-        return 'Autre';
-    }
-  }
 }
 
 class FailureCode {
@@ -115,7 +80,7 @@ class FailureReasonOption {
   /// Static fallback derived from the legacy enum (used when the API is unreachable).
   /// Legacy categories are full-visit failures, so they apply to the FAILURE context.
   static List<FailureReasonOption> get fallback => FailureReason.values
-      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.label, category: r.apiCode.value, appliesTo: const ['FAILURE']))
+      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.apiCode.value, category: r.apiCode.value, appliesTo: const ['FAILURE']))
       .toList();
 }
 
@@ -124,6 +89,11 @@ class OrderItemModel {
     required this.name,
     required this.quantity,
     this.sku,
+    this.quantityDone,
+    this.outcome,
+    this.reason,
+    this.reasonLabel,
+    this.comment,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -131,12 +101,26 @@ class OrderItemModel {
       name: json['name'] as String? ?? 'Item',
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       sku: json['sku'] as String?,
+      quantityDone: (json['quantityDone'] as num?)?.toInt(),
+      outcome: json['outcome'] as String?,
+      reason: json['reason'] as String?,
+      reasonLabel: json['reasonLabel'] as String?,
+      comment: json['comment'] as String?,
     );
   }
 
   final String name;
   final int quantity;
   final String? sku;
+  final int? quantityDone;
+  final String? outcome;
+  final String? reason;
+  final String? reasonLabel;
+  final String? comment;
+
+  bool get hasOutcome => outcome != null && outcome!.isNotEmpty;
+  bool get isFullyDelivered => quantityDone != null && quantityDone == quantity;
+  bool get isPartial => quantityDone != null && quantityDone! < quantity;
 }
 
 class DriverDelivery {
@@ -167,6 +151,10 @@ class DriverDelivery {
     this.handoffConfirmedAt,
     this.handoffToDriverId,
     this.handoffFromDriverId,
+    this.failReason,
+    this.cancelReason,
+    this.proofOfDelivery,
+    this.statusHistory = const [],
     this.timestamps = const {},
   });
 
@@ -212,6 +200,14 @@ class DriverDelivery {
       handoffConfirmedAt: json['handoffConfirmedAt'] != null ? DateTime.tryParse(json['handoffConfirmedAt'] as String) : null,
       handoffToDriverId: json['handoffToDriverId'] as String?,
       handoffFromDriverId: json['handoffFromDriverId'] as String?,
+      failReason: json['failReason'] as String?,
+      cancelReason: json['cancelReason'] as String?,
+      proofOfDelivery: json['proofOfDelivery'] != null
+          ? ProofOfDeliveryModel.fromJson(json['proofOfDelivery'] as Map<String, dynamic>)
+          : null,
+      statusHistory: (json['statusHistory'] as List<dynamic>? ?? [])
+          .map((h) => StatusHistoryItemModel.fromJson(h as Map<String, dynamic>))
+          .toList(),
       timestamps: timestamps,
     );
   }
@@ -242,9 +238,79 @@ class DriverDelivery {
   final DateTime? handoffConfirmedAt;
   final String? handoffToDriverId;
   final String? handoffFromDriverId;
+  final String? failReason;
+  final String? cancelReason;
+  final ProofOfDeliveryModel? proofOfDelivery;
+  final List<StatusHistoryItemModel> statusHistory;
   final Map<String, DateTime?> timestamps;
 
   bool get isTerminal => status == DeliveryStatus.delivered || status == DeliveryStatus.failed || status == DeliveryStatus.cancelled;
+}
+
+class ProofOfDeliveryModel {
+  const ProofOfDeliveryModel({
+    this.photoUrl,
+    this.signatureUrl,
+    this.bonLivraisonPhotoUrl,
+    this.comment,
+    this.collectedAt,
+    this.lat,
+    this.lng,
+  });
+
+  factory ProofOfDeliveryModel.fromJson(Map<String, dynamic> json) {
+    return ProofOfDeliveryModel(
+      photoUrl: json['photoUrl'] as String?,
+      signatureUrl: json['signatureUrl'] as String?,
+      bonLivraisonPhotoUrl: json['bonLivraisonPhotoUrl'] as String?,
+      comment: json['comment'] as String?,
+      collectedAt: json['collectedAt'] != null ? DateTime.tryParse(json['collectedAt'] as String) : null,
+      lat: (json['lat'] as num?)?.toDouble(),
+      lng: (json['lng'] as num?)?.toDouble(),
+    );
+  }
+
+  final String? photoUrl;
+  final String? signatureUrl;
+  final String? bonLivraisonPhotoUrl;
+  final String? comment;
+  final DateTime? collectedAt;
+  final double? lat;
+  final double? lng;
+
+  List<String> get imageUrls {
+    final urls = <String>[];
+    if (photoUrl != null && photoUrl!.isNotEmpty) urls.add(photoUrl!);
+    if (bonLivraisonPhotoUrl != null && bonLivraisonPhotoUrl!.isNotEmpty) urls.add(bonLivraisonPhotoUrl!);
+    if (signatureUrl != null && signatureUrl!.isNotEmpty) urls.add(signatureUrl!);
+    return urls;
+  }
+}
+
+class StatusHistoryItemModel {
+  const StatusHistoryItemModel({
+    this.status,
+    this.eventKey,
+    this.eventParams,
+    this.changedAt,
+    this.changedBy,
+  });
+
+  factory StatusHistoryItemModel.fromJson(Map<String, dynamic> json) {
+    return StatusHistoryItemModel(
+      status: json['status'] as String?,
+      eventKey: json['eventKey'] as String?,
+      eventParams: json['eventParams'] as Map<String, dynamic>?,
+      changedAt: json['changedAt'] != null ? DateTime.tryParse(json['changedAt'] as String) : null,
+      changedBy: json['changedBy'] as String?,
+    );
+  }
+
+  final String? status;
+  final String? eventKey;
+  final Map<String, dynamic>? eventParams;
+  final DateTime? changedAt;
+  final String? changedBy;
 }
 
 class PartialDeliveryItem {

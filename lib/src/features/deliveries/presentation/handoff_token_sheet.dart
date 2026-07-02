@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 import '../../../app_providers.dart';
 import '../../../theme/widgets.dart';
@@ -52,7 +53,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       setState(() => _info = info);
       _startCountdown();
     } catch (e) {
-      if (mounted) setState(() => _error = _friendlyError(e));
+      if (mounted) setState(() => _error = _friendlyError(context, e));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -73,18 +74,19 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
 
   /// Maps backend / transport failures to a driver-friendly message —
   /// never surfaces a raw exception string.
-  String _friendlyError(Object e) {
+  String _friendlyError(BuildContext context, Object e) {
+    final l10n = AppLocalizations.of(context);
     final s = e.toString().toLowerCase();
     if (s.contains('403') || s.contains('forbidden') || s.contains('not authorized')) {
-      return 'Vous n\'êtes pas autorisé à générer un jeton pour ce colis.';
+      return l10n.handoffUnauthorized;
     }
     if (s.contains('not found') || s.contains('404') || s.contains('not awaiting')) {
-      return 'Aucun transfert en attente pour ce colis. Actualisez puis réessayez.';
+      return l10n.handoffNoTransfer;
     }
     if (s.contains('socket') || s.contains('timeout') || s.contains('connection') || s.contains('network')) {
-      return 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+      return l10n.handoffConnectionError;
     }
-    return 'Impossible de générer le jeton. Veuillez réessayer.';
+    return l10n.handoffGenerateFailed;
   }
 
   @override
@@ -109,7 +111,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           Icon(LucideIcons.arrowLeftRight, color: cs.primary, size: 32),
           const SizedBox(height: 16),
           Text(
-            'Authentification du transfert',
+            AppLocalizations.of(context).handoffAuthTitle,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w900,
               color: cs.onSurface,
@@ -117,14 +119,14 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Demandez à l\'autre chauffeur de scanner ce code pour confirmer le transfert de responsabilité.',
+            AppLocalizations.of(context).handoffAuthDescription,
             style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 32),
 
           if (_isLoading)
-            const SizedBox(height: 200, child: LoadingState(message: 'Génération du jeton sécurisé…'))
+            SizedBox(height: 200, child: LoadingState(message: AppLocalizations.of(context).handoffGeneratingToken))
           else if (_error != null)
             _buildError()
           else if (_info != null)
@@ -137,7 +139,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
             width: double.infinity,
             child: TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Fermer'),
+              child: Text(AppLocalizations.of(context).calendarClose),
             ),
           ),
         ],
@@ -189,7 +191,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Jeton : ',
+                  AppLocalizations.of(context).handoffTokenLabel,
                   style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant),
                 ),
                 Text(
@@ -214,9 +216,10 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
     final Color color = urgent ? const Color(0xFFD97706) : cs.onSurfaceVariant;
     final m = _remaining.inMinutes;
     final s = _remaining.inSeconds % 60;
+    final l10n = AppLocalizations.of(context);
     final label = _info?.expiresAt == null
-        ? 'Expire dans 5 minutes'
-        : 'Expire dans ${m.toString().padLeft(2, '0')}:${s.toString().padLeft(2, '0')}';
+        ? l10n.handoffExpiresIn('5:00')
+        : l10n.handoffExpiresIn('${m}:${s.toString().padLeft(2, '0')}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -232,7 +235,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
     return Column(
       children: [
         Text(
-          'Ce code a expiré.',
+          AppLocalizations.of(context).handoffCodeExpired,
           style: TextStyle(color: cs.error, fontSize: 13, fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 12),
@@ -242,7 +245,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           child: FilledButton.icon(
             onPressed: _fetchToken,
             icon: const Icon(LucideIcons.refreshCw, size: 16),
-            label: const Text('Générer un nouveau code'),
+            label: Text(AppLocalizations.of(context).handoffNewCode),
           ),
         ),
       ],
@@ -262,7 +265,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           height: 36,
           child: FilledButton(
             onPressed: _fetchToken,
-            child: const Text('Réessayer'),
+            child: Text(AppLocalizations.of(context).handoffRetry),
           ),
         ),
       ],

@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../models/delivery_models.dart';
+import '../../models/status_labels.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 import '../../../../services/locale_provider.dart';
 import '../../../../theme/status_colors.dart';
 
@@ -12,17 +14,18 @@ class DeliveryCard extends ConsumerWidget {
     required this.delivery,
     this.onTap,
     this.onPrimary,
-    this.primaryLabel = 'Accepter',
+    this.primaryLabel,
   });
 
   final DriverDelivery delivery;
   final VoidCallback? onTap;
   final VoidCallback? onPrimary;
-  final String primaryLabel;
+  final String? primaryLabel;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final locale = ref.watch(localeProvider);
     final statusColors = Theme.of(context).extension<StatusColors>()!;
 
@@ -74,7 +77,7 @@ class DeliveryCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              delivery.status.label,
+                              deliveryStatusLabel(delivery.status, AppLocalizations.of(context)),
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: statusColor,
@@ -105,7 +108,7 @@ class DeliveryCard extends ConsumerWidget {
                   const SizedBox(height: 12),
                   // Address
                   Text(
-                    delivery.address ?? 'Aucune adresse fournie',
+                    delivery.address ?? AppLocalizations.of(context).deliveryNoAddressProvided,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: cs.onSurface,
@@ -133,16 +136,12 @@ class DeliveryCard extends ConsumerWidget {
                   Row(
                     children: [
                       _Meta(
-                        label: locale == 'ar'
-                            ? 'طلب شحن'
-                            : locale == 'en'
-                                ? 'Order'
-                                : 'Commande',
+                        label: AppLocalizations.of(context).deliveryOrder,
                         value: delivery.orderId ?? 'N/A',
                       ),
                       const SizedBox(width: 16),
                       _Meta(
-                        label: DriverCopy.get('delivery_detail_articles', locale),
+                        label: l10n.delivery_detail_articles,
                         value: '${delivery.items.length}',
                       ),
                       const Spacer(),

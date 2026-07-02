@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'app_providers.dart';
@@ -11,6 +12,8 @@ import 'features/deliveries/presentation/delivery_detail_screen.dart';
 import 'features/deliveries/presentation/handoff_inbox_screen.dart';
 import 'features/home/presentation/home_shell.dart';
 import 'features/pod/presentation/pod_form_screen.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
+import 'services/locale_provider.dart';
 import 'theme/app_theme.dart';
 
 class DriverApp extends ConsumerStatefulWidget {
@@ -45,10 +48,24 @@ class _DriverAppState extends ConsumerState<DriverApp> {
       });
     });
 
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp(
       title: 'AsmTrack Driver',
       navigatorKey: rootNavigatorKey,
       debugShowCheckedModeBanner: false,
+      locale: Locale(locale),
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('fr'),
+        Locale('en'),
+        Locale('ar'),
+      ],
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: ThemeMode.system,

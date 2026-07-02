@@ -1,17 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
+import '../../../../app_providers.dart';
 import '../../../../theme/status_colors.dart';
 import '../../../../theme/tokens.dart';
 import '../../models/route_models.dart';
 import '../route_detail_sheet.dart';
 
-const _kMonths = [
-  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+List<String> _kMonths(AppLocalizations l10n) => [
+  l10n.monthJanuary, l10n.monthFebruary, l10n.monthMarch, l10n.monthApril,
+  l10n.monthMay, l10n.monthJune, l10n.monthJuly, l10n.monthAugust,
+  l10n.monthSeptember, l10n.monthOctober, l10n.monthNovember, l10n.monthDecember,
 ];
 const _kDayLetters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-const _kDayFull = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+List<String> _kDayFull(AppLocalizations l10n) => [
+  l10n.dayMonday, l10n.dayTuesday, l10n.dayWednesday, l10n.dayThursday,
+  l10n.dayFriday, l10n.daySaturday, l10n.daySunday,
+];
 
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
@@ -40,6 +47,7 @@ class CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     final today = DateTime.now();
     final todayNorm = DateTime(today.year, today.month, today.day);
     final currentWeekStart = _weekStartOf(todayNorm);
@@ -56,7 +64,7 @@ class CalendarHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '${_kMonths[selectedDay.month - 1]} ${selectedDay.year}',
+                  '${_kMonths(l10n)[selectedDay.month - 1]} ${selectedDay.year}',
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: AppTokens.fwBold,
                     color: cs.onSurface,
@@ -64,7 +72,7 @@ class CalendarHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: AppTokens.space4),
                 Text(
-                  'Semaine $weekNum',
+                  l10n.calendarWeek(weekNum.toString()),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: AppTokens.fwMedium,
@@ -97,7 +105,7 @@ class CalendarHeader extends StatelessWidget {
                       Icon(PhosphorIconsBold.calendar, size: 13, color: cs.primary),
                       const SizedBox(width: AppTokens.space6),
                       Text(
-                        "Aujourd'hui",
+                        l10n.calendarTodayButton,
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: AppTokens.fwSemiBold,
@@ -388,6 +396,7 @@ class DaySummaryBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final dayRoutes = routes
         .where((r) => r.date != null && _sameDay(r.date!, selectedDay))
         .toList();
@@ -422,21 +431,21 @@ class DaySummaryBar extends StatelessWidget {
               children: [
                 _SummaryItem(
                   value: '$totalRoutes',
-                  label: totalRoutes > 1 ? 'Tournées' : 'Tournée',
+                  label: totalRoutes > 1 ? l10n.calendarRoutes : l10n.calendarRoute,
                   icon: PhosphorIconsRegular.path,
                   color: cs.tertiary,
                 ),
                 const SizedBox(width: AppTokens.space16),
                 _SummaryItem(
                   value: '$totalStops',
-                  label: 'Arrêts',
+                  label: l10n.calendarStops,
                   icon: PhosphorIconsRegular.package,
                   color: cs.primary,
                 ),
                 const SizedBox(width: AppTokens.space16),
                 _SummaryItem(
                   value: '$completedStops/$totalStops',
-                  label: 'Livrés',
+                  label: l10n.calendarDelivered,
                   icon: PhosphorIconsRegular.checkCircle,
                   color: const Color(0xFF4CAF82),
                 ),
@@ -444,7 +453,7 @@ class DaySummaryBar extends StatelessWidget {
                 if (totalMontant > 0)
                   _SummaryItem(
                     value: '${totalMontant.toStringAsFixed(3)} TND',
-                    label: 'Montant',
+                    label: l10n.calendarAmount,
                     icon: PhosphorIconsRegular.currencyCircleDollar,
                     color: const Color(0xFFC4881A),
                   ),
@@ -462,7 +471,7 @@ class DaySummaryBar extends StatelessWidget {
             ),
             const SizedBox(height: AppTokens.space4),
             Text(
-              '${(progress * 100).round()}% complété',
+              l10n.calendarProgress((progress * 100).round().toString()),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: cs.onSurfaceVariant,
                 fontWeight: AppTokens.fwMedium,
@@ -525,19 +534,20 @@ class StopListView extends StatelessWidget {
   final DateTime selectedDay;
   final VoidCallback onNavigateToRoute;
 
-  String _dayLabel() {
+  String _dayLabel(AppLocalizations l10n) {
     final today = DateTime.now();
     final todayNorm = DateTime(today.year, today.month, today.day);
     final tomorrow = todayNorm.add(const Duration(days: 1));
-    if (_sameDay(selectedDay, todayNorm)) return "Aujourd'hui";
-    if (_sameDay(selectedDay, tomorrow)) return 'Demain';
-    return '${_kDayFull[selectedDay.weekday - 1]} ${selectedDay.day} ${_kMonths[selectedDay.month - 1]}';
+    if (_sameDay(selectedDay, todayNorm)) return l10n.calendarToday;
+    if (_sameDay(selectedDay, tomorrow)) return l10n.calendarTomorrow;
+    return '${_kDayFull(l10n)[selectedDay.weekday - 1]} ${selectedDay.day} ${_kMonths(l10n)[selectedDay.month - 1]}';
   }
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final label = _dayLabel();
+    final l10n = AppLocalizations.of(context);
+    final label = _dayLabel(l10n);
 
     if (routes.isEmpty) return _EmptyDay(label: label);
 
@@ -587,7 +597,13 @@ class StopListView extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: AppTokens.space10),
               child: _StopCard(
                 info: info,
-                onTap: () => _handleTap(context, info.route, onNavigateToRoute),
+                // Tap shows the command details + items (lazy-loaded) in a sheet — the
+                // "Ouvrir la tournée" action inside preserves the old navigate-to-route behaviour.
+                onTap: () => _showStopItemsSheet(
+                  context,
+                  info,
+                  () => _handleTap(context, info.route, onNavigateToRoute),
+                ),
               ),
             )),
       ],
@@ -614,6 +630,7 @@ class StopListView extends StatelessWidget {
 
   static void _showCancelledSheet(BuildContext context, DriverRoute route) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -648,7 +665,7 @@ class StopListView extends StatelessWidget {
             ),
             const SizedBox(height: AppTokens.space14),
             Text(
-              'Tournée annulée',
+              l10n.calendarRouteCancelledTitle,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: AppTokens.fwBold,
                 color: cs.onSurface,
@@ -656,7 +673,7 @@ class StopListView extends StatelessWidget {
             ),
             const SizedBox(height: AppTokens.space6),
             Text(
-              'La tournée "${route.name}" a été annulée par la dispatch.',
+              l10n.calendarRouteCancelledBody(route.name),
               style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant, height: 1.5),
               textAlign: TextAlign.center,
             ),
@@ -674,7 +691,7 @@ class StopListView extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  'Fermer',
+                  l10n.calendarClose,
                   style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: AppTokens.fwBold,
                     fontSize: 14,
@@ -695,6 +712,183 @@ class _StopInfo {
   final DriverRouteStop stop;
 }
 
+void _showStopItemsSheet(BuildContext context, _StopInfo info, VoidCallback onOpenRoute) {
+  showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Theme.of(context).colorScheme.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) => _StopItemsSheet(info: info, onOpenRoute: onOpenRoute),
+  );
+}
+
+/// Bottom sheet showing a stop's command details + line items. Header fields come from the
+/// route stop (already loaded); the item list is lazy-loaded once via [deliveryDetailProvider].
+class _StopItemsSheet extends ConsumerWidget {
+  const _StopItemsSheet({required this.info, required this.onOpenRoute});
+  final _StopInfo info;
+  final VoidCallback onOpenRoute;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final cs = theme.colorScheme;
+    final l10n = AppLocalizations.of(context);
+    final stop = info.stop;
+    final detail = ref.watch(deliveryDetailProvider(stop.deliveryId));
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cs.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              stop.clientName ?? l10n.calendarClient,
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface),
+            ),
+            if (stop.orderRef != null && stop.orderRef!.isNotEmpty) ...[
+              const SizedBox(height: 2),
+              Text(stop.orderRef!, style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+            ],
+            if (stop.address != null && stop.address!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Icon(PhosphorIconsRegular.mapPin, size: 14, color: cs.onSurfaceVariant),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      [stop.address, stop.city].where((e) => e != null && e.isNotEmpty).join(', '),
+                      style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 18),
+            Text(
+              l10n.calendarItems,
+              style: theme.textTheme.labelLarge?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface),
+            ),
+            const SizedBox(height: 8),
+            detail.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: 22),
+                child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+              ),
+              error: (_, __) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                child: Text(
+                  l10n.calendarLoadItemsError,
+                  style: theme.textTheme.bodySmall?.copyWith(color: cs.error),
+                ),
+              ),
+              data: (d) {
+                if (d.items.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Text(
+                      l10n.calendarNoItems,
+                      style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  );
+                }
+                final amount = d.totalAmount ?? stop.totalAmount ?? 0;
+                return Column(
+                  children: [
+                    ...d.items.map((it) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: cs.primary.withValues(alpha: 0.10),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${it.quantity}',
+                                  style: TextStyle(fontWeight: AppTokens.fwBold, color: cs.primary, fontSize: 12),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      it.name,
+                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    if (it.sku != null && it.sku!.isNotEmpty)
+                                      Text(it.sku!, style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        )),
+                    if (amount > 0) ...[
+                      const SizedBox(height: 10),
+                      Divider(color: cs.outlineVariant, height: 1),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(l10n.calendarAmount,
+                              style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
+                          Text('${amount.toStringAsFixed(3)} ${d.currency ?? 'TND'}',
+                              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface)),
+                        ],
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  onOpenRoute();
+                },
+                icon: const Icon(Icons.map_outlined, size: 16),
+                label: Text(l10n.calendarOpenRoute),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: cs.primary,
+                  side: BorderSide(color: cs.outlineVariant),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _StopCard extends StatelessWidget {
   const _StopCard({required this.info, required this.onTap});
   final _StopInfo info;
@@ -704,13 +898,14 @@ class _StopCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final statusColors = theme.extension<StatusColors>()!;
     final stop = info.stop;
     final route = info.route;
 
     final deliveryStatus = stop.deliveryStatus?.toUpperCase() ?? '';
     final statusColor = statusColors.forDeliveryStatus(deliveryStatus);
-    final statusLabel = _deliveryStatusLabel(deliveryStatus);
+    final statusLabel = _deliveryStatusLabel(deliveryStatus, l10n);
 
     double montant = 0;
     for (final s in route.stops) {
@@ -804,7 +999,7 @@ class _StopCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    stop.clientName ?? 'Client',
+              stop.clientName ?? l10n.calendarClient,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: AppTokens.fwBold,
                       color: cs.onSurface,
@@ -846,6 +1041,24 @@ class _StopCard extends StatelessWidget {
                       ],
                     ),
                   ],
+                  if (stop.formattedTimeWindow != null) ...[
+                    const SizedBox(height: AppTokens.space4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+                      ),
+                      child: Text(
+                        stop.formattedTimeWindow!,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: AppTokens.fwMedium,
+                          color: cs.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -867,7 +1080,7 @@ class _StopCard extends StatelessWidget {
                       Icon(PhosphorIconsRegular.package, size: 13, color: cs.onSurfaceVariant),
                       const SizedBox(width: AppTokens.space4),
                       Text(
-                        '${route.stops.length} arrêt${route.stops.length > 1 ? 's' : ''}',
+                        route.stops.length > 1 ? l10n.routeStopCount(route.stops.length.toString()) : l10n.routeStopCountSingular(route.stops.length.toString()),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: AppTokens.fwMedium,
@@ -901,17 +1114,17 @@ class _StopCard extends StatelessWidget {
     );
   }
 
-  String _deliveryStatusLabel(String status) {
+  String _deliveryStatusLabel(String status, AppLocalizations l10n) {
     switch (status) {
-      case 'UNSCHEDULED': return 'Non planifié';
-      case 'SCHEDULED': return 'Planifié';
-      case 'PICKED_UP': return 'Chargé';
-      case 'IN_TRANSIT': return 'En transit';
-      case 'DELIVERED': return 'Livré';
-      case 'PARTIALLY_DELIVERED': case 'PARTIAL': return 'Partiel';
-      case 'FAILED': case 'FAILED_ATTEMPT': return 'Échec';
-      case 'CANCELLED': return 'Annulé';
-      default: return 'En attente';
+      case 'UNSCHEDULED': return l10n.statusUnscheduled;
+      case 'SCHEDULED': return l10n.statusScheduled;
+      case 'PICKED_UP': return l10n.statusPickedUp;
+      case 'IN_TRANSIT': return l10n.statusInTransit;
+      case 'DELIVERED': return l10n.statusDelivered;
+      case 'PARTIALLY_DELIVERED': case 'PARTIAL': return l10n.statusPartial;
+      case 'FAILED': case 'FAILED_ATTEMPT': return l10n.statusFailed;
+      case 'CANCELLED': return l10n.statusCancelled;
+      default: return l10n.statusPending;
     }
   }
 }
@@ -924,6 +1137,7 @@ class _EmptyDay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -944,7 +1158,7 @@ class _EmptyDay extends StatelessWidget {
           ),
           const SizedBox(height: AppTokens.space18),
           Text(
-            'Aucune tournée',
+            l10n.calendarNoRoutes,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: AppTokens.fwBold,
               color: cs.onSurface,
@@ -969,6 +1183,7 @@ class CalendarErrorState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
+    final l10n = AppLocalizations.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -976,7 +1191,7 @@ class CalendarErrorState extends StatelessWidget {
           Icon(PhosphorIconsRegular.cloudSlash, size: 34, color: cs.onSurfaceVariant),
           const SizedBox(height: AppTokens.space12),
           Text(
-            'Impossible de charger les tournées',
+            l10n.calendarLoadRoutesError,
             style: TextStyle(
               fontSize: 14,
               fontWeight: AppTokens.fwSemiBold,
@@ -985,7 +1200,7 @@ class CalendarErrorState extends StatelessWidget {
           ),
           const SizedBox(height: AppTokens.space4),
           Text(
-            'Vérifiez votre connexion et réessayez.',
+            l10n.calendarCheckConnection,
             style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
           ),
         ],

@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import '../../../services/api_client.dart';
 import '../models/profile_models.dart';
 
@@ -18,6 +20,14 @@ class ProfileRepository {
 
   Future<void> updateLocation(double lat, double lng) async {
     await _client.dio.post('/api/driver/location', data: {'lat': lat, 'lng': lng});
+  }
+
+  /// Uploads the driver's profile photo (multipart). The backend re-encodes + stores it.
+  Future<void> uploadPhoto(String filePath) async {
+    final form = FormData.fromMap({
+      'file': await MultipartFile.fromFile(filePath, filename: 'avatar.jpg'),
+    });
+    await _client.dio.post('/api/driver/me/photo', data: form);
   }
 
   Future<String> updateAvailability(String status) async {

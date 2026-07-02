@@ -4,9 +4,9 @@ import 'dart:ui' show PathMetric;
 import 'package:flutter/material.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 
-import '../../../../services/locale_provider.dart';
 import '../../../../theme/tokens.dart';
 import '../../../deliveries/models/delivery_models.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 // ─── Outcome descriptors ────────────────────────────────────────────────────
 class PodOutcome {
@@ -33,19 +33,11 @@ const kPodOutcomes = [
   PodOutcome('MISSING',   LucideIcons.search,       'info'),
 ];
 
-const kPodReasonsByOutcome = {
-  'REFUSED':   ['CLIENT_ABSENT', 'CLIENT_REJECTED', 'WRONG_ADDRESS', 'POSTPONED', 'OTHER'],
-  'DAMAGED':   ['DAMAGED_IN_TRANSIT', 'DAMAGED_AT_PICKUP', 'PACKAGING_BROKEN', 'WRONG_ITEM'],
-  'DELIVERED': ['OUT_OF_STOCK', 'WRONG_ITEM', 'OTHER'],
-  'MISSING':   ['NOT_LOADED', 'LOST_IN_TRANSIT', 'WRONG_ITEM', 'OTHER'],
-};
-
 const kPodRequiresReason = {'REFUSED', 'DAMAGED', 'MISSING'};
 
 /// Per-item outcome → admin applicability context. The reason chips for each outcome come from the
 /// admin failure-reason referential, filtered by the motif's `appliesTo` context (set by the admin —
-/// not hardcoded here). Short-quantity DELIVERED lines map to ITEM_MISSING (a stock shortfall). When the
-/// admin has no motif for a context, or we're offline, the built-in [kPodReasonsByOutcome] is the fallback.
+/// not hardcoded here). Short-quantity DELIVERED lines map to ITEM_MISSING (a stock shortfall).
 const kPodOutcomeContexts = {
   'REFUSED': 'ITEM_REFUSED',
   'DAMAGED': 'ITEM_DAMAGED',
@@ -69,61 +61,12 @@ String podOutcomeLabel(String outcome, String locale) {
     }
   }
   switch (outcome) {
-    case 'DELIVERED': return 'Livré';
-    case 'REFUSED': return 'Refusé';
-    case 'DAMAGED': return 'Endommagé';
-    case 'MISSING': return 'Manquant';
+    case 'DELIVERED': return 'Delivered';
+    case 'REFUSED': return 'Refused';
+    case 'DAMAGED': return 'Damaged';
+    case 'MISSING': return 'Missing';
   }
   return outcome;
-}
-
-String podReasonLabel(String reason, String locale) {
-  if (locale == 'ar') {
-    switch (reason) {
-      case 'CLIENT_ABSENT': return 'العميل غائب';
-      case 'CLIENT_REJECTED': return 'رفض العميل';
-      case 'WRONG_ADDRESS': return 'عنوان خاطئ';
-      case 'POSTPONED': return 'مؤجل';
-      case 'OTHER': return 'آخر';
-      case 'DAMAGED_IN_TRANSIT': return 'تالف أثناء النقل';
-      case 'DAMAGED_AT_PICKUP': return 'تالف عند الاستلام';
-      case 'PACKAGING_BROKEN': return 'التعبئة تالفة';
-      case 'WRONG_ITEM': return 'سلعة خاطئة';
-      case 'OUT_OF_STOCK': return 'نفذت الكمية';
-      case 'NOT_LOADED': return 'لم يتم شحنها';
-      case 'LOST_IN_TRANSIT': return 'مفقود أثناء النقل';
-    }
-  } else if (locale == 'en') {
-    switch (reason) {
-      case 'CLIENT_ABSENT': return 'Customer absent';
-      case 'CLIENT_REJECTED': return 'Customer rejected';
-      case 'WRONG_ADDRESS': return 'Wrong address';
-      case 'POSTPONED': return 'Postponed';
-      case 'OTHER': return 'Other';
-      case 'DAMAGED_IN_TRANSIT': return 'Damaged in transit';
-      case 'DAMAGED_AT_PICKUP': return 'Damaged at pickup';
-      case 'PACKAGING_BROKEN': return 'Packaging broken';
-      case 'WRONG_ITEM': return 'Wrong item';
-      case 'OUT_OF_STOCK': return 'Out of stock';
-      case 'NOT_LOADED': return 'Not loaded at depot';
-      case 'LOST_IN_TRANSIT': return 'Lost in transit';
-    }
-  }
-  switch (reason) {
-    case 'CLIENT_ABSENT': return 'Client absent';
-    case 'CLIENT_REJECTED': return 'Refus du client';
-    case 'WRONG_ADDRESS': return 'Mauvaise adresse';
-    case 'POSTPONED': return 'Reporté';
-    case 'OTHER': return 'Autre';
-    case 'DAMAGED_IN_TRANSIT': return 'Endommagé en transit';
-    case 'DAMAGED_AT_PICKUP': return 'Endommagé à la collecte';
-    case 'PACKAGING_BROKEN': return 'Emballage défectueux';
-    case 'WRONG_ITEM': return 'Mauvais article';
-    case 'OUT_OF_STOCK': return 'Rupture de stock';
-    case 'NOT_LOADED': return 'Non chargé en dépôt';
-    case 'LOST_IN_TRANSIT': return 'Perdu en transit';
-  }
-  return reason;
 }
 
 // ─── Reusable card shell ─────────────────────────────────────────────────────
@@ -225,9 +168,9 @@ class PodInstructionsCard extends StatelessWidget {
           const SizedBox(width: AppTokens.space12),
           Expanded(
             child: Text(
-              '${DriverCopy.get('pod_step_1', locale)}\n'
-              '${DriverCopy.get('pod_step_2', locale)}\n'
-              '${DriverCopy.get('pod_step_3', locale)}',
+              '${AppLocalizations.of(context).pod_step_1}\n'
+              '${AppLocalizations.of(context).pod_step_2}\n'
+              '${AppLocalizations.of(context).pod_step_3}',
               style: TextStyle(
                 fontSize: 13,
                 color: cs.onSurface.withValues(alpha: 0.7),
@@ -257,7 +200,7 @@ class PodViewBlButton extends StatelessWidget {
       icon: loading
           ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
           : const Icon(LucideIcons.fileText, size: 18),
-      label: Text(loading ? DriverCopy.get('pod_downloading', locale) : DriverCopy.get('pod_view_print_bl', locale)),
+      label: Text(loading ? AppLocalizations.of(context).pod_downloading : AppLocalizations.of(context).pod_view_print_bl),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(48),
         side: BorderSide(color: cs.outlineVariant),
@@ -365,7 +308,7 @@ class PodPhotoSection extends StatelessWidget {
                         ),
                         const SizedBox(height: AppTokens.space12),
                         Text(
-                          DriverCopy.get('pod_photo_tap_hint', locale),
+                          AppLocalizations.of(context).pod_photo_tap_hint,
                           style: TextStyle(fontSize: 14, color: cs.primary, fontWeight: AppTokens.fwBold),
                         ),
                       ],
@@ -380,7 +323,7 @@ class PodPhotoSection extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onCapture,
                 icon: const Icon(LucideIcons.camera, size: 16),
-                label: Text(captured ? DriverCopy.get('pod_photo_retake', locale) : DriverCopy.get('pod_photo_take', locale)),
+                label: Text(captured ? AppLocalizations.of(context).pod_photo_retake : AppLocalizations.of(context).pod_photo_take),
                 style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   minimumSize: Size.zero,
@@ -392,7 +335,7 @@ class PodPhotoSection extends StatelessWidget {
                 TextButton.icon(
                   onPressed: onClear,
                   icon: const Icon(LucideIcons.trash2, size: 16),
-                  label: Text(DriverCopy.get('pod_photo_delete', locale)),
+                  label: Text(AppLocalizations.of(context).pod_photo_delete),
                   style: TextButton.styleFrom(
                     foregroundColor: cs.error,
                     minimumSize: Size.zero,
@@ -426,7 +369,7 @@ class PodNotesField extends StatelessWidget {
               Icon(LucideIcons.stickyNote, size: 16, color: cs.onSurfaceVariant),
               const SizedBox(width: AppTokens.space8),
               Text(
-                locale == 'ar' ? 'تعليق' : locale == 'en' ? 'Comment' : 'Commentaire',
+                AppLocalizations.of(context).podNotesTitle,
                 style: TextStyle(fontWeight: AppTokens.fwSemiBold, color: cs.onSurfaceVariant, fontSize: 12),
               ),
             ],
@@ -437,7 +380,7 @@ class PodNotesField extends StatelessWidget {
             minLines: 2,
             maxLines: 5,
             decoration: InputDecoration(
-              hintText: locale == 'ar' ? 'تعليق (اختياري)' : locale == 'en' ? 'Comment (optional)' : 'Commentaire (optionnel)',
+              hintText: AppLocalizations.of(context).podNotesHint,
               border: InputBorder.none,
               focusedBorder: InputBorder.none,
               enabledBorder: InputBorder.none,
@@ -538,8 +481,8 @@ class PodItemOutcomeRow extends StatelessWidget {
   final ValueChanged<String> onReason;
 
   /// Resolves the reason chips for the current outcome from the admin referential, filtered by the
-  /// motif's `appliesTo` context. Short-quantity DELIVERED lines use the ITEM_MISSING context. Falls back
-  /// to the built-in [kPodReasonsByOutcome] when the admin has no motif for that context or we're offline.
+  /// motif's `appliesTo` context. Short-quantity DELIVERED lines use the ITEM_MISSING context.
+  /// Returns empty when offline (no admin referential loaded).
   List<({String code, String label})> _reasonChips() {
     final plannedQty = item.quantity as int;
     final isPartialQty = outcome == 'DELIVERED' && currentQty < plannedQty;
@@ -550,8 +493,7 @@ class PodItemOutcomeRow extends StatelessWidget {
         return filtered.map((r) => (code: r.code, label: r.label)).toList();
       }
     }
-    final codes = kPodReasonsByOutcome[outcome] ?? kPodReasonsByOutcome['REFUSED']!;
-    return codes.map((c) => (code: c, label: podReasonLabel(c, locale))).toList();
+    return const <({String code, String label})>[];
   }
 
   @override
@@ -661,7 +603,7 @@ class PodItemOutcomeRow extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  Text(DriverCopy.get('pod_delivered_qty', locale), style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                  Text(AppLocalizations.of(context).pod_delivered_qty, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
                   const Spacer(),
                   _QtyButton(
                     icon: LucideIcons.minus,
@@ -689,7 +631,7 @@ class PodItemOutcomeRow extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
               child: Text(
-                isPartialQty ? DriverCopy.get('pod_reason_partial', locale) : DriverCopy.get('pod_reason_label', locale),
+                isPartialQty ? AppLocalizations.of(context).pod_reason_partial : AppLocalizations.of(context).pod_reason_label,
                 style: TextStyle(fontSize: 11, fontWeight: AppTokens.fwBold, color: cs.onSurfaceVariant),
               ),
             ),

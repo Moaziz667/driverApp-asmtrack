@@ -8,7 +8,9 @@ import '../../../app_providers.dart';
 import '../../../theme/widgets.dart';
 import '../../../theme/status_colors.dart';
 import '../models/delivery_models.dart';
+import '../models/status_labels.dart';
 import 'delivery_detail_screen.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class HistoryTab extends ConsumerStatefulWidget {
   const HistoryTab({super.key});
@@ -60,15 +62,15 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
       child: Builder(builder: (context) {
         // First page in flight (nothing loaded yet).
         if (state.loading && state.items.isEmpty) {
-          return const LoadingState(message: 'Chargement de l\'archive…');
+          return LoadingState(message: AppLocalizations.of(context).historyLoading);
         }
         // Failed before any page loaded → offline/retry state.
         if (state.error != null && state.items.isEmpty) {
           return EmptyState(
             icon: PhosphorIconsRegular.cloudSlash,
-            title: 'Historique hors ligne',
+            title: AppLocalizations.of(context).historyOffline,
             action: () => notifier.loadFirst(),
-            actionLabel: 'Réessayer',
+            actionLabel: AppLocalizations.of(context).routeRetry,
           );
         }
 
@@ -113,8 +115,8 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
               if (filtered.isEmpty) {
                 return EmptyState(
                     icon: PhosphorIconsRegular.package,
-                  title: 'Aucun enregistrement',
-                  subtitle: 'Les livraisons terminées apparaîtront ici.',
+                  title: AppLocalizations.of(context).historyEmpty,
+                  subtitle: AppLocalizations.of(context).historyEmptySubtitle,
                 );
               }
               // Trailing loader while the next page is being appended.
@@ -165,7 +167,7 @@ class _ArchiveHeader extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 20, bottom: 20),
             child: Text(
-              'Historique',
+              AppLocalizations.of(context).historySectionTitle,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: cs.onSurface,
@@ -184,7 +186,7 @@ class _ArchiveHeader extends StatelessWidget {
                   border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Text(
-                  '$total enregistrements',
+                  AppLocalizations.of(context).historyRecordCount(total.toString()),
                   style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant, fontWeight: FontWeight.w500),
                 ),
               ),
@@ -209,7 +211,7 @@ class _ArchiveHeader extends StatelessWidget {
                         const SizedBox(width: 8),
                         Text(
                           dateRange == null 
-                              ? 'Filtrer par date...' 
+                              ? AppLocalizations.of(context).historyFilterDate
                               : '${DateFormat('MMM d').format(dateRange!.start)} - ${DateFormat('MMM d').format(dateRange!.end)}',
                           style: Theme.of(context).textTheme.labelLarge?.copyWith(
                             fontWeight: FontWeight.w600, 
@@ -259,7 +261,7 @@ class _ArchiveHeader extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        f.label,
+                        f.label(context),
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: isSelected ? Colors.white : cs.onSurfaceVariant,
@@ -335,7 +337,7 @@ class _HistoryTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        delivery.status.label,
+                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context)),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: statusColor,
@@ -354,7 +356,7 @@ class _HistoryTile extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             Text(
-              delivery.address ?? 'Aucune adresse',
+              delivery.address ?? AppLocalizations.of(context).historyNoAddress,
               style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: cs.onSurface),
             ),
             if (delivery.city != null) ...[
@@ -364,8 +366,8 @@ class _HistoryTile extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                _HistoryStat(label: 'Commande', value: delivery.orderId ?? delivery.id.substring(0, 8)),
-                _HistoryStat(label: 'Articles', value: '${delivery.items.length}'),
+                _HistoryStat(label: AppLocalizations.of(context).historyOrder, value: delivery.orderId ?? delivery.id.substring(0, 8)),
+                _HistoryStat(label: AppLocalizations.of(context).historyItems, value: '${delivery.items.length}'),
               ],
             ),
           ],
@@ -403,16 +405,16 @@ class _HistoryStat extends StatelessWidget {
 enum _HistoryFilter { all, delivered, failed, cancelled }
 
 extension on _HistoryFilter {
-  String get label {
+  String label(BuildContext context) {
     switch (this) {
       case _HistoryFilter.all:
-        return 'Tout';
+        return AppLocalizations.of(context).filterAll;
       case _HistoryFilter.delivered:
-        return 'Livrée';
+        return AppLocalizations.of(context).filterDelivered;
       case _HistoryFilter.failed:
-        return 'Échouée';
+        return AppLocalizations.of(context).filterFailed;
       case _HistoryFilter.cancelled:
-        return 'Annulée';
+        return AppLocalizations.of(context).filterCancelled;
     }
   }
 

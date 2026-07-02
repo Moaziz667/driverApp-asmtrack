@@ -13,6 +13,7 @@ import '../../deliveries/presentation/handoff_scanner_screen.dart';
 import '../../deliveries/presentation/handoff_token_sheet.dart';
 import '../models/route_models.dart';
 import 'widgets/route_list_view.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class RoutesScreen extends ConsumerStatefulWidget {
   const RoutesScreen({super.key});
@@ -45,13 +46,13 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Hors ligne — sera envoyé à la reconnexion')),
+            SnackBar(content: Text(AppLocalizations.of(context).routeOfflineAction)),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur: $e')),
+            SnackBar(content: Text(AppLocalizations.of(context).routeErrorSnackbar(e.toString()))),
           );
         }
       }
@@ -65,9 +66,9 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
         final isOnline = await ref.read(connectivityServiceProvider).isOnline;
         if (!isOnline) {
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Non disponible hors ligne')),
-            );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(AppLocalizations.of(context).routeOfflineUnavailable)),
+              );
           }
           return;
         }
@@ -77,7 +78,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
         );
         if (!ok && mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Échec du téléchargement du PDF')),
+            SnackBar(content: Text(AppLocalizations.of(context).routePdfFailed)),
           );
         }
       });
@@ -204,7 +205,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         icon: const Icon(LucideIcons.qrCode, size: 20),
-        label: Text('Generer QR', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5, fontSize: 13)),
+        label: Text(AppLocalizations.of(context).routeGenerateQr, style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5, fontSize: 13)),
       );
     } else if (isReceiver) {
       // Driver 2 (receiver): scan Driver 1's QR
@@ -214,7 +215,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
           if (!isOnline) {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Scanner non disponible hors ligne')),
+                SnackBar(content: Text(AppLocalizations.of(context).routeScannerOffline)),
               );
             }
             return;
@@ -229,7 +230,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         icon: const Icon(LucideIcons.qrCode, size: 20),
-        label: Text('Scanner QR', style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5, fontSize: 13)),
+        label: Text(AppLocalizations.of(context).routeScanQr, style: TextStyle(fontWeight: FontWeight.w700, letterSpacing: 1.5, fontSize: 13)),
       );
     }
 

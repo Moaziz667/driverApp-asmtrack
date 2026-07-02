@@ -5,6 +5,7 @@ import 'package:lucide_icons/lucide_icons.dart';
 
 import '../../../app_providers.dart';
 import '../../../theme/tokens.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 import 'login_screen.dart';
 
 class SetupAccountScreen extends ConsumerStatefulWidget {
@@ -43,7 +44,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   Future<void> _validateToken() async {
     final token = _tokenCtrl.text.trim();
     if (token.isEmpty) {
-      setState(() => _tokenError = 'Entrez votre code d\'activation');
+      setState(() => _tokenError = AppLocalizations.of(context).setupEnterCodeHint);
       return;
     }
 
@@ -67,21 +68,21 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     } catch (e) {
       String errorMsg;
       if (e is DioException && e.type != DioExceptionType.badResponse) {
-        errorMsg = 'Serveur inaccessible - Verifiez votre connexion';
+        errorMsg = AppLocalizations.of(context).setupServerInaccessible;
       } else {
         final errorStr = e.toString().toUpperCase();
         if (errorStr.contains('INVITE_NOT_FOUND')) {
-          errorMsg = 'Code non trouve - Contactez votre responsable';
+          errorMsg = AppLocalizations.of(context).setupCodeNotFound;
         } else if (errorStr.contains('INVITE_EXPIRED')) {
-          errorMsg = 'Code expire - Demandez un nouveau code';
+          errorMsg = AppLocalizations.of(context).setupCodeExpired;
         } else if (errorStr.contains('INVITE_ALREADY_USED')) {
-          errorMsg = 'Ce code a deja ete utilise';
+          errorMsg = AppLocalizations.of(context).setupCodeAlreadyUsed;
         } else if (errorStr.contains('INVALID_TOKEN_FORMAT')) {
-          errorMsg = 'Format de code invalide (UUID attendu)';
+          errorMsg = AppLocalizations.of(context).setupInvalidFormat;
         } else if (errorStr.contains('CONNECTION_REFUSED') || errorStr.contains('CONNECTION TIMED OUT')) {
-          errorMsg = 'Serveur inaccessible - Verifiez votre connexion';
+          errorMsg = AppLocalizations.of(context).setupServerInaccessible;
         } else {
-          errorMsg = 'Code invalide ou expire';
+          errorMsg = AppLocalizations.of(context).setupInvalidOrExpired;
         }
       }
       setState(() {
@@ -94,7 +95,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   Future<void> _resendCode() async {
     final phone = _phoneCtrl.text.trim();
     if (phone.isEmpty) {
-      setState(() => _tokenError = 'Entrez votre numero de telephone');
+      setState(() => _tokenError = AppLocalizations.of(context).setupEnterPhoneHint);
       return;
     }
 
@@ -125,8 +126,8 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
           SnackBar(
             content: Text(
               status == 'SENT' 
-                ? 'Un code d\'activation a ete envoye par email.'
-                : 'Un code d\'activation a ete renvoye par email.',
+                ? AppLocalizations.of(context).setupCodeSentEmail
+                : AppLocalizations.of(context).setupCodeResentEmail,
             ),
             duration: const Duration(seconds: 4),
           ),
@@ -135,8 +136,8 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     } catch (e) {
       setState(() {
         _tokenError = e is DioException && e.type != DioExceptionType.badResponse
-            ? 'Serveur inaccessible - Verifiez votre connexion'
-            : 'Telephone non trouve ou deja active';
+            ? AppLocalizations.of(context).setupServerInaccessible
+            : AppLocalizations.of(context).setupPhoneNotFoundOrActive;
         _isResending = false;
       });
     }
@@ -166,9 +167,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Compte active ! Connectez-vous avec votre numero de telephone.'),
-            duration: Duration(seconds: 4),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).setupAccountActivated),
+            duration: const Duration(seconds: 4),
           ),
         );
         Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
@@ -176,8 +177,8 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     } catch (e) {
       setState(() {
         _error = e is DioException && e.type != DioExceptionType.badResponse
-            ? 'Serveur inaccessible - Verifiez votre connexion'
-            : 'Activation echouee. Verifiez votre code et reessayez.';
+            ? AppLocalizations.of(context).setupServerInaccessible
+            : AppLocalizations.of(context).setupActivationFailed;
         _isLoading = false;
       });
     }
@@ -214,7 +215,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         TextButton(
                           onPressed: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName),
                           child: Text(
-                            'Se connecter',
+                            AppLocalizations.of(context).registerSignIn,
                             style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
                           ),
                         ),
@@ -222,12 +223,12 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      'Configurer mon compte',
+                      AppLocalizations.of(context).setupConfigureAccount,
                       style: theme.textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'Activation chauffeur',
+                      AppLocalizations.of(context).setupActivationTitle,
                       style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.primary),
                     ),
                   ],
@@ -258,7 +259,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              'Entrez le code d\'activation recu par email, puis choisissez votre mot de passe.',
+                              AppLocalizations.of(context).setupActivationSubtitle,
                               style: TextStyle(fontSize: 13, color: colorScheme.onPrimaryContainer, height: 1.5),
                             ),
                           ),
@@ -266,7 +267,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    Text('Code d\'activation', style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    Text(AppLocalizations.of(context).setupActivationCode, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                     const SizedBox(height: 12),
                     // Field on its own line + button below — no Row/Expanded, which was the
                     // source of the "render box never laid out" hit-test failure.
@@ -304,7 +305,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                                   height: 16,
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
-                              : const Text('Valider le code'),
+                              : Text(AppLocalizations.of(context).setupValidateCode),
                         ),
                       ),
                     ],
@@ -321,7 +322,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Vous n\'avez pas recu le code ?',
+                              AppLocalizations.of(context).setupNoCodeReceived,
                               style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
                             ),
                             const SizedBox(height: 10),
@@ -330,10 +331,10 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                             TextField(
                               controller: _phoneCtrl,
                               keyboardType: TextInputType.phone,
-                              decoration: const InputDecoration(
-                                hintText: 'Votre telephone',
-                                prefixIcon: Icon(LucideIcons.phone, size: 18),
-                                border: OutlineInputBorder(),
+                              decoration: InputDecoration(
+                                hintText: AppLocalizations.of(context).setupPhoneHint,
+                                prefixIcon: const Icon(LucideIcons.phone, size: 18),
+                                border: const OutlineInputBorder(),
                               ),
                             ),
                             const SizedBox(height: 10),
@@ -348,7 +349,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                                         height: 14,
                                         child: CircularProgressIndicator(strokeWidth: 1.5),
                                       )
-                                    : const Text('Renvoyer le code'),
+                                    : Text(AppLocalizations.of(context).setupResendCode),
                               ),
                             ),
                           ],
@@ -369,7 +370,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                             Icon(LucideIcons.userCheck, size: 16, color: colorScheme.primary),
                             const SizedBox(width: 8),
                             Text(
-                              'Bienvenue, $_validatedName',
+                              AppLocalizations.of(context).setupWelcome(_validatedName!),
                               style: TextStyle(fontSize: 13, color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w700),
                             ),
                           ],
@@ -378,13 +379,13 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                     ],
                     if (_validatedName != null) ...[
                       const SizedBox(height: 32),
-                      Text('Mot de passe', style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      Text(AppLocalizations.of(context).setupPasswordLabel, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordCtrl,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          hintText: 'Minimum 6 caracteres',
+                          hintText: AppLocalizations.of(context).setupPasswordMin,
                           prefixIcon: const Icon(LucideIcons.lock, size: 20),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -395,18 +396,18 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           ),
                         ),
                         validator: (v) {
-                          if (v == null || v.length < 6) return 'Minimum 6 caracteres';
+                          if (v == null || v.length < 6) return AppLocalizations.of(context).setupPasswordMin;
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      Text('Confirmer le mot de passe', style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      Text(AppLocalizations.of(context).setupConfirmPassword, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmCtrl,
                         obscureText: _obscureConfirm,
                         decoration: InputDecoration(
-                          hintText: 'Repetez votre mot de passe',
+                          hintText: AppLocalizations.of(context).setupConfirmPasswordHint,
                           prefixIcon: const Icon(LucideIcons.lock, size: 20),
                           suffixIcon: IconButton(
                             icon: Icon(
@@ -417,7 +418,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           ),
                         ),
                         validator: (v) {
-                          if (v != _passwordCtrl.text) return 'Les mots de passe ne correspondent pas';
+                          if (v != _passwordCtrl.text) return AppLocalizations.of(context).setupPasswordMismatch;
                           return null;
                         },
                       ),
@@ -430,7 +431,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           icon: _isLoading
                               ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                               : const Icon(LucideIcons.shieldCheck),
-                          label: Text(_isLoading ? 'Activation...' : 'Activer mon compte'),
+                          label: Text(_isLoading ? AppLocalizations.of(context).setupActivating : AppLocalizations.of(context).setupActivateAccount),
                         ),
                       ),
                       if (_error != null) ...[

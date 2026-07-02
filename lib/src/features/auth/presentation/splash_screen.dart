@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../theme/widgets.dart';
-import '../../../services/locale_provider.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class SplashScreen extends ConsumerWidget {
   const SplashScreen({super.key});
@@ -12,7 +12,7 @@ class SplashScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final locale = ref.watch(localeProvider);
+    final l10n = AppLocalizations.of(context);
 
     // Routing is handled centrally in DriverApp's auth listener once bootstrap
     // resolves the auth status.
@@ -33,7 +33,7 @@ class SplashScreen extends ConsumerWidget {
                 const AppLogo(size: 96),
                 const SizedBox(height: 48),
                 Text(
-                  'AsmTrack Driver',
+                  l10n.login_driver_space,
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: -1,
@@ -41,7 +41,7 @@ class SplashScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  DriverCopy.get('splash_sub', locale),
+                  l10n.splash_sub,
                   style: theme.textTheme.labelMedium?.copyWith(
                     color: colorScheme.primary,
                     letterSpacing: 3,
@@ -58,7 +58,7 @@ class SplashScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  DriverCopy.get('splash_loading', locale),
+                  l10n.splash_loading,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelSmall?.copyWith(
                     letterSpacing: 5,
@@ -67,7 +67,7 @@ class SplashScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  DriverCopy.get('splash_copyright', locale),
+                  l10n.splash_copyright,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.labelSmall?.copyWith(
                     color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),

@@ -4,6 +4,7 @@ import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../models/route_models.dart';
 import 'widgets/route_card.dart' show StatusChip;
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 /// Read-only bottom sheet shown when the driver taps a non-active route in
 /// the calendar (e.g. a future VALIDATED route or a past CLOSED route).
@@ -89,7 +90,7 @@ class RouteDetailSheet extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  'Arrêts',
+                  AppLocalizations.of(context).routeInfoStops,
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
@@ -121,7 +122,7 @@ class RouteDetailSheet extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 child: Text(
-                  'Aucun arrêt configuré.',
+                  AppLocalizations.of(context).routeNoStopsConfigured,
                   style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                 ),
               )
@@ -153,7 +154,7 @@ class _InfoGrid extends StatelessWidget {
       final d = route.date!;
       items.add(_InfoItem(
         icon: PhosphorIconsRegular.calendarBlank,
-        label: 'Date',
+        label: AppLocalizations.of(context).routeInfoDate,
         value: '${d.day} ${months[d.month - 1]} ${d.year}',
       ));
     }
@@ -164,7 +165,7 @@ class _InfoGrid extends StatelessWidget {
           .join(' – ');
       items.add(_InfoItem(
         icon: PhosphorIconsRegular.clock,
-        label: 'Horaire',
+        label: AppLocalizations.of(context).routeInfoSchedule,
         value: label,
       ));
     }
@@ -172,25 +173,33 @@ class _InfoGrid extends StatelessWidget {
     if (route.zone != null && route.zone!.isNotEmpty) {
       items.add(_InfoItem(
         icon: PhosphorIconsRegular.mapPin,
-        label: 'Zone',
+        label: AppLocalizations.of(context).routeInfoZone,
         value: route.zone!,
       ));
     } else if (route.city != null && route.city!.isNotEmpty) {
       items.add(_InfoItem(
         icon: PhosphorIconsRegular.mapPin,
-        label: 'Ville',
+        label: AppLocalizations.of(context).routeInfoCity,
         value: route.city!,
       ));
     }
 
     items.add(_InfoItem(
       icon: PhosphorIconsRegular.package,
-      label: 'Arrêts',
+      label: AppLocalizations.of(context).routeInfoStops,
       value: route.status == DriverRouteStatus.closed ||
               route.status == DriverRouteStatus.inProgress
           ? '$done / $total'
           : '$total',
     ));
+
+    if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty) {
+      items.add(_InfoItem(
+        icon: PhosphorIconsRegular.car,
+        label: AppLocalizations.of(context).routeInfoVehicle,
+        value: '${route.vehicleName ?? ''} · ${route.vehiclePlate!}',
+      ));
+    }
 
     return Wrap(
       spacing: 10,
@@ -278,7 +287,7 @@ class _ReadOnlyStopRow extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                'Chargement — Dépôt ${stop.sourceDepotName ?? ''}'.trim(),
+                AppLocalizations.of(context).routePickupLabel(stop.sourceDepotName ?? ''),
                 style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: pickup),
                 overflow: TextOverflow.ellipsis,
               ),
@@ -350,6 +359,21 @@ class _ReadOnlyStopRow extends StatelessWidget {
                     [stop.address, stop.city].where((e) => e != null && e.isNotEmpty).join(', '),
                     style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                     overflow: TextOverflow.ellipsis,
+                  ),
+                if (stop.formattedTimeWindow != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        stop.formattedTimeWindow!,
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                      ),
+                    ),
                   ),
               ],
             ),

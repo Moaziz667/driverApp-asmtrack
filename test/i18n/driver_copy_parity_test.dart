@@ -1,23 +1,41 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:driver_app/src/services/locale_provider.dart';
 
 /// Guards FR/EN/AR translation parity — a missing key silently falls back to
 /// French at runtime, so this catches drift before it ships.
+/// Reads the ARB JSON files directly and compares their key sets.
 void main() {
-  final fr = DriverCopy.dict['fr']!.keys.toSet();
-  final en = DriverCopy.dict['en']!.keys.toSet();
-  final ar = DriverCopy.dict['ar']!.keys.toSet();
+  final fr = _loadArbKeys('fr');
+  final en = _loadArbKeys('en');
+  final ar = _loadArbKeys('ar');
 
   test('EN has every FR key', () {
-    expect(fr.difference(en), isEmpty, reason: 'Keys in FR missing from EN: ${fr.difference(en)}');
+    final missing = fr.difference(en);
+    expect(missing, isEmpty, reason: 'Keys in FR missing from EN: $missing');
   });
+
   test('AR has every FR key', () {
-    expect(fr.difference(ar), isEmpty, reason: 'Keys in FR missing from AR: ${fr.difference(ar)}');
+    final missing = fr.difference(ar);
+    expect(missing, isEmpty, reason: 'Keys in FR missing from AR: $missing');
   });
+
   test('no EN-only keys', () {
-    expect(en.difference(fr), isEmpty, reason: 'Keys in EN missing from FR: ${en.difference(fr)}');
+    final extra = en.difference(fr);
+    expect(extra, isEmpty, reason: 'Keys in EN missing from FR: $extra');
   });
+
   test('no AR-only keys', () {
-    expect(ar.difference(fr), isEmpty, reason: 'Keys in AR missing from FR: ${ar.difference(fr)}');
+    final extra = ar.difference(fr);
+    expect(extra, isEmpty, reason: 'Keys in AR missing from FR: $extra');
   });
+}
+
+Set<String> _loadArbKeys(String locale) {
+  final file = File('lib/l10n/app_$locale.arb');
+  final content = file.readAsStringSync();
+  final Map<String, dynamic> json = jsonDecode(content);
+  // Skip metadata keys that start with '@' or '@@'.
+  return json.keys.where((k) => !k.startsWith('@')).toSet();
 }

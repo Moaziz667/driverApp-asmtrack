@@ -10,6 +10,7 @@ import '../../../services/locale_provider.dart';
 import '../../../theme/tokens.dart';
 import '../../../theme/widgets.dart';
 import 'setup_account_screen.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -40,19 +41,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final entered = await showDialog<String>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Server URL'),
+        title: Text(AppLocalizations.of(context).loginServerUrl),
         content: TextField(
           controller: ctrl,
           autocorrect: false,
           keyboardType: TextInputType.url,
-          decoration: const InputDecoration(
-            hintText: 'http://192.168.1.10  (local)  ·  https://dev.asm…',
-            helperText: 'Authentication follows this host automatically.',
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context).loginServerUrlHint,
+            helperText: AppLocalizations.of(context).loginServerUrlDesc,
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Annuler')),
-          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: const Text('Enregistrer')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(AppLocalizations.of(context).loginServerCancel)),
+          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(AppLocalizations.of(context).loginServerSave)),
         ],
       ),
     );
@@ -62,7 +63,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(const SnackBar(content: Text('URL invalide (ex: http://192.168.1.10)')));
+          ..showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).loginServerUrlInvalid)));
       }
       return;
     }
@@ -77,7 +78,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Future<void> _onSubmit() async {
-    final locale = ref.read(localeProvider);
     try {
       await ref.read(authControllerProvider.notifier).login(
             email: kIsWeb ? _emailCtrl.text.trim() : null,
@@ -87,7 +87,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     } catch (_) {
       if (mounted) {
         final message = ref.read(authControllerProvider).error ??
-            DriverCopy.get('login_failed_error', locale);
+            AppLocalizations.of(context).login_failed_error;
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
           ..showSnackBar(SnackBar(content: Text(message)));
@@ -145,7 +145,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const AppLogo(size: 76),
                       const SizedBox(height: 24),
                       Text(
-                        DriverCopy.get('login_driver_space', locale),
+                        AppLocalizations.of(context).login_driver_space,
                         textAlign: TextAlign.center,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w900,
@@ -155,7 +155,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        DriverCopy.get('login_secure_access', locale).toUpperCase(),
+                        AppLocalizations.of(context).login_secure_access.toUpperCase(),
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: cs.primary,
                           fontWeight: FontWeight.w800,
@@ -184,7 +184,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Icon(LucideIcons.shieldCheck, size: 16, color: cs.primary),
                               const SizedBox(width: 8),
                               Text(
-                                DriverCopy.get('login_auth_header', locale).toUpperCase(),
+                                AppLocalizations.of(context).login_auth_header.toUpperCase(),
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: cs.primary,
@@ -195,7 +195,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           const SizedBox(height: 12),
                           Text(
-                            DriverCopy.get('login_auth_desc', locale),
+                            AppLocalizations.of(context).login_auth_desc,
                             style: theme.textTheme.bodyMedium?.copyWith(
                               color: cs.onSurface.withValues(alpha: 0.8),
                               height: 1.5,
@@ -236,8 +236,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   : const Icon(LucideIcons.logIn, size: 18),
                               label: Text(
                                 auth.isLoading
-                                    ? DriverCopy.get('login_action_connecting', locale)
-                                    : DriverCopy.get('login_action_connect', locale),
+                                    ? AppLocalizations.of(context).login_action_connecting
+                                    : AppLocalizations.of(context).login_action_connect,
                                 style: const TextStyle(fontWeight: FontWeight.w800),
                               ),
                             ),
@@ -252,7 +252,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 Icon(LucideIcons.lock, size: 13, color: cs.onSurfaceVariant),
                                 const SizedBox(width: 6),
                                 Text(
-                                  DriverCopy.get('login_secure_sso', locale),
+                                  AppLocalizations.of(context).login_secure_sso,
                                   style: theme.textTheme.labelSmall?.copyWith(
                                     color: cs.onSurfaceVariant,
                                     fontWeight: FontWeight.w600,
@@ -275,8 +275,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       const SizedBox(height: 20),
                       _ActionTile(
                         icon: LucideIcons.userPlus,
-                        title: DriverCopy.get('login_action_setup', locale),
-                        subtitle: DriverCopy.get('login_action_setup_sub', locale),
+                        title: AppLocalizations.of(context).login_action_setup,
+                        subtitle: AppLocalizations.of(context).login_action_setup_sub,
                         onTap: () => Navigator.of(context).pushNamed(SetupAccountScreen.routeName),
                       ),
                       const SizedBox(height: 16),
@@ -426,7 +426,7 @@ class _VersionLabel extends StatelessWidget {
         if (!snap.hasData) return const SizedBox(height: 14);
         final info = snap.data!;
         return Text(
-          '${DriverCopy.get('login_version', locale)} ${info.version} (${info.buildNumber})',
+          '${AppLocalizations.of(context).login_version} ${info.version} (${info.buildNumber})',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 11,

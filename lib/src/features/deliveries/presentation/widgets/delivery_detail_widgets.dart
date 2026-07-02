@@ -9,6 +9,8 @@ import '../../../../theme/status_colors.dart';
 import '../../../../theme/swipe_button.dart';
 import '../../models/delivery_models.dart';
 import '../handoff_token_sheet.dart';
+import '../../models/status_labels.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 // ─── Hero Card ───────────────────────────────────────────────────────────────
 class HeroCard extends ConsumerWidget {
@@ -19,7 +21,6 @@ class HeroCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
-    final locale = ref.watch(localeProvider);
     final statusColors = Theme.of(context).extension<StatusColors>()!;
 
     final Color statusColor = switch (delivery.status) {
@@ -62,7 +63,7 @@ class HeroCard extends ConsumerWidget {
                         border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.0),
                       ),
                       child: Text(
-                        delivery.status.label.toUpperCase(),
+                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context)).toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -169,7 +170,7 @@ class HeroCard extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
                 Text(
-                  delivery.address ?? 'Aucune adresse fournie',
+                  delivery.address ?? AppLocalizations.of(context).deliveryNoAddress,
                   style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                         fontSize: 20,
@@ -183,13 +184,13 @@ class HeroCard extends ConsumerWidget {
                 Row(
                   children: [
                     _StatBox(
-                      label: DriverCopy.get('delivery_detail_articles', locale),
+                      label: AppLocalizations.of(context).delivery_detail_articles,
                       value: '${delivery.items.length}',
                     ),
                     if (delivery.scheduledAt != null) ...[
                       const SizedBox(width: 12),
                       _StatBox(
-                        label: DriverCopy.get('delivery_detail_scheduled', locale),
+                        label: AppLocalizations.of(context).delivery_detail_scheduled,
                         value: _fmtDate(delivery.scheduledAt!),
                       ),
                     ],
@@ -293,11 +294,12 @@ class ItemsCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader(
-              title: DriverCopy.get('delivery_detail_content', locale), 
+              title: AppLocalizations.of(context).delivery_detail_content, 
               subtitle: countText,
             ),
             const SizedBox(height: 14),
             ...items.asMap().entries.map((e) {
+              final item = e.value;
               final isLast = e.key == items.length - 1;
               return Column(
                 children: [
@@ -315,22 +317,76 @@ class ItemsCard extends ConsumerWidget {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          e.value.name, 
-                          style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              item.name, 
+                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
+                            ),
+                            if (item.hasOutcome && item.outcome!.toUpperCase() != 'DELIVERED') ...[
+                              const SizedBox(height: 3),
+                              Row(
+                                children: [
+                                  _OutcomeBadge(outcome: item.outcome!),
+                                  if (item.reasonLabel != null && item.reasonLabel!.isNotEmpty) ...[
+                                    const SizedBox(width: 6),
+                                    Flexible(
+                                      child: Text(
+                                        item.reasonLabel!,
+                                        style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ] else if (item.isPartial && item.reasonLabel != null && item.reasonLabel!.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              Text(
+                                item.reasonLabel!,
+                                style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: cs.primary.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: cs.primary.withValues(alpha: 0.1)),
-                        ),
-                        child: Text(
-                          'x${e.value.quantity}',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary),
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (item.hasOutcome && item.quantityDone != null)
+                            Text(
+                              '$item.quantityDone/$item.quantity',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w700,
+                                color: item.isPartial ? Colors.orange : cs.primary,
+                              ),
+                            )
+                          else
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: cs.primary.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: cs.primary.withValues(alpha: 0.1)),
+                              ),
+                              child: Text(
+                                'x${item.quantity}',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary),
+                              ),
+                            ),
+                          if (item.comment != null && item.comment!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              item.comment!,
+                              style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ],
                       ),
                     ],
                   ),
@@ -349,6 +405,33 @@ class ItemsCard extends ConsumerWidget {
   }
 }
 
+class _OutcomeBadge extends StatelessWidget {
+  const _OutcomeBadge({required this.outcome});
+  final String outcome;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final (label, color) = switch (outcome.toUpperCase()) {
+      'DELIVERED' => (AppLocalizations.of(context).statusHistoryDelivered, Colors.green),
+      'REFUSED'   => (AppLocalizations.of(context).podOutcomeRefused, cs.error),
+      'DAMAGED'   => (AppLocalizations.of(context).podOutcomeDamaged, Colors.orange),
+      _           => (outcome, cs.onSurfaceVariant),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+      ),
+    );
+  }
+}
+
 // ─── Timestamps ───────────────────────────────────────────────────────────────
 class TimestampCard extends ConsumerWidget {
   const TimestampCard({super.key, required this.delivery});
@@ -357,10 +440,9 @@ class TimestampCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final locale = ref.watch(localeProvider);
     final entries = delivery.timestamps.entries
         .where((e) => e.value != null)
-        .map((e) => (label: _keyLabel(e.key, locale), time: e.value!))
+        .map((e) => (label: _keyLabel(e.key, context), time: e.value!))
         .toList()
       ..sort((a, b) => a.time.compareTo(b.time));
 
@@ -372,7 +454,7 @@ class TimestampCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(title: DriverCopy.get('delivery_detail_timeline', locale)),
+            SectionHeader(title: AppLocalizations.of(context).delivery_detail_timeline),
             const SizedBox(height: 18),
             ...entries.asMap().entries.map((entry) {
               final idx = entry.key;
@@ -434,15 +516,15 @@ class TimestampCard extends ConsumerWidget {
     );
   }
 
-  String _keyLabel(String key, String locale) {
+  String _keyLabel(String key, BuildContext context) {
     switch (key) {
-      case 'scheduledAt': return DriverCopy.get('delivery_detail_ts_scheduled', locale);
-      case 'pickedUpAt': return DriverCopy.get('delivery_detail_ts_picked_up', locale);
-      case 'inTransitAt': return DriverCopy.get('delivery_detail_ts_in_transit', locale);
-      case 'completedAt': return DriverCopy.get('delivery_detail_ts_delivered', locale);
-      case 'failedAt': return DriverCopy.get('delivery_detail_ts_failed', locale);
-      case 'cancelledAt': return DriverCopy.get('delivery_detail_ts_cancelled', locale);
-      case 'createdAt': return DriverCopy.get('delivery_detail_ts_created', locale);
+      case 'scheduledAt': return AppLocalizations.of(context).delivery_detail_ts_scheduled;
+      case 'pickedUpAt': return AppLocalizations.of(context).delivery_detail_ts_picked_up;
+      case 'inTransitAt': return AppLocalizations.of(context).delivery_detail_ts_in_transit;
+      case 'completedAt': return AppLocalizations.of(context).delivery_detail_ts_delivered;
+      case 'failedAt': return AppLocalizations.of(context).delivery_detail_ts_failed;
+      case 'cancelledAt': return AppLocalizations.of(context).delivery_detail_ts_cancelled;
+      case 'createdAt': return AppLocalizations.of(context).delivery_detail_ts_created;
       default: return key;
     }
   }
@@ -478,7 +560,6 @@ class ActionPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final locale = ref.watch(localeProvider);
 
     // Handoff: the receiver (handoffToDriverId) is invited to scan the sender's QR,
     // but this is non-blocking — they can keep working their current stop. We surface
@@ -519,7 +600,7 @@ class ActionPanel extends ConsumerWidget {
                   Icon(PhosphorIconsRegular.info, size: 16, color: cs.onSurfaceVariant),
                   const SizedBox(width: 8),
                   Text(
-                    DriverCopy.get('delivery_detail_pending_dispatch', locale),
+                    AppLocalizations.of(context).delivery_detail_pending_dispatch,
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                 ],
@@ -536,7 +617,7 @@ class ActionPanel extends ConsumerWidget {
         if (!showHandoffBanner) {
           buttons.add(
             SwipeButton(
-              label: DriverCopy.get('delivery_detail_pickup_package', locale),
+              label: AppLocalizations.of(context).delivery_detail_pickup_package,
               onSwipe: isWorking ? null : onPickup,
               isWorking: isWorking,
               icon: PhosphorIconsBold.package,
@@ -550,7 +631,7 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(DriverCopy.get('delivery_detail_fail_report', locale)),
+              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
             ),
           ),
         );
@@ -563,7 +644,7 @@ class ActionPanel extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: launchNav,
                 icon: const Icon(PhosphorIconsBold.navigationArrow),
-                label: Text(DriverCopy.get('delivery_detail_navigate', locale)),
+                label: Text(AppLocalizations.of(context).delivery_detail_navigate),
               ),
             ),
           );
@@ -571,7 +652,7 @@ class ActionPanel extends ConsumerWidget {
         }
         buttons.addAll([
           SwipeButton(
-            label: DriverCopy.get('delivery_detail_start_transit', locale),
+            label: AppLocalizations.of(context).delivery_detail_start_transit,
             onSwipe: isWorking ? null : onTransit,
             isWorking: isWorking,
             icon: PhosphorIconsBold.steeringWheel,
@@ -582,7 +663,7 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(DriverCopy.get('delivery_detail_fail_report', locale)),
+              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
             ),
           ),
           if (delivery.requiresHandoff && delivery.handoffConfirmedAt == null) ...[
@@ -596,7 +677,7 @@ class ActionPanel extends ConsumerWidget {
                   builder: (_) => HandoffTokenSheet(deliveryId: delivery.id),
                 ),
                 icon: const Icon(PhosphorIconsBold.qrCode),
-                label: Text(DriverCopy.get('delivery_detail_generate_handoff', locale)),
+                label: Text(AppLocalizations.of(context).delivery_detail_generate_handoff),
               ),
             ),
           ],
@@ -610,7 +691,7 @@ class ActionPanel extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: launchNav,
                 icon: const Icon(PhosphorIconsBold.navigationArrow),
-                label: Text(DriverCopy.get('delivery_detail_navigate', locale)),
+                label: Text(AppLocalizations.of(context).delivery_detail_navigate),
               ),
             ),
           );
@@ -618,7 +699,7 @@ class ActionPanel extends ConsumerWidget {
         }
         buttons.addAll([
           SwipeButton(
-            label: DriverCopy.get('delivery_detail_submit_pod', locale),
+            label: AppLocalizations.of(context).delivery_detail_submit_pod,
             onSwipe: isWorking ? null : onPod,
             isWorking: isWorking,
             icon: PhosphorIconsBold.sealCheck,
@@ -629,7 +710,7 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(DriverCopy.get('delivery_detail_fail_report', locale)),
+              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
               style: TextButton.styleFrom(foregroundColor: cs.error),
             ),
           ),
@@ -644,7 +725,7 @@ class ActionPanel extends ConsumerWidget {
                   builder: (_) => HandoffTokenSheet(deliveryId: delivery.id),
                 ),
                 icon: const Icon(PhosphorIconsBold.qrCode),
-                label: Text(DriverCopy.get('delivery_detail_generate_handoff', locale)),
+                label: Text(AppLocalizations.of(context).delivery_detail_generate_handoff),
               ),
             ),
           ],
@@ -664,7 +745,7 @@ class ActionPanel extends ConsumerWidget {
                   Icon(PhosphorIconsFill.lock, size: 16, color: cs.onSurfaceVariant),
                   const SizedBox(width: 8),
                   Text(
-                    DriverCopy.get('delivery_detail_locked', locale),
+                    AppLocalizations.of(context).delivery_detail_locked,
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                 ],
@@ -702,14 +783,13 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
   bool _loading = false;
 
   Future<void> _open() async {
-    final locale = ref.read(localeProvider);
     if (_loading) return;
 
     final isOnline = await ref.read(connectivityServiceProvider).isOnline;
     if (!isOnline) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Non disponible hors ligne')),
+          SnackBar(content: Text(AppLocalizations.of(context).bonLivraisonOffline)),
         );
       }
       return;
@@ -723,13 +803,13 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
       );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(DriverCopy.get('pod_pdf_open_error', locale))),
+          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_open_error)),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(DriverCopy.get('pod_pdf_download_error', locale))),
+          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_download_error)),
         );
       }
     } finally {
@@ -760,7 +840,7 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DriverCopy.get('pod_view_print_bl', locale),
+                    AppLocalizations.of(context).pod_view_print_bl,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: cs.onSurface,
@@ -773,7 +853,7 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
               onPressed: _loading ? null : _open,
               child: _loading
                   ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
-                  : Text(locale == 'ar' ? 'عرض' : locale == 'en' ? 'Open' : 'Ouvrir'),
+                  : Text(AppLocalizations.of(context).bonLivraisonOpen),
             ),
           ],
         ),
@@ -836,11 +916,7 @@ class _HandoffBanner extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      locale == 'ar'
-                          ? 'طرد محوّل إليك'
-                          : locale == 'en'
-                              ? 'Package transferred to you'
-                              : 'Colis transféré vers vous',
+                      AppLocalizations.of(context).handoffTransferredToYou,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
                             fontSize: 13,
                             fontWeight: FontWeight.w800,
@@ -849,11 +925,7 @@ class _HandoffBanner extends ConsumerWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      locale == 'ar'
-                          ? 'عند الاستلام، امسح رمز QR الخاص بالسائق المرسل لتأكيد الاستلام. يمكنك متابعة عملك في هذه الأثناء.'
-                          : locale == 'en'
-                              ? 'When you receive it, scan the sender driver\'s QR to confirm. You can keep working in the meantime.'
-                              : 'À la réception, scannez le QR du chauffeur expéditeur pour confirmer. Vous pouvez continuer votre travail entre-temps.',
+                      AppLocalizations.of(context).handoffScanInstructions,
                       style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant, height: 1.4),
                     ),
                   ],
@@ -868,16 +940,301 @@ class _HandoffBanner extends ConsumerWidget {
               onPressed: onScan,
               icon: const Icon(PhosphorIconsBold.qrCode, size: 18),
               label: Text(
-                locale == 'ar'
-                    ? 'امسح رمز المرسل'
-                    : locale == 'en'
-                        ? 'Scan sender\'s QR'
-                        : 'Scanner le QR de l\'expéditeur',
+                AppLocalizations.of(context).handoffScanSenderQr,
               ),
             ),
           ),
         ],
       ),
     );
+  }
+}
+
+// ─── POD Images Card ─────────────────────────────────────────────────────────
+class PodImagesCard extends StatelessWidget {
+  const PodImagesCard({super.key, required this.pod});
+  final ProofOfDeliveryModel pod;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final urls = pod.imageUrls;
+    if (urls.isEmpty && (pod.comment == null || pod.comment!.isEmpty)) {
+      return const SizedBox.shrink();
+    }
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(
+              title: AppLocalizations.of(context).delivery_detail_pod_title,
+              subtitle: pod.collectedAt != null
+                  ? '${pod.collectedAt!.day}/${pod.collectedAt!.month}/${pod.collectedAt!.year} ${pod.collectedAt!.hour.toString().padLeft(2, '0')}:${pod.collectedAt!.minute.toString().padLeft(2, '0')}'
+                  : null,
+            ),
+            if (pod.comment != null && pod.comment!.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  pod.comment!,
+                  style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+                ),
+              ),
+            ],
+            if (urls.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 120,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: urls.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (_, i) => GestureDetector(
+                    onTap: () => _openFullScreen(context, urls, i),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        urls[i],
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(
+                          width: 120,
+                          height: 120,
+                          color: cs.surfaceContainerHighest,
+                          child: Icon(PhosphorIconsRegular.image, color: cs.onSurfaceVariant),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openFullScreen(BuildContext context, List<String> urls, int initialIndex) {
+    Navigator.of(context).push(MaterialPageRoute(
+      builder: (_) => _FullScreenGallery(urls: urls, initialIndex: initialIndex),
+    ));
+  }
+}
+
+class _FullScreenGallery extends StatefulWidget {
+  const _FullScreenGallery({required this.urls, required this.initialIndex});
+  final List<String> urls;
+  final int initialIndex;
+
+  @override
+  State<_FullScreenGallery> createState() => _FullScreenGalleryState();
+}
+
+class _FullScreenGalleryState extends State<_FullScreenGallery> {
+  late final PageController _controller;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialIndex;
+    _controller = PageController(initialPage: widget.initialIndex);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text('${_currentIndex + 1}/${widget.urls.length}', style: const TextStyle(fontSize: 16)),
+      ),
+      body: PageView.builder(
+        controller: _controller,
+        itemCount: widget.urls.length,
+        onPageChanged: (i) => setState(() => _currentIndex = i),
+        itemBuilder: (_, i) => InteractiveViewer(
+          minScale: 0.5,
+          maxScale: 4.0,
+          child: Center(
+            child: Image.network(
+              widget.urls[i],
+              fit: BoxFit.contain,
+              errorBuilder: (_, __, ___) => Icon(PhosphorIconsRegular.image, color: cs.onSurfaceVariant, size: 48),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Failure Reason Card ─────────────────────────────────────────────────────
+class FailureReasonCard extends StatelessWidget {
+  const FailureReasonCard({super.key, required this.delivery});
+  final DriverDelivery delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final reason = delivery.status == DeliveryStatus.failed
+        ? delivery.failReason
+        : delivery.status == DeliveryStatus.cancelled
+            ? delivery.cancelReason
+            : null;
+    if (reason == null || reason.isEmpty) return const SizedBox.shrink();
+
+    final isFailed = delivery.status == DeliveryStatus.failed;
+    final color = isFailed ? cs.error : cs.onSurfaceVariant;
+    final label = isFailed
+        ? AppLocalizations.of(context).delivery_detail_fail_reason
+        : AppLocalizations.of(context).delivery_detail_cancel_reason;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                isFailed ? PhosphorIconsRegular.warningCircle : PhosphorIconsRegular.xCircle,
+                size: 18,
+                color: color,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    reason,
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Status History Card ─────────────────────────────────────────────────────
+class StatusHistoryCard extends StatelessWidget {
+  const StatusHistoryCard({super.key, required this.delivery});
+  final DriverDelivery delivery;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final history = delivery.statusHistory;
+    if (history.isEmpty) return const SizedBox.shrink();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(title: AppLocalizations.of(context).delivery_detail_history_title),
+            const SizedBox(height: 12),
+            ...history.asMap().entries.map((entry) {
+              final item = entry.value;
+              final isLast = entry.key == history.length - 1;
+              final color = _statusColor(cs, item.status);
+
+              return Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 10,
+                        height: 10,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: color,
+                          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+                        ),
+                      ),
+                      if (!isLast)
+                        Container(width: 1, height: 28, color: cs.outlineVariant.withValues(alpha: 0.5)),
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _statusLabel(item.status, context),
+                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurface),
+                        ),
+                        if (item.changedAt != null)
+                          Text(
+                            '${item.changedAt!.day.toString().padLeft(2, '0')}/${item.changedAt!.month.toString().padLeft(2, '0')} ${item.changedAt!.hour.toString().padLeft(2, '0')}:${item.changedAt!.minute.toString().padLeft(2, '0')}',
+                            style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static Color _statusColor(ColorScheme cs, String? status) {
+    return switch (status) {
+      'DELIVERED'            => Colors.green,
+      'PARTIALLY_DELIVERED'  => Colors.orange,
+      'FAILED'               => cs.error,
+      'CANCELLED'            => cs.onSurfaceVariant,
+      'IN_TRANSIT'           => cs.primary,
+      'PICKED_UP'            => cs.tertiary,
+      _                      => cs.outline,
+    };
+  }
+
+  static String _statusLabel(String? status, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return switch (status) {
+      'DELIVERED'            => l10n.statusHistoryDelivered,
+      'PARTIALLY_DELIVERED'  => l10n.statusHistoryPartial,
+      'FAILED'               => l10n.statusHistoryFailed,
+      'CANCELLED'            => l10n.statusHistoryCancelled,
+      'IN_TRANSIT'           => l10n.statusHistoryInTransit,
+      'PICKED_UP'            => l10n.statusHistoryPickedUp,
+      'SCHEDULED'            => l10n.statusHistoryScheduled,
+      _                      => l10n.statusHistoryUnknown,
+    };
   }
 }

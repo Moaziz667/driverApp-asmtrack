@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../app_providers.dart';
+import 'package:driver_app/generated/l10n/app_localizations.dart';
 import '../../../services/locale_provider.dart';
 import '../../../services/location_service.dart';
 import '../../../services/notification_store.dart';
@@ -15,6 +16,7 @@ import '../../../theme/status_colors.dart';
 import '../../deliveries/models/delivery_models.dart';
 import '../../deliveries/presentation/delivery_detail_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
+import '../../profile/presentation/onboarding_photo_screen.dart';
 import '../../routes/models/route_models.dart';
 import '../../routes/presentation/calendar_screen.dart';
 import '../../routes/presentation/routes_screen.dart';
@@ -112,39 +114,37 @@ class _HomeShellState extends ConsumerState<HomeShell> {
       return;
     }
 
-    final locale = ref.read(localeProvider);
+    final loc = AppLocalizations.of(context);
     final statusColors = Theme.of(context).extension<StatusColors>()!;
-    final routeStr = event.routeName.isNotEmpty ? '\u00ab${event.routeName}\u00bb' : DriverCopy.get('ws_generic_route', locale);
+    final routeStr = event.routeName.isNotEmpty ? '\u00ab${event.routeName}\u00bb' : loc.ws_generic_route;
     final String message;
     IconData icon;
     Color color;
 
     switch (event.event) {
       case 'ROUTE_ASSIGNED':
-        message = DriverCopy.get('ws_route_assigned', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_route_assigned(routeStr);
         icon = PhosphorIconsRegular.checkCircle;
         color = statusColors.delivered;
         break;
       case 'ROUTE_CANCELLED':
-        message = DriverCopy.get('ws_route_cancelled', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_route_cancelled(routeStr);
         icon = PhosphorIconsRegular.xCircle;
         color = statusColors.failed;
         break;
       case 'ROUTE_REASSIGNED_AWAY':
-        message = DriverCopy.get('ws_route_reassigned_away', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_route_reassigned_away(routeStr);
         icon = PhosphorIconsRegular.warning;
         color = statusColors.cancelled;
         break;
       case 'ROUTE_REASSIGNED_TO_YOU':
-        message = DriverCopy.get('ws_route_reassigned_to_you', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_route_reassigned_to_you(routeStr);
         icon = PhosphorIconsRegular.checkCircle;
         color = statusColors.delivered;
         break;
       case 'STOP_ADDED':
         final addedClient = event.clientName ?? '';
-        message = DriverCopy.get('ws_stop_added', locale)
-            .replaceAll('{client}', addedClient)
-            .replaceAll('{route}', routeStr);
+        message = loc.ws_stop_added(addedClient, routeStr);
         icon = PhosphorIconsRegular.mapPin;
         color = statusColors.scheduled;
         break;
@@ -152,35 +152,27 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         final removedClient = event.clientName ?? '';
         final refStr = event.erpOrderId != null ? ' [${event.erpOrderId}]' : '';
         final why = event.reason != null ? ' \u2014 ${event.reason}' : '';
-        message = DriverCopy.get('ws_stop_removed', locale)
-            .replaceAll('{client}', removedClient)
-            .replaceAll('{ref}', refStr)
-            .replaceAll('{route}', routeStr)
-            .replaceAll('{why}', why);
+        message = loc.ws_stop_removed(removedClient, refStr, routeStr, why);
         icon = PhosphorIconsRegular.minusCircle;
         color = statusColors.cancelled;
         break;
       case 'ROUTE_UPDATED':
-        message = DriverCopy.get('ws_route_updated', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_route_updated(routeStr);
         icon = PhosphorIconsRegular.info;
         color = statusColors.unscheduled;
         break;
       case 'STOPS_TRANSFERRED_OUT':
-        message = DriverCopy.get('ws_stops_transferred_out', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_stops_transferred_out(routeStr);
         icon = PhosphorIconsRegular.arrowsLeftRight;
         color = statusColors.cancelled;
         break;
       case 'STOPS_TRANSFERRED_IN':
-        message = DriverCopy.get('ws_stops_transferred_in', locale).replaceAll('{route}', routeStr);
+        message = loc.ws_stops_transferred_in(routeStr);
         icon = PhosphorIconsRegular.listPlus;
         color = statusColors.scheduled;
         break;
       case 'pickup.overdue':
-        message = DriverCopy.get('ws_pickup_overdue', locale)
-            .replaceAll('{client}', event.clientName ?? '')
-            .replaceAll('{count}', event.reason ?? '')
-            .replaceAll('  ', ' ')
-            .trim();
+        message = loc.ws_pickup_overdue(event.clientName ?? '', event.reason ?? '');
         icon = PhosphorIconsRegular.house;
         color = statusColors.failed;
         break;
@@ -209,6 +201,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void _handleHandoffWsEvent(RouteWsEvent event) {
     if (!mounted) return;
     final locale = ref.read(localeProvider);
+    final loc = AppLocalizations.of(context);
     final statusColors = Theme.of(context).extension<StatusColors>()!;
 
     final refStr = (event.erpOrderId != null && event.erpOrderId!.isNotEmpty)
@@ -216,41 +209,37 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         : (event.deliveryId != null && event.deliveryId!.length >= 8
             ? '#${event.deliveryId!.substring(0, 8)}'
             : '');
-    String build(String key, String? name) => DriverCopy.get(key, locale)
-        .replaceAll('{ref}', refStr)
-        .replaceAll('{name}', (name != null && name.isNotEmpty) ? name : DriverCopy.get('ws_handoff_other', locale))
-        .replaceAll('  ', ' ')
-        .trim();
+    String displayName(String? name) => (name != null && name.isNotEmpty) ? name : loc.ws_handoff_other;
 
     switch (event.event) {
       case 'handoff.incoming':
       case 'handoff.code_ready':
         _showHandoffBanner(
-          message: build('ws_handoff_incoming', event.fromDriverName),
+          message: loc.ws_handoff_incoming(displayName(event.fromDriverName), refStr),
           icon: PhosphorIconsRegular.qrCode,
           color: statusColors.scheduled,
-          actionLabel: DriverCopy.get('handoff_action_scan', locale),
+          actionLabel: loc.handoff_action_scan,
           onAction: () => _openHandoffDelivery(event.deliveryId),
           locale: locale,
         );
         break;
       case 'handoff.outgoing':
         _showHandoffBanner(
-          message: build('ws_handoff_outgoing', event.toDriverName),
+          message: loc.ws_handoff_outgoing(displayName(event.toDriverName), refStr),
           icon: PhosphorIconsRegular.arrowsLeftRight,
           color: statusColors.inTransit,
-          actionLabel: DriverCopy.get('handoff_action_show', locale),
+          actionLabel: loc.handoff_action_show,
           onAction: () => _openHandoffDelivery(event.deliveryId),
           locale: locale,
         );
         break;
       case 'handoff.confirmed':
         ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-        _showHandoffSnack(build('ws_handoff_confirmed', null), PhosphorIconsRegular.checkCircle, statusColors.delivered);
+        _showHandoffSnack(loc.ws_handoff_confirmed(refStr), PhosphorIconsRegular.checkCircle, statusColors.delivered);
         break;
       case 'handoff.cancelled':
         ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-        _showHandoffSnack(build('ws_handoff_cancelled', null), PhosphorIconsRegular.xCircle, statusColors.failed);
+        _showHandoffSnack(loc.ws_handoff_cancelled(refStr), PhosphorIconsRegular.xCircle, statusColors.failed);
         break;
       default:
         return;
@@ -281,6 +270,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
+      final loc = AppLocalizations.of(context);
       final messenger = ScaffoldMessenger.of(context);
       final theme = Theme.of(context);
       messenger.hideCurrentMaterialBanner();
@@ -296,7 +286,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         actions: [
           TextButton(
             onPressed: () => messenger.hideCurrentMaterialBanner(),
-            child: Text(DriverCopy.get('cancel', locale)),
+            child: Text(loc.cancel),
           ),
           TextButton(
             onPressed: () { messenger.hideCurrentMaterialBanner(); onAction(); },
@@ -379,7 +369,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final locale = ref.watch(localeProvider);
     final colorScheme = theme.colorScheme;
     final activeIndex = ref.watch(homeTabIndexProvider);
 
@@ -402,6 +391,15 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         }
       });
     });
+
+    // First-login gate: block the home tabs until the driver has added a profile photo.
+    final needsPhoto = ref.watch(driverProfileProvider).maybeWhen(
+          data: (p) => p.onboardingStatus != 'COMPLETE',
+          orElse: () => false,
+        );
+    if (needsPhoto) {
+      return const OnboardingPhotoScreen();
+    }
 
     final pages = [
       const RoutesScreen(),
@@ -447,7 +445,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
         bottomNavigationBar: ModernBottomNav(
           selectedIndex: activeIndex,
           onTabSelected: (i) => ref.read(homeTabIndexProvider.notifier).state = i,
-          locale: locale,
         ),
       ),
     );

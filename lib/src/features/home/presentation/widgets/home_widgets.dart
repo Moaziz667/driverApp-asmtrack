@@ -6,7 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:phosphor_flutter/phosphor_flutter.dart';
 
 import '../../../../app_providers.dart';
-import '../../../../services/locale_provider.dart';
+import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../services/notification_store.dart';
 import '../../../../services/offline_queue_service.dart';
 import '../../../../theme/status_colors.dart';
@@ -17,11 +17,9 @@ class ModernBottomNav extends StatelessWidget {
   const ModernBottomNav({super.key, 
     required this.selectedIndex,
     required this.onTabSelected,
-    required this.locale,
   });
   final int selectedIndex;
   final ValueChanged<int> onTabSelected;
-  final String locale;
 
   @override
   Widget build(BuildContext context) {
@@ -45,21 +43,21 @@ class ModernBottomNav extends StatelessWidget {
             _NavTab(
               icon: PhosphorIconsRegular.path,
               activeIcon: PhosphorIconsFill.path,
-              label: DriverCopy.get('tab_route', locale),
+              label: AppLocalizations.of(context).tabRoute,
               isSelected: selectedIndex == 0,
               onTap: () => onTabSelected(0),
             ),
             _NavTab(
               icon: PhosphorIconsRegular.calendarDots,
               activeIcon: PhosphorIconsFill.calendarDots,
-              label: DriverCopy.get('tab_calendar', locale),
+              label: AppLocalizations.of(context).tabCalendar,
               isSelected: selectedIndex == 1,
               onTap: () => onTabSelected(1),
             ),
             _NavTab(
               icon: PhosphorIconsRegular.userCircle,
               activeIcon: PhosphorIconsFill.userCircle,
-              label: DriverCopy.get('tab_profile', locale),
+              label: AppLocalizations.of(context).tabProfile,
               isSelected: selectedIndex == 2,
               onTap: () => onTabSelected(2),
             ),
@@ -135,7 +133,6 @@ class HomeTopBar extends ConsumerWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final profile = ref.watch(driverProfileProvider).value;
-    final locale = ref.watch(localeProvider);
     final statusColors = theme.extension<StatusColors>()!;
 
     final driverName = profile?.name.isNotEmpty == true ? profile!.name : 'Driver';
@@ -145,9 +142,10 @@ class HomeTopBar extends ConsumerWidget {
         : 'D';
     final statusColor = statusColors.forDriverStatus(driverStatus);
     
+    final l10n = AppLocalizations.of(context);
     final label = driverStatus == 'ONLINE'
-        ? DriverCopy.get('status_online_upper', locale)
-        : (driverStatus == 'ON_BREAK' ? DriverCopy.get('status_on_break_upper', locale) : DriverCopy.get('status_offline_upper', locale));
+        ? l10n.status_online_upper
+        : (driverStatus == 'ON_BREAK' ? l10n.status_on_break_upper : l10n.status_offline_upper);
 
     final surfaceLowest = isDark ? const Color(0xFF0A0B10) : Colors.white;
 
@@ -188,14 +186,20 @@ class HomeTopBar extends ConsumerWidget {
                           ),
                           child: CircleAvatar(
                             backgroundColor: cs.surfaceContainerLow,
-                            child: Text(
-                              initial,
-                              style: TextStyle(
-                                fontWeight: AppTokens.fwBold,
-                                fontSize: 14,
-                                color: cs.primary,
-                              ),
-                            ),
+                            backgroundImage: (profile?.photoUrl?.isNotEmpty == true)
+                                ? NetworkImage(profile!.photoUrl!)
+                                : null,
+                            onBackgroundImageError: (_, __) {},
+                            child: (profile?.photoUrl?.isNotEmpty != true)
+                                ? Text(
+                                    initial,
+                                    style: TextStyle(
+                                      fontWeight: AppTokens.fwBold,
+                                      fontSize: 14,
+                                      color: cs.primary,
+                                    ),
+                                  )
+                                : null,
                           ),
                         ),
                         Positioned(
@@ -446,7 +450,6 @@ class NotificationPanel extends ConsumerWidget {
     final statusColors = theme.extension<StatusColors>()!;
     final notifications = ref.watch(notificationStoreProvider);
     final store = ref.read(notificationStoreProvider.notifier);
-    final locale = ref.watch(localeProvider);
 
     WidgetsBinding.instance.addPostFrameCallback((_) => store.markAllRead());
 
@@ -472,7 +475,7 @@ class NotificationPanel extends ConsumerWidget {
             child: Row(
               children: [
                 Text(
-                  DriverCopy.get('notifications', locale),
+                  AppLocalizations.of(context).notifications,
                   style: theme.textTheme.titleMedium,
                 ),
               ],
@@ -489,7 +492,7 @@ class NotificationPanel extends ConsumerWidget {
                         const Icon(PhosphorIconsRegular.bellSlash, size: 40),
                         const SizedBox(height: 8),
                         Text(
-                          DriverCopy.get('no_notifications', locale),
+                          AppLocalizations.of(context).noNotifications,
                           style: theme.textTheme.bodySmall,
                         ),
                       ],
@@ -518,7 +521,7 @@ class NotificationPanel extends ConsumerWidget {
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            Text(_formatTime(n.receivedAt, locale), style: theme.textTheme.labelSmall),
+                            Text(_formatTime(n.receivedAt, context), style: theme.textTheme.labelSmall),
                           ],
                         ),
                         isThreeLine: n.body.isNotEmpty,
@@ -551,25 +554,14 @@ class NotificationPanel extends ConsumerWidget {
     }
   }
 
-  String _formatTime(DateTime dt, String locale) {
+  String _formatTime(DateTime dt, BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final now = DateTime.now();
     final diff = now.difference(dt);
-    if (locale == 'ar') {
-      if (diff.inMinutes < 1) return 'الآن';
-      if (diff.inMinutes < 60) return 'منذ ${diff.inMinutes} د';
-      if (diff.inHours < 24) return 'منذ ${diff.inHours} س';
-      return 'منذ ${diff.inDays} ي';
-    } else if (locale == 'en') {
-      if (diff.inMinutes < 1) return 'Just now';
-      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-      if (diff.inHours < 24) return '${diff.inHours}h ago';
-      return '${diff.inDays}d ago';
-    } else {
-      if (diff.inMinutes < 1) return 'A l\'instant';
-      if (diff.inMinutes < 60) return 'Il y a ${diff.inMinutes} min';
-      if (diff.inHours < 24) return 'Il y a ${diff.inHours}h';
-      return 'Il y a ${diff.inDays}j';
-    }
+    if (diff.inMinutes < 1) return l10n.timeJustNow;
+    if (diff.inMinutes < 60) return l10n.timeMinutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l10n.timeHoursAgo(diff.inHours);
+    return l10n.timeDaysAgo(diff.inDays);
   }
 }
 
@@ -593,8 +585,6 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
 
   @override
   Widget build(BuildContext context) {
-    final locale = ref.watch(localeProvider);
-    
     final isOnlineAsync = ref.watch(connectionStatusProvider);
     final pendingCount = ref.watch(offlineQueueProvider);
 
@@ -619,6 +609,7 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
     final double topPadding = MediaQuery.of(context).padding.top;
 
     if (!isOnline) {
+      final l10n = AppLocalizations.of(context);
       return AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: double.infinity,
@@ -637,8 +628,8 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
             Flexible(
               child: Text(
                 pendingCount > 0
-                    ? '${DriverCopy.get('offline_banner', locale)} · $pendingCount ${locale == 'ar' ? 'تعديلات معلقة' : locale == 'en' ? 'pending updates' : 'modifications en attente'}'
-                    : DriverCopy.get('offline_banner', locale),
+                    ? '${l10n.offlineBanner} · $pendingCount ${l10n.offlinePendingUpdates}'
+                    : l10n.offlineBanner,
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
@@ -651,6 +642,7 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
         ),
       );
     } else if (_showSyncedBanner) {
+      final l10n = AppLocalizations.of(context);
       return AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: double.infinity,
@@ -668,11 +660,7 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
             const SizedBox(width: 8),
             Flexible(
               child: Text(
-                locale == 'ar'
-                    ? 'تم استعادة الاتصال · جاري المزامنة...'
-                    : locale == 'en'
-                        ? 'Connection restored · Syncing data...'
-                        : 'Connexion rétablie · Synchronisation...',
+                l10n.offlineConnectionRestored,
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w700,
