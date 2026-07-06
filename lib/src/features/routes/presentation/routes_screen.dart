@@ -187,6 +187,16 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
     final isReceiver = currentDriverId != null &&
         pendingHandoffs.any((d) => d.handoffToDriverId == currentDriverId);
 
+    // Delivery ids the current driver must RECEIVE by handoff — used to badge their
+    // route-list cards "À recevoir" so an incoming (not-yet-in-hand) parcel is never
+    // mistaken for a normal stop before the driver opens it.
+    final handoffIncomingIds = currentDriverId == null
+        ? const <String>{}
+        : pendingHandoffs
+            .where((d) => d.handoffToDriverId == currentDriverId)
+            .map((d) => d.id)
+            .toSet();
+
     Widget? fab;
     if (senderDelivery != null) {
       // Driver 1 (sender): show QR code for Driver 2 to scan
@@ -241,6 +251,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
           route: route,
           isWorking: _isWorking,
           locale: locale,
+          handoffIncomingIds: handoffIncomingIds,
           onStart: route == null ? null : () => _startRoute(route.id),
           onConfirmPickup: route == null ? null : (stopId) => _confirmPickup(route.id, stopId),
           onStartTransit: _startTransit,

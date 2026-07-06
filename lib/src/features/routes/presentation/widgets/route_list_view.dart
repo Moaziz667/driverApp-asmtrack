@@ -24,11 +24,14 @@ class RouteListView extends StatelessWidget {
     required this.onRefresh,
     this.onDownloadPdf,
     this.onNavigate,
+    this.handoffIncomingIds = const <String>{},
   });
 
   final DriverRoute? route;
   final bool isWorking;
   final String locale;
+  /// Delivery ids the driver must receive by handoff — badged "À recevoir" in the list.
+  final Set<String> handoffIncomingIds;
   final VoidCallback? onStart;
   final ValueChanged<String>? onConfirmPickup;
   final ValueChanged<String> onStartTransit;
@@ -229,6 +232,7 @@ class RouteListView extends StatelessWidget {
                   stop: stop,
                   depotPicked: depotPicked,
                   locale: locale,
+                  isHandoffIncoming: handoffIncomingIds.contains(stop.deliveryId),
                   onStartTransit: onStartTransit,
                   onOpenPod: onOpenPod,
                   onOpenDetails: onOpenDetails,
@@ -497,11 +501,13 @@ class _StopListItem extends StatelessWidget {
     required this.onStartTransit,
     required this.onOpenPod,
     required this.onOpenDetails,
+    this.isHandoffIncoming = false,
   });
 
   final DriverRouteStop stop;
   final bool depotPicked;
   final String locale;
+  final bool isHandoffIncoming;
   final ValueChanged<String> onStartTransit;
   final ValueChanged<String> onOpenPod;
   final ValueChanged<String> onOpenDetails;
@@ -513,7 +519,9 @@ class _StopListItem extends StatelessWidget {
     final ds = stop.parsedDeliveryStatus;
 
     return GestureDetector(
-      onTap: depotPicked
+      // A handoff-incoming stop is opened so the driver sees the scan banner (custody
+      // is taken by scanning, not the depot-pickup swipe).
+      onTap: (depotPicked || isHandoffIncoming)
           ? () => onOpenDetails(stop.deliveryId)
           : () => ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(AppLocalizations.of(context).routeConfirmPickup)),
@@ -532,7 +540,7 @@ class _StopListItem extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Opacity(
-            opacity: depotPicked ? 1.0 : 0.5,
+            opacity: (depotPicked || isHandoffIncoming) ? 1.0 : 0.5,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -564,6 +572,34 @@ class _StopListItem extends StatelessWidget {
                     _DeliveryStatusBadge(ds),
                   ],
                 ),
+                // Incoming handoff: this parcel is still in the previous driver's hands —
+                // badge it so it is never mistaken for a normal, ready-to-deliver stop.
+                if (isHandoffIncoming) ...[
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: colorScheme.tertiary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.35)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(LucideIcons.arrowLeftRight, size: 12, color: colorScheme.tertiary),
+                        const SizedBox(width: 5),
+                        Text(
+                          AppLocalizations.of(context).handoff_inbox_incoming,
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: AppTokens.fwBold,
+                            color: colorScheme.tertiary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 if (stop.address != null || stop.city != null) ...[
                   const SizedBox(height: 8),
                   Row(
