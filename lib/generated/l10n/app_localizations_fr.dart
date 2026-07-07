@@ -1104,6 +1104,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statusInTransitLabel => 'En transit';
 
   @override
+  String get statusAwaitingHandoff => 'En attente de transfert';
+
+  @override
   String get statusDeliveredLabel => 'Livré';
 
   @override

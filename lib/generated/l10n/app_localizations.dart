@@ -2116,6 +2116,12 @@ abstract class AppLocalizations {
   /// **'In Transit'**
   String get statusInTransitLabel;
 
+  /// No description provided for @statusAwaitingHandoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting Handoff'**
+  String get statusAwaitingHandoff;
+
   /// No description provided for @statusDeliveredLabel.
   ///
   /// In en, this message translates to:

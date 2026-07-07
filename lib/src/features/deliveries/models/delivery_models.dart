@@ -3,6 +3,7 @@ enum DeliveryStatus {
   scheduled,
   pickedUp,
   inTransit,
+  awaitingHandoff,
   delivered,
   partially_delivered,
   failed,
@@ -20,6 +21,8 @@ extension DeliveryStatusX on DeliveryStatus {
         return DeliveryStatus.pickedUp;
       case 'IN_TRANSIT':
         return DeliveryStatus.inTransit;
+      case 'AWAITING_HANDOFF':
+        return DeliveryStatus.awaitingHandoff;
       case 'DELIVERED':
         return DeliveryStatus.delivered;
       case 'PARTIALLY_DELIVERED':
@@ -62,26 +65,56 @@ class FailureCode {
 /// Configurable failure reason fetched from the backend referential.
 /// Falls back to the static [FailureReason] enum when offline.
 class FailureReasonOption {
-  const FailureReasonOption({required this.code, required this.label, this.category, this.appliesTo = const ['FAILURE']});
+  const FailureReasonOption({required this.code, required this.label, this.category, this.scope = 'DELIVERY'});
   final String code;
   final String label;
+
+  /// Analytics category = the disposition this reason belongs to: REFUSED | DAMAGED | MISSING (item)
+  /// or CLIENT_ABSENT | WRONG_ADDRESS | OTHER (delivery-only).
   final String? category;
 
-  /// Where this motif is offered: FAILURE | ITEM_REFUSED | ITEM_DAMAGED | ITEM_MISSING.
-  final List<String> appliesTo;
+  /// Where this motif is usable: DELIVERY | ITEM | BOTH. The disposition comes from [category].
+  final String scope;
+
+  bool get coversItem => scope == 'ITEM' || scope == 'BOTH';
+  bool get coversDelivery => scope == 'DELIVERY' || scope == 'BOTH';
 
   factory FailureReasonOption.fromJson(Map<String, dynamic> json) => FailureReasonOption(
         code: json['code'] as String? ?? 'OTHER',
         label: json['label'] as String? ?? (json['code'] as String? ?? 'Autre'),
         category: json['category'] as String?,
-        appliesTo: (json['appliesTo'] as List<dynamic>?)?.map((e) => e.toString()).toList() ?? const ['FAILURE'],
+        scope: (json['scope'] as String?)?.toUpperCase() ?? 'DELIVERY',
       );
 
   /// Static fallback derived from the legacy enum (used when the API is unreachable).
-  /// Legacy categories are full-visit failures, so they apply to the FAILURE context.
   static List<FailureReasonOption> get fallback => FailureReason.values
-      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.apiCode.value, category: r.apiCode.value, appliesTo: const ['FAILURE']))
+      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.apiCode.value, category: r.apiCode.value, scope: 'DELIVERY'))
       .toList();
+}
+
+/// One disposition of a per-unit line breakdown (WMS): DELIVERED / REFUSED / DAMAGED / MISSING.
+class ItemSegment {
+  const ItemSegment({required this.disposition, required this.quantity, this.reasonCode, this.reasonLabel, this.comment});
+  final String disposition;
+  final int quantity;
+  final String? reasonCode;
+  final String? reasonLabel;
+  final String? comment;
+
+  factory ItemSegment.fromJson(Map<String, dynamic> json) => ItemSegment(
+        disposition: (json['disposition'] as String? ?? 'DELIVERED').toUpperCase(),
+        quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+        reasonCode: json['reasonCode'] as String?,
+        reasonLabel: json['reasonLabel'] as String?,
+        comment: json['comment'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'disposition': disposition,
+        'quantity': quantity,
+        if (reasonCode != null) 'reasonCode': reasonCode,
+        if (comment != null) 'comment': comment,
+      };
 }
 
 class OrderItemModel {
@@ -94,6 +127,7 @@ class OrderItemModel {
     this.reason,
     this.reasonLabel,
     this.comment,
+    this.segments,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -106,6 +140,9 @@ class OrderItemModel {
       reason: json['reason'] as String?,
       reasonLabel: json['reasonLabel'] as String?,
       comment: json['comment'] as String?,
+      segments: (json['segments'] as List<dynamic>?)
+          ?.map((e) => ItemSegment.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -117,6 +154,13 @@ class OrderItemModel {
   final String? reason;
   final String? reasonLabel;
   final String? comment;
+
+  /// Per-unit disposition breakdown (WMS). Null/empty for a clean full delivery.
+  final List<ItemSegment>? segments;
+
+  /// The non-delivered segments (refused / damaged / missing), for display.
+  List<ItemSegment> get shortSegments =>
+      (segments ?? const []).where((s) => s.disposition != 'DELIVERED' && s.quantity > 0).toList();
 
   bool get hasOutcome => outcome != null && outcome!.isNotEmpty;
   bool get isFullyDelivered => quantityDone != null && quantityDone == quantity;
@@ -320,12 +364,13 @@ class PartialDeliveryItem {
     this.outcome,
     this.reason,
     this.comment,
+    this.segments,
   });
 
   final String sku;
   final int quantityDone;
 
-  /// DELIVERED, REFUSED, or DAMAGED — explicit per-item outcome.
+  /// DELIVERED, REFUSED, or DAMAGED — explicit per-item outcome (legacy single-disposition path).
   final String? outcome;
 
   /// Reason code when outcome is REFUSED or DAMAGED.
@@ -334,6 +379,9 @@ class PartialDeliveryItem {
   /// Optional per-item comment from the driver.
   final String? comment;
 
+  /// Per-unit breakdown (WMS). When set, the backend derives quantityDone/outcome/reason from it.
+  final List<ItemSegment>? segments;
+
   Map<String, dynamic> toJson() {
     return {
       'sku': sku,
@@ -341,6 +389,8 @@ class PartialDeliveryItem {
       if (outcome != null) 'outcome': outcome,
       if (reason != null) 'reason': reason,
       if (comment != null && comment!.isNotEmpty) 'comment': comment,
+      if (segments != null && segments!.isNotEmpty)
+        'segments': segments!.map((s) => s.toJson()).toList(),
     };
   }
 }

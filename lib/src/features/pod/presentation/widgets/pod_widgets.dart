@@ -35,14 +35,9 @@ const kPodOutcomes = [
 
 const kPodRequiresReason = {'REFUSED', 'DAMAGED', 'MISSING'};
 
-/// Per-item outcome → admin applicability context. The reason chips for each outcome come from the
-/// admin failure-reason referential, filtered by the motif's `appliesTo` context (set by the admin —
-/// not hardcoded here). Short-quantity DELIVERED lines map to ITEM_MISSING (a stock shortfall).
-const kPodOutcomeContexts = {
-  'REFUSED': 'ITEM_REFUSED',
-  'DAMAGED': 'ITEM_DAMAGED',
-  'MISSING': 'ITEM_MISSING',
-};
+/// The line dispositions a driver can pick for a shortfall. Each maps 1:1 to a failure-reason
+/// `category`; reasons are filtered by category (+ item scope), not a separate context.
+const kPodItemDispositions = {'REFUSED', 'DAMAGED', 'MISSING'};
 
 String podOutcomeLabel(String outcome, String locale) {
   if (locale == 'ar') {
@@ -456,39 +451,51 @@ class PodToggleCard extends StatelessWidget {
 }
 
 // ─── Per-item outcome row ────────────────────────────────────────────────────
+/// Per-unit breakdown editor for one order line. A line of qty N is split into a *delivered* slice
+/// (derived, read-only) plus up to three shortfall dispositions — missing / refused / damaged — each
+/// with its own quantity stepper and motif chips. This lets a driver record a genuinely mixed
+/// outcome on a single line (e.g. of 4: 2 delivered + 1 refused + 1 damaged), instead of one outcome
+/// per line. The parent owns the state; this widget is purely presentational.
 class PodItemOutcomeRow extends StatelessWidget {
   const PodItemOutcomeRow({
     super.key,
     required this.item,
-    required this.currentQty,
-    required this.outcome,
-    required this.reason,
+    required this.delivered,
+    required this.dispQty,
+    required this.dispReason,
     this.adminReasons = const [],
     required this.locale,
-    required this.onOutcome,
-    required this.onQty,
-    required this.onReason,
+    required this.onDispQty,
+    required this.onDispReason,
   });
 
   final dynamic item;
-  final int currentQty;
-  final String outcome;
-  final String? reason;
+
+  /// Derived delivered quantity (`planned − Σ shortfall`); read-only here.
+  final int delivered;
+
+  /// Shortfall quantities keyed by disposition (MISSING / REFUSED / DAMAGED).
+  final Map<String, int> dispQty;
+
+  /// Chosen motif code per disposition (null until picked).
+  final Map<String, String?> dispReason;
+
   final List<FailureReasonOption> adminReasons;
   final String locale;
-  final ValueChanged<String> onOutcome;
-  final ValueChanged<int> onQty;
-  final ValueChanged<String> onReason;
+  final void Function(String disposition, int qty) onDispQty;
+  final void Function(String disposition, String code) onDispReason;
 
-  /// Resolves the reason chips for the current outcome from the admin referential, filtered by the
-  /// motif's `appliesTo` context. Short-quantity DELIVERED lines use the ITEM_MISSING context.
-  /// Returns empty when offline (no admin referential loaded).
-  List<({String code, String label})> _reasonChips() {
-    final plannedQty = item.quantity as int;
-    final isPartialQty = outcome == 'DELIVERED' && currentQty < plannedQty;
-    final context = isPartialQty ? 'ITEM_MISSING' : kPodOutcomeContexts[outcome];
-    if (context != null && adminReasons.isNotEmpty) {
-      final filtered = adminReasons.where((r) => r.appliesTo.contains(context)).toList();
+  static const _shortfallDisps = ['MISSING', 'REFUSED', 'DAMAGED'];
+
+  PodOutcome _descriptor(String value) =>
+      kPodOutcomes.firstWhere((o) => o.value == value, orElse: () => kPodOutcomes.first);
+
+  /// Motif chips for a disposition, from the admin referential — matched by `category` and restricted
+  /// to item-scoped reasons. Empty offline / when nothing is configured (the parent then treats the
+  /// motif as optional so the driver isn't blocked).
+  List<({String code, String label})> _reasonChips(String disposition) {
+    if (adminReasons.isNotEmpty) {
+      final filtered = adminReasons.where((r) => r.coversItem && r.category == disposition).toList();
       if (filtered.isNotEmpty) {
         return filtered.map((r) => (code: r.code, label: r.label)).toList();
       }
@@ -500,22 +507,21 @@ class PodItemOutcomeRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final plannedQty = item.quantity as int;
-    final opt = kPodOutcomes.firstWhere((o) => o.value == outcome, orElse: () => kPodOutcomes.first);
-    final optColor = opt.resolve(cs);
-    final isPartialQty = outcome == 'DELIVERED' && currentQty < plannedQty;
-    final needsExtra = kPodRequiresReason.contains(outcome) || isPartialQty;
-    final borderColor = isPartialQty ? cs.secondary : optColor;
+    final shortfall = plannedQty - delivered;
+    final hasShortfall = shortfall > 0;
+    final accent = hasShortfall ? cs.secondary : cs.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppTokens.space16),
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        border: Border.all(color: borderColor.withValues(alpha: 0.4), width: 1.5),
+        border: Border.all(color: accent.withValues(alpha: 0.4), width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Header: item identity + delivered/planned tally ──
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
             child: Row(
@@ -523,10 +529,10 @@ class PodItemOutcomeRow extends StatelessWidget {
                 Container(
                   width: 32, height: 32,
                   decoration: BoxDecoration(
-                    color: borderColor.withValues(alpha: 0.12),
+                    color: accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTokens.radiusSm),
                   ),
-                  child: Icon(opt.icon, size: 16, color: borderColor),
+                  child: Icon(LucideIcons.package, size: 16, color: accent),
                 ),
                 const SizedBox(width: AppTokens.space10),
                 Expanded(
@@ -548,10 +554,10 @@ class PodItemOutcomeRow extends StatelessWidget {
                     border: Border.all(color: cs.outlineVariant),
                   ),
                   child: Text(
-                    outcome == 'DELIVERED' ? '$currentQty / $plannedQty' : '0 / $plannedQty',
+                    '$delivered / $plannedQty',
                     style: TextStyle(
                       fontSize: 12, fontWeight: AppTokens.fwBold, fontFamily: 'monospace',
-                      color: isPartialQty ? cs.secondary : outcome != 'DELIVERED' ? cs.error : cs.primary,
+                      color: hasShortfall ? cs.secondary : cs.primary,
                     ),
                   ),
                 ),
@@ -559,112 +565,112 @@ class PodItemOutcomeRow extends StatelessWidget {
             ),
           ),
           const SizedBox(height: AppTokens.space12),
+          Divider(height: 1, color: cs.outlineVariant),
+
+          // ── Delivered slice (derived, read-only) ──
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-              childAspectRatio: 2.8,
-              children: kPodOutcomes.map((o) {
-                final oColor = o.resolve(cs);
-                final selected = outcome == o.value;
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                Icon(LucideIcons.checkCircle2, size: 16, color: cs.primary),
+                const SizedBox(width: 8),
+                Text(AppLocalizations.of(context).pod_delivered_qty,
+                    style: TextStyle(fontSize: 13, fontWeight: AppTokens.fwSemiBold, color: cs.onSurface)),
+                const Spacer(),
+                Text('$delivered',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: hasShortfall ? cs.secondary : cs.primary)),
+                Text(' / $plannedQty', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+              ],
+            ),
+          ),
+
+          // ── Shortfall dispositions: each a stepper (+ motif chips when > 0) ──
+          for (final disp in _shortfallDisps) ...[
+            Divider(height: 1, color: cs.outlineVariant),
+            _dispositionRow(context, disp),
+          ],
+          const SizedBox(height: 14),
+        ],
+      ),
+    );
+  }
+
+  Widget _dispositionRow(BuildContext context, String disposition) {
+    final cs = Theme.of(context).colorScheme;
+    final color = _descriptor(disposition).resolve(cs);
+    final icon = _descriptor(disposition).icon;
+    final qty = dispQty[disposition] ?? 0;
+    final active = qty > 0;
+    // A slice can grow only while some quantity is still delivered.
+    final canAdd = delivered > 0;
+    final chips = _reasonChips(disposition);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 16, color: active ? color : cs.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Text(
+                podOutcomeLabel(disposition, locale),
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: active ? AppTokens.fwSemiBold : AppTokens.fwMedium,
+                  color: active ? color : cs.onSurfaceVariant,
+                ),
+              ),
+              const Spacer(),
+              _QtyButton(
+                icon: LucideIcons.minus,
+                enabled: qty > 0,
+                color: cs.error,
+                onTap: () => onDispQty(disposition, qty - 1),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text('$qty',
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: active ? color : cs.onSurfaceVariant)),
+              ),
+              _QtyButton(
+                icon: LucideIcons.plus,
+                enabled: canAdd,
+                color: color,
+                onTap: () => onDispQty(disposition, qty + 1),
+              ),
+            ],
+          ),
+        ),
+        if (active && chips.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(40, 0, 16, 8),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: chips.map((r) {
+                final selected = dispReason[disposition] == r.code;
                 return GestureDetector(
-                  onTap: () => onOutcome(o.value),
+                  onTap: () => onDispReason(disposition, r.code),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
+                    duration: const Duration(milliseconds: 120),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                     decoration: BoxDecoration(
-                      color: selected ? oColor.withValues(alpha: 0.18) : cs.surfaceContainerHighest,
-                      borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-                      border: Border.all(color: selected ? oColor : cs.outlineVariant, width: selected ? 1.5 : 1),
+                      color: selected ? color.withValues(alpha: 0.15) : cs.surfaceContainerHighest,
+                      borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+                      border: Border.all(color: selected ? color : cs.outlineVariant, width: selected ? 1.5 : 1),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(o.icon, size: 15, color: selected ? oColor : cs.onSurfaceVariant),
-                        const SizedBox(width: 6),
-                        Text(
-                          podOutcomeLabel(o.value, locale),
-                          style: TextStyle(fontSize: 12, fontWeight: AppTokens.fwSemiBold, color: selected ? oColor : cs.onSurfaceVariant),
-                        ),
-                      ],
+                    child: Text(
+                      r.label,
+                      style: TextStyle(fontSize: 12, fontWeight: AppTokens.fwMedium, color: selected ? color : cs.onSurfaceVariant),
                     ),
                   ),
                 );
               }).toList(),
             ),
           ),
-          if (outcome == 'DELIVERED') ...[
-            const SizedBox(height: AppTokens.space12),
-            Divider(height: 1, color: cs.outlineVariant),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  Text(AppLocalizations.of(context).pod_delivered_qty, style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
-                  const Spacer(),
-                  _QtyButton(
-                    icon: LucideIcons.minus,
-                    enabled: currentQty > 0,
-                    color: cs.error,
-                    onTap: () => onQty(currentQty - 1),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Text('$currentQty',
-                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: isPartialQty ? cs.secondary : cs.onSurface)),
-                  ),
-                  _QtyButton(
-                    icon: LucideIcons.plus,
-                    enabled: currentQty < plannedQty,
-                    color: cs.primary,
-                    onTap: () => onQty(currentQty + 1),
-                  ),
-                ],
-              ),
-            ),
-          ],
-          if (needsExtra) ...[
-            Divider(height: 1, color: cs.outlineVariant),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Text(
-                isPartialQty ? AppLocalizations.of(context).pod_reason_partial : AppLocalizations.of(context).pod_reason_label,
-                style: TextStyle(fontSize: 11, fontWeight: AppTokens.fwBold, color: cs.onSurfaceVariant),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _reasonChips().map((r) {
-                  final selected = reason == r.code;
-                  return GestureDetector(
-                    onTap: () => onReason(r.code),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 120),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: selected ? optColor.withValues(alpha: 0.15) : cs.surfaceContainerHighest,
-                        borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-                        border: Border.all(color: selected ? optColor : cs.outlineVariant, width: selected ? 1.5 : 1),
-                      ),
-                      child: Text(
-                        r.label,
-                        style: TextStyle(fontSize: 12, fontWeight: AppTokens.fwMedium, color: selected ? optColor : cs.onSurfaceVariant),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ],
-          const SizedBox(height: 14),
-        ],
-      ),
+      ],
     );
   }
 }

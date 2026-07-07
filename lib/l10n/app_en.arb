@@ -363,6 +363,7 @@
   "statusScheduledLabel": "Scheduled",
   "statusPickedUpLabel": "Picked Up",
   "statusInTransitLabel": "In Transit",
+  "statusAwaitingHandoff": "Awaiting Handoff",
   "statusDeliveredLabel": "Delivered",
   "statusPartiallyDelivered": "Partially delivered",
   "statusFailedLabel": "Failed",

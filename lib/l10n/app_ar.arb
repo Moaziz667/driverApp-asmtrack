@@ -363,6 +363,7 @@
   "statusScheduledLabel": "مجدول",
   "statusPickedUpLabel": "تم التحميل",
   "statusInTransitLabel": "في الطريق",
+  "statusAwaitingHandoff": "في انتظار التسليم اليدوي",
   "statusDeliveredLabel": "تم التوصيل",
   "statusPartiallyDelivered": "تم التوصيل جزئياً",
   "statusFailedLabel": "فشل",

@@ -364,6 +364,7 @@
   "statusScheduledLabel": "Planifié",
   "statusPickedUpLabel": "Chargé",
   "statusInTransitLabel": "En transit",
+  "statusAwaitingHandoff": "En attente de transfert",
   "statusDeliveredLabel": "Livré",
   "statusPartiallyDelivered": "Livré partiel",
   "statusFailedLabel": "Échec",

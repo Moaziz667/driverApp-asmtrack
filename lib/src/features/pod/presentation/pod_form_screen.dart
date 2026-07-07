@@ -42,9 +42,16 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
   /// Per-item state — this State is the single source of truth; the widgets are
   /// purely presentational and report changes through callbacks.
-  late Map<int, int> _itemsDone;
-  late Map<int, String> _itemOutcomes;
-  late Map<int, String?> _itemReasons;
+  ///
+  /// Per-unit breakdown (WMS): a line of qty N splits into a delivered slice plus up to three
+  /// *shortfall* dispositions (missing / refused / damaged), each with its own quantity and motif.
+  /// The delivered quantity is derived (`N − Σ shortfall`), never stored, so the invariant
+  /// `delivered + Σ shortfall = N` can't drift. Keyed by list index (two lines can share a SKU).
+  late Map<int, Map<String, int>> _dispQty;
+  late Map<int, Map<String, String?>> _dispReason;
+
+  /// Shortfall dispositions, in display order. Each maps 1:1 to a failure-reason `category`.
+  static const _kShortfallDisps = ['MISSING', 'REFUSED', 'DAMAGED'];
 
   /// Admin-configured failure reasons (same referential as the full-failure sheet).
   /// Empty until loaded / when offline → the per-item cards fall back to the built-in list.
@@ -53,16 +60,14 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   @override
   void initState() {
     super.initState();
-    _itemsDone = {};
-    _itemOutcomes = {};
-    _itemReasons = {};
+    _dispQty = {};
+    _dispReason = {};
     // Key per-item state by list index, never sku/name: two lines can share a SKU (or both have a
     // null SKU), and a shared map key made one line's outcome/qty bleed into the other.
     final items = widget.args.delivery.items;
     for (var i = 0; i < items.length; i++) {
-      _itemsDone[i] = items[i].quantity;
-      _itemOutcomes[i] = 'DELIVERED';
-      _itemReasons[i] = null;
+      _dispQty[i] = {for (final d in _kShortfallDisps) d: 0};
+      _dispReason[i] = {for (final d in _kShortfallDisps) d: null};
     }
     _loadReasons();
   }
@@ -82,31 +87,28 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     super.dispose();
   }
 
+  /// A shortfall disposition needs a motif only when the admin referential actually offers one for
+  /// it (item-scoped, matching category). Offline / unconfigured → no chips to pick, so we don't
+  /// dead-lock the driver: the backend accepts a null reason.
+  bool _requiresReason(String disposition) =>
+      _adminReasons.any((r) => r.coversItem && r.category == disposition);
+
   bool get _canSubmit {
     if (_bonLivraisonBytes == null || _packageBytes == null) return false;
     if (!_isPartial) return true;
-    final items = widget.args.delivery.items;
-    for (var i = 0; i < items.length; i++) {
-      final item = items[i];
-      final outcome = _itemOutcomes[i] ?? 'DELIVERED';
-      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[i] ?? item.quantity) < item.quantity;
-      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[i] == null) {
-        return false;
-      }
-    }
-    return true;
+    return _missingReasonItem == null;
   }
 
-  /// First item still missing a reason — drives the hint message.
+  /// First item with a chosen shortfall still missing its motif — drives the hint message.
   String? get _missingReasonItem {
     if (!_isPartial) return null;
     final items = widget.args.delivery.items;
     for (var i = 0; i < items.length; i++) {
-      final item = items[i];
-      final outcome = _itemOutcomes[i] ?? 'DELIVERED';
-      final isPartialQty = outcome == 'DELIVERED' && (_itemsDone[i] ?? item.quantity) < item.quantity;
-      if ((kPodRequiresReason.contains(outcome) || isPartialQty) && _itemReasons[i] == null) {
-        return item.name;
+      final qtys = _dispQty[i]!;
+      for (final disp in _kShortfallDisps) {
+        if ((qtys[disp] ?? 0) > 0 && _requiresReason(disp) && _dispReason[i]![disp] == null) {
+          return items[i].name;
+        }
       }
     }
     return null;
@@ -195,27 +197,26 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
   Widget _itemRow(int index, dynamic item, String locale) {
     final plannedQty = item.quantity as int;
+    final qtys = _dispQty[index]!;
+    final shortfall = qtys.values.fold<int>(0, (s, v) => s + v);
     return PodItemOutcomeRow(
       key: ValueKey(index),
       item: item,
-      currentQty: _itemsDone[index] ?? plannedQty,
-      outcome: _itemOutcomes[index] ?? 'DELIVERED',
-      reason: _itemReasons[index],
+      delivered: plannedQty - shortfall,
+      dispQty: qtys,
+      dispReason: _dispReason[index]!,
       adminReasons: _adminReasons,
       locale: locale,
-      onOutcome: (v) => setState(() {
-        _itemOutcomes[index] = v;
-        _itemReasons[index] = null;
-        _itemsDone[index] = v == 'DELIVERED' ? plannedQty : 0;
+      onDispQty: (disp, qty) => setState(() {
+        // A shortfall slice can grow only into the delivered pool: clamp to N − (the other slices).
+        final others = _kShortfallDisps
+            .where((d) => d != disp)
+            .fold<int>(0, (s, d) => s + (qtys[d] ?? 0));
+        final clamped = qty.clamp(0, plannedQty - others);
+        qtys[disp] = clamped;
+        if (clamped == 0) _dispReason[index]![disp] = null;
       }),
-      onQty: (q) => setState(() {
-        _itemsDone[index] = q;
-        if (q < plannedQty && _itemOutcomes[index] == 'DELIVERED') {
-          _itemOutcomes[index] = 'REFUSED';
-          _itemReasons[index] = null;
-        }
-      }),
-      onReason: (r) => setState(() => _itemReasons[index] = r),
+      onDispReason: (disp, code) => setState(() => _dispReason[index]![disp] = code),
     );
   }
 
@@ -236,23 +237,47 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       List<PartialDeliveryItem>? itemsArray;
       if (_isPartial) {
         final items = widget.args.delivery.items;
-        itemsArray = _itemsDone.entries.map((e) {
-          final item = items[e.key];
-          final outcome = _itemOutcomes[e.key] ?? 'DELIVERED';
-          final reason = _itemReasons[e.key];
-          final isPartialQty = outcome == 'DELIVERED' && e.value < item.quantity;
-          final sendReason = kPodRequiresReason.contains(outcome) || isPartialQty;
-          // Per-item free-text removed — the motif (reason) carries the per-line detail; the single
-          // optional POD note ([_notesController]) covers any general remark. Submit the real SKU
-          // (falling back to name) so the backend can still match the line; the index is UI-only.
+        itemsArray = List.generate(items.length, (i) {
+          final item = items[i];
+          final int planned = item.quantity;
+          final qtys = _dispQty[i]!;
+          final reasons = _dispReason[i]!;
+          final delivered = planned - qtys.values.fold<int>(0, (s, v) => s + v);
+
+          // Per-unit breakdown: the delivered slice + one slice per non-zero shortfall disposition,
+          // each with its own motif. Summing to `planned` is guaranteed by construction.
+          final segments = <ItemSegment>[];
+          if (delivered > 0) segments.add(ItemSegment(disposition: 'DELIVERED', quantity: delivered));
+          for (final disp in _kShortfallDisps) {
+            final q = qtys[disp] ?? 0;
+            if (q > 0) segments.add(ItemSegment(disposition: disp, quantity: q, reasonCode: reasons[disp]));
+          }
+
+          // Denormalized single-outcome fields for the offline queue + legacy consumers (the backend
+          // recomputes these from the segments when present). Dominant = the largest shortfall slice.
+          String outcome = 'DELIVERED';
+          String? reason;
+          var dominant = 0;
+          for (final disp in _kShortfallDisps) {
+            final q = qtys[disp] ?? 0;
+            if (q > dominant) {
+              dominant = q;
+              outcome = disp;
+              reason = reasons[disp];
+            }
+          }
+
+          // Submit the real SKU (falling back to name) so the backend can match the line; the index is
+          // UI-only.
           return PartialDeliveryItem(
             sku: item.sku ?? item.name,
-            quantityDone: e.value,
+            quantityDone: delivered,
             outcome: outcome,
-            reason: sendReason ? reason : null,
+            reason: reason,
             comment: null,
+            segments: segments.isNotEmpty ? segments : null,
           );
-        }).toList();
+        });
       }
 
       try {

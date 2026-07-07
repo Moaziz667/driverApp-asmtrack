@@ -8,6 +8,7 @@ String deliveryStatusLabel(DeliveryStatus status, AppLocalizations l10n) {
     case DeliveryStatus.scheduled: return l10n.statusScheduledLabel;
     case DeliveryStatus.pickedUp: return l10n.statusPickedUpLabel;
     case DeliveryStatus.inTransit: return l10n.statusInTransitLabel;
+    case DeliveryStatus.awaitingHandoff: return l10n.statusAwaitingHandoff;
     case DeliveryStatus.delivered: return l10n.statusDeliveredLabel;
     case DeliveryStatus.partially_delivered: return l10n.statusPartiallyDelivered;
     case DeliveryStatus.failed: return l10n.statusFailedLabel;

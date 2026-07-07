@@ -1092,6 +1092,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusInTransitLabel => 'In Transit';
 
   @override
+  String get statusAwaitingHandoff => 'Awaiting Handoff';
+
+  @override
   String get statusDeliveredLabel => 'Delivered';
 
   @override

@@ -1073,6 +1073,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusInTransitLabel => 'في الطريق';
 
   @override
+  String get statusAwaitingHandoff => 'في انتظار التسليم اليدوي';
+
+  @override
   String get statusDeliveredLabel => 'تم التوصيل';
 
   @override

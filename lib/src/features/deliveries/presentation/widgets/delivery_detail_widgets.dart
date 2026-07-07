@@ -28,6 +28,7 @@ class HeroCard extends ConsumerWidget {
       DeliveryStatus.scheduled         => statusColors.scheduled,
       DeliveryStatus.pickedUp          => statusColors.pickedUp,
       DeliveryStatus.inTransit         => statusColors.inTransit,
+      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
       DeliveryStatus.delivered         => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
       DeliveryStatus.failed            => statusColors.failed,
@@ -324,7 +325,33 @@ class ItemsCard extends ConsumerWidget {
                               item.name, 
                               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
                             ),
-                            if (item.hasOutcome && item.outcome!.toUpperCase() != 'DELIVERED') ...[
+                            // Per-unit breakdown (WMS): one row per non-delivered disposition, so a
+                            // mixed line (e.g. refused 1 + damaged 1) is shown in full, not collapsed.
+                            if (item.shortSegments.isNotEmpty) ...[
+                              const SizedBox(height: 3),
+                              ...item.shortSegments.map((seg) => Padding(
+                                    padding: const EdgeInsets.only(top: 2),
+                                    child: Row(
+                                      children: [
+                                        _OutcomeBadge(outcome: seg.disposition),
+                                        const SizedBox(width: 6),
+                                        Text('×${seg.quantity}',
+                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
+                                        if (seg.reasonLabel != null && seg.reasonLabel!.isNotEmpty) ...[
+                                          const SizedBox(width: 6),
+                                          Expanded(
+                                            child: Text(
+                                              seg.reasonLabel!,
+                                              style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  )),
+                            ] else if (item.hasOutcome && item.outcome!.toUpperCase() != 'DELIVERED') ...[
                               const SizedBox(height: 3),
                               Row(
                                 children: [
@@ -357,7 +384,7 @@ class ItemsCard extends ConsumerWidget {
                         children: [
                           if (item.hasOutcome && item.quantityDone != null)
                             Text(
-                              '$item.quantityDone/$item.quantity',
+                              '${item.quantityDone}/${item.quantity}',
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
@@ -416,6 +443,7 @@ class _OutcomeBadge extends StatelessWidget {
       'DELIVERED' => (AppLocalizations.of(context).statusHistoryDelivered, Colors.green),
       'REFUSED'   => (AppLocalizations.of(context).podOutcomeRefused, cs.error),
       'DAMAGED'   => (AppLocalizations.of(context).podOutcomeDamaged, Colors.orange),
+      'MISSING'   => (AppLocalizations.of(context).podOutcomeMissing, Colors.orange),
       _           => (outcome, cs.onSurfaceVariant),
     };
     return Container(
@@ -589,6 +617,10 @@ class ActionPanel extends ConsumerWidget {
     final hasGeo = delivery.lat != null && delivery.lng != null;
 
     switch (delivery.status) {
+      case DeliveryStatus.awaitingHandoff:
+        // Custody transfer pending: the receiver confirms via the incoming-handoff flow on the
+        // route list ("À recevoir" + scanner), so the delivery detail shows no action here.
+        break;
       case DeliveryStatus.unscheduled:
         buttons.add(
           Card(

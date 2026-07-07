@@ -294,6 +294,7 @@ class _HistoryTile extends StatelessWidget {
       DeliveryStatus.scheduled         => statusColors.scheduled,
       DeliveryStatus.pickedUp          => statusColors.pickedUp,
       DeliveryStatus.inTransit         => statusColors.inTransit,
+      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
       DeliveryStatus.delivered         => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
       DeliveryStatus.failed            => statusColors.failed,
