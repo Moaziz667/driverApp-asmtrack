@@ -93,6 +93,33 @@ class HeroCard extends ConsumerWidget {
                       ),
                   ],
                 ),
+                // ADR-033 — make the reverse sense explicit: this is a collection (client→depot), not a delivery.
+                if (delivery.isReturnPickup) ...[
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(PhosphorIconsRegular.arrowUUpLeft, size: 14, color: cs.tertiary),
+                      const SizedBox(width: 6),
+                      Text(
+                        AppLocalizations.of(context).return_pickup_title,
+                        style: theme.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: cs.tertiary,
+                            ),
+                      ),
+                      if (delivery.rmaNumber != null) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          delivery.rmaNumber!,
+                          style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: cs.onSurfaceVariant,
+                              ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 18),
                 if (delivery.clientName != null) ...[
                   Row(

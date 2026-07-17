@@ -141,6 +141,8 @@
   "routeLoading": "Loading route…",
 
   "delivery_detail_title": "Delivery Details",
+  "return_pickup_badge": "Return",
+  "return_pickup_title": "Return collection",
   "delivery_detail_loading": "Loading delivery...",
   "delivery_detail_load_failed": "Failed to load",
   "delivery_detail_retry": "Retry",

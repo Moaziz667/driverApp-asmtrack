@@ -94,7 +94,10 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       _adminReasons.any((r) => r.coversItem && r.category == disposition);
 
   bool get _canSubmit {
-    if (_bonLivraisonBytes == null || _packageBytes == null) return false;
+    // ADR-033 — a return collection has no bon de livraison; only the collected-parcel photo is required.
+    final isReturn = widget.args.delivery.isReturnPickup;
+    if (_packageBytes == null) return false;
+    if (!isReturn && _bonLivraisonBytes == null) return false;
     if (!_isPartial) return true;
     return _missingReasonItem == null;
   }
@@ -285,7 +288,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
         // the repo handles the online POST and the offline-queue fallback.
         await ref.read(deliveryRepositoryProvider).submitPodPhotos(
               widget.args.delivery.id,
-              bonLivraisonBytes: _bonLivraisonBytes!,
+              bonLivraisonBytes: _bonLivraisonBytes,
               packageBytes: _packageBytes!,
               comment: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
               lat: lat,
@@ -335,20 +338,22 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
           children: [
             PodInstructionsCard(locale: locale),
             const SizedBox(height: AppTokens.space16),
-            PodViewBlButton(loading: _openingBl, onTap: _openBonLivraison, locale: locale),
-            const SizedBox(height: AppTokens.space20),
-
-            PodPhotoSection(
-              title: AppLocalizations.of(context).pod_photo_bl_title,
-              subtitle: AppLocalizations.of(context).pod_photo_bl_sub,
-              bytes: _bonLivraisonBytes,
-              isRequired: true,
-              onCapture: () => _pickPhoto((b) => setState(() => _bonLivraisonBytes = b), locale),
-              onClear: () => setState(() => _bonLivraisonBytes = null),
-              locale: locale,
-              icon: LucideIcons.fileText,
-            ),
-            const SizedBox(height: AppTokens.space16),
+            // ADR-033 — a return collection has no delivery note: skip the bon-de-livraison viewer + photo.
+            if (!widget.args.delivery.isReturnPickup) ...[
+              PodViewBlButton(loading: _openingBl, onTap: _openBonLivraison, locale: locale),
+              const SizedBox(height: AppTokens.space20),
+              PodPhotoSection(
+                title: AppLocalizations.of(context).pod_photo_bl_title,
+                subtitle: AppLocalizations.of(context).pod_photo_bl_sub,
+                bytes: _bonLivraisonBytes,
+                isRequired: true,
+                onCapture: () => _pickPhoto((b) => setState(() => _bonLivraisonBytes = b), locale),
+                onClear: () => setState(() => _bonLivraisonBytes = null),
+                locale: locale,
+                icon: LucideIcons.fileText,
+              ),
+              const SizedBox(height: AppTokens.space16),
+            ],
             PodPhotoSection(
               title: AppLocalizations.of(context).pod_photo_pkg_title,
               subtitle: AppLocalizations.of(context).pod_photo_pkg_sub,
@@ -374,23 +379,27 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             ),
             const SizedBox(height: AppTokens.space16),
 
-            PodToggleCard(
-              icon: LucideIcons.packageCheck,
-              iconColor: cs.secondary,
-              title: AppLocalizations.of(context).pod_partial_label,
-              subtitle: AppLocalizations.of(context).pod_partial_sub,
-              value: _isPartial,
-              onChanged: (v) => setState(() => _isPartial = v),
-              expanded: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(AppLocalizations.of(context).pod_item_outcome_header, style: Theme.of(context).textTheme.titleSmall),
-                  const SizedBox(height: AppTokens.space12),
-                  ...widget.args.delivery.items.asMap().entries.map((e) => _itemRow(e.key, e.value, locale)),
-                ],
+            // ADR-033 — a return collection is all-or-nothing: no partial. Discrepancies (client returned
+            // fewer/wrong items) are caught at depot inspection, not by the driver.
+            if (!widget.args.delivery.isReturnPickup) ...[
+              PodToggleCard(
+                icon: LucideIcons.packageCheck,
+                iconColor: cs.secondary,
+                title: AppLocalizations.of(context).pod_partial_label,
+                subtitle: AppLocalizations.of(context).pod_partial_sub,
+                value: _isPartial,
+                onChanged: (v) => setState(() => _isPartial = v),
+                expanded: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AppLocalizations.of(context).pod_item_outcome_header, style: Theme.of(context).textTheme.titleSmall),
+                    const SizedBox(height: AppTokens.space12),
+                    ...widget.args.delivery.items.asMap().entries.map((e) => _itemRow(e.key, e.value, locale)),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: AppTokens.space8),
+              const SizedBox(height: AppTokens.space8),
+            ],
           ],
         ),
       ),

@@ -88,6 +88,32 @@ class DeliveryCard extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
+                      // ADR-033 — flag a return collection so the driver spots it in the route list.
+                      if (delivery.isReturnPickup) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: cs.tertiary.withValues(alpha: 0.09),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(color: cs.tertiary.withValues(alpha: 0.15)),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(PhosphorIconsRegular.arrowUUpLeft, size: 11, color: cs.tertiary),
+                              const SizedBox(width: 4),
+                              Text(
+                                delivery.rmaNumber ?? AppLocalizations.of(context).return_pickup_badge,
+                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      color: cs.tertiary,
+                                    ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
                       if (delivery.priority != null)
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

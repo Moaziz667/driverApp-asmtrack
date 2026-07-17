@@ -171,6 +171,8 @@ class DriverDelivery {
   const DriverDelivery({
     required this.id,
     required this.status,
+    this.kind,
+    this.rmaNumber,
     this.orderId,
     this.orderRef,
     this.clientName,
@@ -217,6 +219,8 @@ class DriverDelivery {
     }
     return DriverDelivery(
       id: (json['deliveryId'] ?? json['id']).toString(),
+      kind: json['kind'] as String?,
+      rmaNumber: json['rmaNumber'] as String?,
       orderId: (json['orderId'])?.toString(),
       orderRef: json['orderRef'] as String?,
       clientName: json['clientName'] as String?,
@@ -257,6 +261,10 @@ class DriverDelivery {
   }
 
   final String id;
+  /// FORWARD (delivery) or RETURN_PICKUP (return collection, client→depot). ADR-033.
+  final String? kind;
+  /// The return's own reference (RET-00001) for a RETURN_PICKUP.
+  final String? rmaNumber;
   final String? orderId;
   final String? orderRef;
   final String? clientName;
@@ -289,6 +297,10 @@ class DriverDelivery {
   final Map<String, DateTime?> timestamps;
 
   bool get isTerminal => status == DeliveryStatus.delivered || status == DeliveryStatus.failed || status == DeliveryStatus.cancelled;
+
+  /// ADR-033 — this leg is a return collection (client→depot): "récupérer" the parcel, all-or-nothing,
+  /// no partial. Drives the reverse-sense UI in the card + detail screens.
+  bool get isReturnPickup => kind == 'RETURN_PICKUP';
 }
 
 class ProofOfDeliveryModel {
@@ -397,7 +409,7 @@ class PartialDeliveryItem {
 
 class PodPayload {
   PodPayload({
-    required this.bonLivraisonPhotoBase64,
+    this.bonLivraisonPhotoBase64,
     required this.packagePhotoBase64,
     this.comment,
     this.lat,
@@ -406,7 +418,8 @@ class PodPayload {
     this.itemsDone,
   });
 
-  final String bonLivraisonPhotoBase64;
+  /// ADR-033 — null for a return collection (no delivery note); dropped from the JSON by toJson.
+  final String? bonLivraisonPhotoBase64;
   final String packagePhotoBase64;
   final String? comment;
   final double? lat;

@@ -141,6 +141,8 @@
   "routeLoading": "Chargement de la tournée…",
 
   "delivery_detail_title": "Détails de la livraison",
+  "return_pickup_badge": "Retour",
+  "return_pickup_title": "Collecte retour",
   "delivery_detail_loading": "Chargement de la livraison…",
   "delivery_detail_load_failed": "Échec du chargement",
   "delivery_detail_retry": "Réessayer",

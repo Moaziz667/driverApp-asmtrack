@@ -425,6 +425,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delivery_detail_title => 'Détails de la livraison';
 
   @override
+  String get return_pickup_badge => 'Retour';
+
+  @override
+  String get return_pickup_title => 'Collecte retour';
+
+  @override
   String get delivery_detail_loading => 'Chargement de la livraison…';
 
   @override

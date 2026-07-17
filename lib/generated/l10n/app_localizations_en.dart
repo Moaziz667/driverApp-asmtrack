@@ -423,6 +423,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delivery_detail_title => 'Delivery Details';
 
   @override
+  String get return_pickup_badge => 'Return';
+
+  @override
+  String get return_pickup_title => 'Return collection';
+
+  @override
   String get delivery_detail_loading => 'Loading delivery...';
 
   @override

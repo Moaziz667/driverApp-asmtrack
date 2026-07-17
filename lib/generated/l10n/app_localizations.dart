@@ -850,6 +850,18 @@ abstract class AppLocalizations {
   /// **'Delivery Details'**
   String get delivery_detail_title;
 
+  /// No description provided for @return_pickup_badge.
+  ///
+  /// In en, this message translates to:
+  /// **'Return'**
+  String get return_pickup_badge;
+
+  /// No description provided for @return_pickup_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Return collection'**
+  String get return_pickup_title;
+
   /// No description provided for @delivery_detail_loading.
   ///
   /// In en, this message translates to:

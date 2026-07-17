@@ -421,6 +421,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get delivery_detail_title => 'تفاصيل الشحنة';
 
   @override
+  String get return_pickup_badge => 'إرجاع';
+
+  @override
+  String get return_pickup_title => 'استلام المرتجع';
+
+  @override
   String get delivery_detail_loading => 'جاري تحميل الشحنة...';
 
   @override

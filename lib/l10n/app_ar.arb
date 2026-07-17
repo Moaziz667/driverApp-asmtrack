@@ -141,6 +141,8 @@
   "routeLoading": "جاري تحميل الجولة…",
 
   "delivery_detail_title": "تفاصيل الشحنة",
+  "return_pickup_badge": "إرجاع",
+  "return_pickup_title": "استلام المرتجع",
   "delivery_detail_loading": "جاري تحميل الشحنة...",
   "delivery_detail_load_failed": "فشل تحميل الشحنة",
   "delivery_detail_retry": "إعادة المحاولة",

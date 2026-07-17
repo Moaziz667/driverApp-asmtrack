@@ -151,7 +151,7 @@ class DeliveryRepository {
   /// fallback, so a queued POD is never lost.
   Future<DriverDelivery> submitPodPhotos(
     String id, {
-    required Uint8List bonLivraisonBytes,
+    Uint8List? bonLivraisonBytes,
     required Uint8List packageBytes,
     String? comment,
     double? lat,
@@ -164,7 +164,7 @@ class DeliveryRepository {
 
   Future<DriverDelivery> _buildAndSubmitPodBase64(
     String id,
-    Uint8List bonLivraisonBytes,
+    Uint8List? bonLivraisonBytes,
     Uint8List packageBytes,
     String? comment,
     double? lat,
@@ -173,7 +173,8 @@ class DeliveryRepository {
     List<PartialDeliveryItem>? itemsDone,
   ) {
     final payload = PodPayload(
-      bonLivraisonPhotoBase64: base64Encode(bonLivraisonBytes),
+      // ADR-033 — null for a return collection (no delivery note).
+      bonLivraisonPhotoBase64: bonLivraisonBytes != null ? base64Encode(bonLivraisonBytes) : null,
       packagePhotoBase64: base64Encode(packageBytes),
       comment: (comment != null && comment.isNotEmpty) ? comment : null,
       lat: lat,
