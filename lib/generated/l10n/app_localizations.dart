@@ -1030,6 +1030,18 @@ abstract class AppLocalizations {
   /// **'Submit proof of delivery'**
   String get delivery_detail_submit_pod;
 
+  /// No description provided for @delivery_detail_collect_return.
+  ///
+  /// In en, this message translates to:
+  /// **'Collect parcel'**
+  String get delivery_detail_collect_return;
+
+  /// No description provided for @delivery_detail_confirm_collection.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm collection'**
+  String get delivery_detail_confirm_collection;
+
   /// No description provided for @delivery_detail_locked.
   ///
   /// In en, this message translates to:
@@ -2122,6 +2134,12 @@ abstract class AppLocalizations {
   /// **'Picked Up'**
   String get statusPickedUpLabel;
 
+  /// No description provided for @statusPickedUpReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Parcel collected'**
+  String get statusPickedUpReturn;
+
   /// No description provided for @statusInTransitLabel.
   ///
   /// In en, this message translates to:
@@ -2139,6 +2157,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delivered'**
   String get statusDeliveredLabel;
+
+  /// No description provided for @statusDeliveredReturn.
+  ///
+  /// In en, this message translates to:
+  /// **'Received at depot'**
+  String get statusDeliveredReturn;
 
   /// No description provided for @statusPartiallyDelivered.
   ///

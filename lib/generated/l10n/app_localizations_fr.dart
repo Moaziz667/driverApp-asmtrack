@@ -517,6 +517,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delivery_detail_submit_pod => 'Soumettre la preuve de livraison';
 
   @override
+  String get delivery_detail_collect_return => 'Récupérer le colis';
+
+  @override
+  String get delivery_detail_confirm_collection => 'Confirmer la collecte';
+
+  @override
   String get delivery_detail_locked => 'Clôturé';
 
   @override
@@ -1107,6 +1113,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get statusPickedUpLabel => 'Chargé';
 
   @override
+  String get statusPickedUpReturn => 'Colis récupéré';
+
+  @override
   String get statusInTransitLabel => 'En transit';
 
   @override
@@ -1114,6 +1123,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get statusDeliveredLabel => 'Livré';
+
+  @override
+  String get statusDeliveredReturn => 'Reçu au dépôt';
 
   @override
   String get statusPartiallyDelivered => 'Livré partiel';

@@ -78,7 +78,7 @@ class DeliveryCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              deliveryStatusLabel(delivery.status, AppLocalizations.of(context)),
+                              deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup),
                               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: statusColor,

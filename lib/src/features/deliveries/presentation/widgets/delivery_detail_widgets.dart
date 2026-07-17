@@ -64,7 +64,7 @@ class HeroCard extends ConsumerWidget {
                         border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.0),
                       ),
                       child: Text(
-                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context)).toUpperCase(),
+                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup).toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -676,7 +676,9 @@ class ActionPanel extends ConsumerWidget {
         if (!showHandoffBanner) {
           buttons.add(
             SwipeButton(
-              label: AppLocalizations.of(context).delivery_detail_pickup_package,
+              label: delivery.isReturnPickup
+                  ? AppLocalizations.of(context).delivery_detail_collect_return
+                  : AppLocalizations.of(context).delivery_detail_pickup_package,
               onSwipe: isWorking ? null : onPickup,
               isWorking: isWorking,
               icon: PhosphorIconsBold.package,
@@ -758,7 +760,9 @@ class ActionPanel extends ConsumerWidget {
         }
         buttons.addAll([
           SwipeButton(
-            label: AppLocalizations.of(context).delivery_detail_submit_pod,
+            label: delivery.isReturnPickup
+                ? AppLocalizations.of(context).delivery_detail_confirm_collection
+                : AppLocalizations.of(context).delivery_detail_submit_pod,
             onSwipe: isWorking ? null : onPod,
             isWorking: isWorking,
             icon: PhosphorIconsBold.sealCheck,

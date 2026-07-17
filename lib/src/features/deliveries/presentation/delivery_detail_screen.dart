@@ -127,7 +127,18 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   final reasons = await ref.read(deliveryRepositoryProvider).fetchFailureReasons();
                   if (!context.mounted) return;
                   // Full-visit failure: only motifs usable at the delivery scope (DELIVERY / BOTH).
-                  final failureReasons = reasons.where((r) => r.coversDelivery).toList();
+                  final base = reasons.where((r) => r.coversDelivery).toList();
+                  // ADR-033 — a return collection fails for a short, distinct set of reasons (client absent /
+                  // refuses to hand it back / not ready → OTHER); the delivery catalog (wrong address, damaged…)
+                  // doesn't fit. Fall back to the bundled list filtered the same way when the API is empty.
+                  const returnCats = ['CLIENT_ABSENT', 'REFUSED', 'OTHER'];
+                  List<FailureReasonOption> failureReasons = base;
+                  if (delivery.isReturnPickup) {
+                    final filtered = base.where((r) => returnCats.contains(r.category)).toList();
+                    failureReasons = filtered.isNotEmpty
+                        ? filtered
+                        : FailureReasonOption.fallback.where((r) => returnCats.contains(r.category)).toList();
+                  }
                   final reason = await _showFailSheet(context, failureReasons);
                   if (reason == null) return;
                   await _perform(() => ref.read(deliveryRepositoryProvider).fail(

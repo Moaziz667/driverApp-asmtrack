@@ -511,6 +511,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get delivery_detail_submit_pod => 'تقديم إثبات التوصيل';
 
   @override
+  String get delivery_detail_collect_return => 'استلام الطرد';
+
+  @override
+  String get delivery_detail_confirm_collection => 'تأكيد الاستلام';
+
+  @override
   String get delivery_detail_locked => 'مغلق';
 
   @override
@@ -1076,6 +1082,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusPickedUpLabel => 'تم التحميل';
 
   @override
+  String get statusPickedUpReturn => 'تم استلام الطرد';
+
+  @override
   String get statusInTransitLabel => 'في الطريق';
 
   @override
@@ -1083,6 +1092,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusDeliveredLabel => 'تم التوصيل';
+
+  @override
+  String get statusDeliveredReturn => 'تم الاستلام في المستودع';
 
   @override
   String get statusPartiallyDelivered => 'تم التوصيل جزئياً';

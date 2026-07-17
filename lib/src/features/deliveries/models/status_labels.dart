@@ -2,14 +2,15 @@ import 'package:driver_app/generated/l10n/app_localizations.dart';
 import 'delivery_models.dart';
 import '../../routes/models/route_models.dart';
 
-String deliveryStatusLabel(DeliveryStatus status, AppLocalizations l10n) {
+String deliveryStatusLabel(DeliveryStatus status, AppLocalizations l10n, {bool isReturn = false}) {
   switch (status) {
     case DeliveryStatus.unscheduled: return l10n.statusUnscheduled;
     case DeliveryStatus.scheduled: return l10n.statusScheduledLabel;
-    case DeliveryStatus.pickedUp: return l10n.statusPickedUpLabel;
+    // ADR-033 — a return collection: "picked up" = parcel collected at client, "delivered" = received at depot.
+    case DeliveryStatus.pickedUp: return isReturn ? l10n.statusPickedUpReturn : l10n.statusPickedUpLabel;
     case DeliveryStatus.inTransit: return l10n.statusInTransitLabel;
     case DeliveryStatus.awaitingHandoff: return l10n.statusAwaitingHandoff;
-    case DeliveryStatus.delivered: return l10n.statusDeliveredLabel;
+    case DeliveryStatus.delivered: return isReturn ? l10n.statusDeliveredReturn : l10n.statusDeliveredLabel;
     case DeliveryStatus.partially_delivered: return l10n.statusPartiallyDelivered;
     case DeliveryStatus.failed: return l10n.statusFailedLabel;
     case DeliveryStatus.cancelled: return l10n.statusCancelledLabel;

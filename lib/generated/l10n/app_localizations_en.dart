@@ -513,6 +513,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delivery_detail_submit_pod => 'Submit proof of delivery';
 
   @override
+  String get delivery_detail_collect_return => 'Collect parcel';
+
+  @override
+  String get delivery_detail_confirm_collection => 'Confirm collection';
+
+  @override
   String get delivery_detail_locked => 'Completed';
 
   @override
@@ -1095,6 +1101,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusPickedUpLabel => 'Picked Up';
 
   @override
+  String get statusPickedUpReturn => 'Parcel collected';
+
+  @override
   String get statusInTransitLabel => 'In Transit';
 
   @override
@@ -1102,6 +1111,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statusDeliveredLabel => 'Delivered';
+
+  @override
+  String get statusDeliveredReturn => 'Received at depot';
 
   @override
   String get statusPartiallyDelivered => 'Partially delivered';

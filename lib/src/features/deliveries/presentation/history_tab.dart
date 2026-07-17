@@ -338,7 +338,7 @@ class _HistoryTile extends StatelessWidget {
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context)),
+                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: statusColor,
