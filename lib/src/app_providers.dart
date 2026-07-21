@@ -43,7 +43,7 @@ final apiClientProvider = Provider<ApiClient>((Ref ref) {
   );
   ref.listen<AppConfig>(appConfigProvider, (_, next) {
     client.config = next;                          // OIDC endpoints (login) follow the new host
-    client.dio.options.baseUrl = next.apiBaseUrl;  // REST calls follow the new host
+    client.dio.options.baseUrl = next.apiBaseUrlV1;  // REST calls follow the new host
   });
   return client;
 });

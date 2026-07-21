@@ -1,5 +1,5 @@
 /// A custody-transfer (handoff) as seen by a driver — mirrors the backend
-/// `HandoffResponse` returned by `GET /api/driver/handoffs`.
+/// `HandoffResponse` returned by `GET /api/v1/driver/handoffs`.
 class HandoffSummary {
   const HandoffSummary({
     required this.id,

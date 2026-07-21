@@ -25,7 +25,7 @@ class ApiClient {
   ApiClient({required this.config, required this.tokenStorage, this.onSessionExpired}) {
     dio = Dio(
       BaseOptions(
-        baseUrl: config.apiBaseUrl,
+        baseUrl: config.apiBaseUrlV1,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 25),
         sendTimeout: const Duration(seconds: 15),

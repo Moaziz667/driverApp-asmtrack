@@ -123,7 +123,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     try {
       final deliveryId = widget.args.delivery.id;
       final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
-        '/api/driver/deliveries/$deliveryId/bon-livraison',
+        '/driver/deliveries/$deliveryId/bon-livraison',
         fileName: 'bon-livraison-$deliveryId.pdf',
       );
       if (!ok && mounted) {

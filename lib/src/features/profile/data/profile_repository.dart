@@ -9,17 +9,17 @@ class ProfileRepository {
   final ApiClient _client;
 
   Future<DriverProfile> fetchProfile() async {
-    final response = await _client.dio.get<Map<String, dynamic>>('/api/driver/profile');
+    final response = await _client.dio.get<Map<String, dynamic>>('/driver/profile');
     return DriverProfile.fromJson(response.data ?? {});
   }
 
   Future<DriverStats> fetchStats() async {
-    final response = await _client.dio.get<Map<String, dynamic>>('/api/driver/stats');
+    final response = await _client.dio.get<Map<String, dynamic>>('/driver/stats');
     return DriverStats.fromJson(response.data ?? {});
   }
 
   Future<void> updateLocation(double lat, double lng) async {
-    await _client.dio.post('/api/driver/location', data: {'lat': lat, 'lng': lng});
+    await _client.dio.post('/driver/location', data: {'lat': lat, 'lng': lng});
   }
 
   /// Uploads the driver's profile photo (multipart). The backend re-encodes + stores it.
@@ -27,12 +27,12 @@ class ProfileRepository {
     final form = FormData.fromMap({
       'file': await MultipartFile.fromFile(filePath, filename: 'avatar.jpg'),
     });
-    await _client.dio.post('/api/driver/me/photo', data: form);
+    await _client.dio.post('/driver/me/photo', data: form);
   }
 
   Future<String> updateAvailability(String status) async {
     final response = await _client.dio.patch<Map<String, dynamic>>(
-      '/api/driver/availability',
+      '/driver/availability',
       data: {'status': status},
     );
     return response.data?['status'] as String? ?? status;

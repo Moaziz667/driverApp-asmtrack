@@ -49,7 +49,7 @@ class AuthRepository {
         headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
       ));
 
-      final profileRes = await dio.get<Map<String, dynamic>>('/api/driver/profile');
+      final profileRes = await dio.get<Map<String, dynamic>>('/driver/profile');
       final driver = DriverIdentity.fromJson(profileRes.data ?? {});
       return AuthPayload(tokens: tokens, driver: driver);
     }
@@ -90,7 +90,7 @@ class AuthRepository {
       baseUrl: _client.dio.options.baseUrl,
       headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
     ));
-    final profileRes = await profileDio.get<Map<String, dynamic>>('/api/driver/profile');
+    final profileRes = await profileDio.get<Map<String, dynamic>>('/driver/profile');
     final driver = DriverIdentity.fromJson(profileRes.data ?? {});
     return AuthPayload(tokens: tokens, driver: driver);
   }

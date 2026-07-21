@@ -25,7 +25,7 @@ class DeliveryRepository {
   /// Fetch active deliveries with cache fallback for offline.
   Future<List<DriverDelivery>> fetchActive() async {
     try {
-      final response = await _client.dio.get<List<dynamic>>('/api/driver/deliveries/active');
+      final response = await _client.dio.get<List<dynamic>>('/driver/deliveries/active');
       final list = response.data ?? [];
       final deliveries = list.map((e) => DriverDelivery.fromJson(e as Map<String, dynamic>)).toList();
       // Save to cache
@@ -57,7 +57,7 @@ class DeliveryRepository {
   /// Slice-based). Returns the page's items plus whether more pages exist (drives infinite scroll).
   Future<({List<DriverDelivery> items, bool hasNext})> fetchHistory({int page = 0, int size = 20}) async {
     final response = await _client.dio.get<Map<String, dynamic>>(
-      '/api/driver/history',
+      '/driver/history',
       queryParameters: {'page': page, 'size': size},
     );
     final data = response.data ?? <String, dynamic>{};
@@ -68,7 +68,7 @@ class DeliveryRepository {
 
   Future<DriverDelivery> fetchById(String id) async {
     try {
-      final response = await _client.dio.get<Map<String, dynamic>>('/api/driver/deliveries/$id');
+      final response = await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
       final delivery = DriverDelivery.fromJson(response.data ?? {});
       try {
         await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
@@ -91,22 +91,22 @@ class DeliveryRepository {
   }
 
 
-  Future<DriverDelivery> accept(String id) => _mutate('/api/driver/deliveries/$id/accept', idempotencyKey: 'acc-$id');
-  Future<DriverDelivery> pickup(String id) => _mutate('/api/driver/deliveries/$id/pickup', idempotencyKey: 'pkp-$id');
+  Future<DriverDelivery> accept(String id) => _mutate('/driver/deliveries/$id/accept', idempotencyKey: 'acc-$id');
+  Future<DriverDelivery> pickup(String id) => _mutate('/driver/deliveries/$id/pickup', idempotencyKey: 'pkp-$id');
 
   Future<DriverDelivery> startTransit(String id, {double? lat, double? lng}) {
     return _mutate(
-      '/api/driver/deliveries/$id/transit',
+      '/driver/deliveries/$id/transit',
       data: lat != null && lng != null ? {'lat': lat, 'lng': lng} : null,
       idempotencyKey: 'trns-$id',
     );
   }
 
-  Future<DriverDelivery> complete(String id) => _mutate('/api/driver/deliveries/$id/complete', idempotencyKey: 'cmp-$id');
+  Future<DriverDelivery> complete(String id) => _mutate('/driver/deliveries/$id/complete', idempotencyKey: 'cmp-$id');
 
   Future<DriverDelivery> fail(String id, {required String reasonCode, String? comment}) {
     return _mutate(
-      '/api/driver/deliveries/$id/fail',
+      '/driver/deliveries/$id/fail',
       data: {
         'failureReasonCode': reasonCode,
         if (comment != null && comment.isNotEmpty) 'failureComment': comment,
@@ -118,7 +118,7 @@ class DeliveryRepository {
   /// Configurable failure reasons; falls back to the static enum list on error.
   Future<List<FailureReasonOption>> fetchFailureReasons() async {
     try {
-      final res = await _client.dio.get('/api/driver/deliveries/failure-reasons');
+      final res = await _client.dio.get('/driver/deliveries/failure-reasons');
       final data = res.data;
       if (data is List && data.isNotEmpty) {
         return data
@@ -132,14 +132,14 @@ class DeliveryRepository {
   }
 
   Future<DriverDelivery> cancel(String id, {String? reason}) {
-    return _mutate('/api/driver/deliveries/$id/cancel', 
+    return _mutate('/driver/deliveries/$id/cancel', 
       data: reason != null ? {'reason': reason} : null,
       idempotencyKey: 'can-$id',
     );
   }
 
   Future<DriverDelivery> submitPod(String id, PodPayload payload) {
-    return _mutate('/api/driver/deliveries/$id/pod',
+    return _mutate('/driver/deliveries/$id/pod',
       data: payload.toJson(),
       idempotencyKey: 'pod-$id',
     );
@@ -186,18 +186,18 @@ class DeliveryRepository {
   }
 
   Future<void> updateLocation(double lat, double lng) async {
-    await _client.dio.post('/api/driver/location', data: {'lat': lat, 'lng': lng});
+    await _client.dio.post('/driver/location', data: {'lat': lat, 'lng': lng});
   }
 
   Future<void> report(String id, {required String reportType, String? description}) async {
-    await _client.dio.post('/api/driver/deliveries/$id/report', data: {
+    await _client.dio.post('/driver/deliveries/$id/report', data: {
       'reportType': reportType,
       if (description != null) 'description': description,
     });
   }
 
   Future<HandoffTokenInfo> getHandoffToken(String id) async {
-    final response = await _client.dio.get<Map<String, dynamic>>('/api/driver/deliveries/$id/handoff-token');
+    final response = await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id/handoff-token');
     final data = response.data ?? const {};
     final token = data['token'] as String?;
     if (token == null || token.isEmpty) {
@@ -211,7 +211,7 @@ class DeliveryRepository {
   }
 
   Future<void> confirmHandoff(String id, String token, {double? lat, double? lng}) async {
-    await _client.dio.post('/api/driver/deliveries/$id/handoff', data: {
+    await _client.dio.post('/driver/deliveries/$id/handoff', data: {
       'token': token,
       if (lat != null) 'lat': lat,
       if (lng != null) 'lng': lng,
@@ -220,7 +220,7 @@ class DeliveryRepository {
 
   /// My open custody transfers (incoming to receive + outgoing to hand over).
   Future<List<HandoffSummary>> listHandoffs() async {
-    final response = await _client.dio.get<List<dynamic>>('/api/driver/handoffs');
+    final response = await _client.dio.get<List<dynamic>>('/driver/handoffs');
     final list = response.data ?? const [];
     return list.map((e) => HandoffSummary.fromJson(e as Map<String, dynamic>)).toList();
   }
@@ -233,7 +233,7 @@ class DeliveryRepository {
     double? lat,
     double? lng,
   }) async {
-    await _client.dio.post('/api/driver/deliveries/report-incident', data: {
+    await _client.dio.post('/driver/deliveries/report-incident', data: {
       'reportType': reportType,
       'description': description,
       'photosBase64': photosBase64,

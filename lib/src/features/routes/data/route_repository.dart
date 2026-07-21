@@ -17,7 +17,7 @@ class RouteRepository {
 
   Future<DriverRoute?> fetchToday() async {
     try {
-      final response = await _client.dio.get<Map<String, dynamic>>('/api/driver/routes/today');
+      final response = await _client.dio.get<Map<String, dynamic>>('/driver/routes/today');
       final data = response.data;
       if (data == null || data.isEmpty) {
         return null;
@@ -45,7 +45,7 @@ class RouteRepository {
     final fromStr = _fmt(from);
     final toStr = _fmt(to);
     final response = await _client.dio.get<List<dynamic>>(
-      '/api/driver/routes',
+      '/driver/routes',
       queryParameters: {'from': fromStr, 'to': toStr},
     );
     return (response.data ?? [])
@@ -99,14 +99,14 @@ class RouteRepository {
 
   Future<DriverRoute> start(String routeId) async {
     return _mutate(
-      '/api/driver/routes/$routeId/start',
+      '/driver/routes/$routeId/start',
       idempotencyKey: 'start-route-$routeId',
     );
   }
 
   Future<DriverRoute> arrive(String routeId, String stopId) async {
     return _mutate(
-      '/api/driver/routes/$routeId/stops/$stopId/arrive',
+      '/driver/routes/$routeId/stops/$stopId/arrive',
       idempotencyKey: 'arrive-$routeId-$stopId',
     );
   }
@@ -115,7 +115,7 @@ class RouteRepository {
   /// sourced from that depot and marks the pickup stop completed.
   Future<DriverRoute> confirmPickup(String routeId, String stopId) async {
     return _mutate(
-      '/api/driver/routes/$routeId/stops/$stopId/confirm-pickup',
+      '/driver/routes/$routeId/stops/$stopId/confirm-pickup',
       idempotencyKey: 'confirm-pickup-$routeId-$stopId',
     );
   }

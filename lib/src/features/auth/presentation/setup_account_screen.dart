@@ -57,7 +57,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.dio.get<Map<String, dynamic>>(
-        '/api/auth/driver/setup/validate',
+        '/auth/driver/setup/validate',
         queryParameters: {'token': token},
       );
       final name = response.data?['name'] as String? ?? '';
@@ -107,7 +107,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     try {
       final client = ref.read(apiClientProvider);
       final response = await client.dio.post<Map<String, dynamic>>(
-        '/api/auth/driver/setup/resend',
+        '/auth/driver/setup/resend',
         queryParameters: {'phone': phone},
       );
       final newToken = response.data?['token'] as String?;
@@ -158,7 +158,7 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
     try {
       final client = ref.read(apiClientProvider);
       await client.dio.post<void>(
-        '/api/auth/driver/setup',
+        '/auth/driver/setup',
         data: {
           'token': _tokenCtrl.text.trim(),
           'password': _passwordCtrl.text.trim(),

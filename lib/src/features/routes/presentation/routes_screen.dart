@@ -73,7 +73,7 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
           return;
         }
         final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
-          '/api/driver/routes/$routeId/pdf',
+          '/driver/routes/$routeId/pdf',
           fileName: 'route-$routeId.pdf',
         );
         if (!ok && mounted) {

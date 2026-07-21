@@ -50,7 +50,7 @@ class BackgroundTrackingService {
 
   Future<void> _syncLocation(Position pos) async {
     try {
-      await _apiClient.dio.post('/api/driver/deliveries/location', data: {
+      await _apiClient.dio.post('/driver/deliveries/location', data: {
         'lat': pos.latitude,
         'lng': pos.longitude,
         'accuracy': pos.accuracy,

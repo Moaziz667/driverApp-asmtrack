@@ -586,7 +586,7 @@ class FcmService {
 
   Future<void> _sendTokenToBackend(String token) async {
     try {
-      await _client.dio.put('/api/driver/fcm-token', data: {'fcmToken': token});
+      await _client.dio.put('/driver/fcm-token', data: {'fcmToken': token});
       debugPrint('[FCM] Token registered with backend');
     } on DioException catch (e) {
       // 403 is expected before the driver logs in — the token is retried on login
@@ -603,7 +603,7 @@ class FcmService {
     // 1. Tell the backend to clear the stored token first (while we still have
     //    a valid JWT). Send an empty token to signal "clear this device".
     try {
-      await _client.dio.delete('/api/driver/fcm-token');
+      await _client.dio.delete('/driver/fcm-token');
       debugPrint('[FCM] Token cleared on backend');
     } catch (e) {
       // Non-fatal — the backend token will expire on its own or be overwritten

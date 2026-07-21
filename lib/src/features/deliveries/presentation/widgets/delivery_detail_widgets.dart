@@ -861,7 +861,7 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
     setState(() => _loading = true);
     try {
       final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
-        '/api/driver/deliveries/${widget.deliveryId}/bon-livraison',
+        '/driver/deliveries/${widget.deliveryId}/bon-livraison',
         fileName: 'bon-livraison-${widget.deliveryId}.pdf',
       );
       if (!ok && mounted) {

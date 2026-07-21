@@ -24,6 +24,13 @@ class AppConfig {
   }
 
   final String apiBaseUrl;
+
+  /// REST API base: the public contract is versioned at `/api/v1/**`, so the version
+  /// lives here in one place and call sites use resource-relative paths
+  /// (`dio.get('/driver/deliveries/active')`). `apiBaseUrl` stays the bare origin because
+  /// the Keycloak endpoints below derive from it. A future v2 = a second Dio on `/api/v2`.
+  String get apiBaseUrlV1 => '$apiBaseUrl/api/v1';
+
   final String? _keycloakBaseUrlOverride;
   final String realm;
   final String clientId;
