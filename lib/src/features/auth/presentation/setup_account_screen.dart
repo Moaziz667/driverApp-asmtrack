@@ -70,16 +70,19 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
       if (e is DioException && e.type != DioExceptionType.badResponse) {
         errorMsg = AppLocalizations.of(context).setupServerInaccessible;
       } else {
-        final errorStr = e.toString().toUpperCase();
-        if (errorStr.contains('INVITE_NOT_FOUND')) {
+        // Extract the error code from the response body, not from e.toString()
+        // which only contains the HTTP status message without the JSON payload.
+        final responseData = e is DioException ? e.response?.data : null;
+        final errorBody = responseData is Map ? responseData.toString().toUpperCase() : e.toString().toUpperCase();
+        if (errorBody.contains('INVITE_NOT_FOUND')) {
           errorMsg = AppLocalizations.of(context).setupCodeNotFound;
-        } else if (errorStr.contains('INVITE_EXPIRED')) {
+        } else if (errorBody.contains('INVITE_EXPIRED')) {
           errorMsg = AppLocalizations.of(context).setupCodeExpired;
-        } else if (errorStr.contains('INVITE_ALREADY_USED')) {
+        } else if (errorBody.contains('INVITE_ALREADY_USED')) {
           errorMsg = AppLocalizations.of(context).setupCodeAlreadyUsed;
-        } else if (errorStr.contains('INVALID_TOKEN_FORMAT')) {
+        } else if (errorBody.contains('INVALID_TOKEN_FORMAT')) {
           errorMsg = AppLocalizations.of(context).setupInvalidFormat;
-        } else if (errorStr.contains('CONNECTION_REFUSED') || errorStr.contains('CONNECTION TIMED OUT')) {
+        } else if (errorBody.contains('CONNECTION_REFUSED') || errorBody.contains('CONNECTION TIMED OUT')) {
           errorMsg = AppLocalizations.of(context).setupServerInaccessible;
         } else {
           errorMsg = AppLocalizations.of(context).setupInvalidOrExpired;
@@ -175,10 +178,24 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
         Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
       }
     } catch (e) {
+      String errorMsg;
+      if (e is DioException && e.type != DioExceptionType.badResponse) {
+        errorMsg = AppLocalizations.of(context).setupServerInaccessible;
+      } else {
+        final responseData = e is DioException ? e.response?.data : null;
+        final errorBody = responseData is Map ? responseData.toString().toUpperCase() : e.toString().toUpperCase();
+        if (errorBody.contains('INVITE_NOT_FOUND')) {
+          errorMsg = AppLocalizations.of(context).setupCodeNotFound;
+        } else if (errorBody.contains('INVITE_EXPIRED')) {
+          errorMsg = AppLocalizations.of(context).setupCodeExpired;
+        } else if (errorBody.contains('INVITE_ALREADY_USED')) {
+          errorMsg = AppLocalizations.of(context).setupCodeAlreadyUsed;
+        } else {
+          errorMsg = AppLocalizations.of(context).setupActivationFailed;
+        }
+      }
       setState(() {
-        _error = e is DioException && e.type != DioExceptionType.badResponse
-            ? AppLocalizations.of(context).setupServerInaccessible
-            : AppLocalizations.of(context).setupActivationFailed;
+        _error = errorMsg;
         _isLoading = false;
       });
     }
