@@ -15,6 +15,7 @@ import '../../../services/location_service.dart';
 import '../../../theme/widgets.dart';
 import '../../../theme/status_colors.dart';
 import '../../../theme/tokens.dart';
+import '../../cash/presentation/cash_handover_screen.dart';
 
 /// Driver profile — SAP Fiori-inspired layout: centered hero avatar,
 /// quick-action grid, grouped settings sections, sign-out.
@@ -247,6 +248,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                 ),
               ],
+            ),
+            const SizedBox(height: AppTokens.space12),
+            // Handing over the day's cash is a daily act on COD rounds, so it sits with the other
+            // one-tap actions rather than behind a menu.
+            _QuickActionCard(
+              icon: LucideIcons.banknote,
+              iconColor: AppTokens.successGreen,
+              label: ref.watch(localeProvider) == 'ar' ? 'تسليم الصندوق' : 'Remise de caisse',
+              onTap: () => Navigator.of(context).pushNamed(CashHandoverScreen.routeName),
             ),
             const SizedBox(height: AppTokens.space24),
 

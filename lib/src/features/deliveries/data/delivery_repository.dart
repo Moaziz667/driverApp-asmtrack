@@ -158,8 +158,10 @@ class DeliveryRepository {
     double? lng,
     bool isPartial = false,
     List<PartialDeliveryItem>? itemsDone,
+    CashEntry? cash,
   }) {
-    return _buildAndSubmitPodBase64(id, bonLivraisonBytes, packageBytes, comment, lat, lng, isPartial, itemsDone);
+    return _buildAndSubmitPodBase64(
+        id, bonLivraisonBytes, packageBytes, comment, lat, lng, isPartial, itemsDone, cash);
   }
 
   Future<DriverDelivery> _buildAndSubmitPodBase64(
@@ -171,6 +173,7 @@ class DeliveryRepository {
     double? lng,
     bool isPartial,
     List<PartialDeliveryItem>? itemsDone,
+    CashEntry? cash,
   ) {
     final payload = PodPayload(
       // ADR-033 — null for a return collection (no delivery note).
@@ -181,8 +184,30 @@ class DeliveryRepository {
       lng: lng,
       isPartial: isPartial,
       itemsDone: itemsDone,
+      cash: cash,
     );
     return submitPod(id, payload);
+  }
+
+  /// How much cash this driver is currently holding — collected and not yet handed over.
+  Future<double> cashOutstanding() async {
+    final res = await _client.dio.get('/driver/deliveries/cash/outstanding');
+    final data = res.data;
+    if (data is Map && data['amount'] != null) {
+      return (data['amount'] as num).toDouble();
+    }
+    return 0;
+  }
+
+  /// Declare the cash being handed over at the depot.
+  ///
+  /// Deliberately not queued offline like a proof of delivery. A POD describes something that has
+  /// already happened and only needs to reach the server eventually; a handover is a live
+  /// transaction with a person standing opposite, who is about to count. Queuing it would tell the
+  /// driver he had handed over money that nobody has received.
+  Future<void> declareCash(double declaredTotal) async {
+    await _client.dio.post('/driver/deliveries/cash/declare',
+        data: {'declaredTotal': declaredTotal});
   }
 
   Future<void> updateLocation(double lat, double lng) async {

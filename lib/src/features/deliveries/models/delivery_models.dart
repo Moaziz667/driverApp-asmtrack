@@ -182,6 +182,8 @@ class DriverDelivery {
     this.instructions,
     this.totalAmount,
     this.currency,
+    this.codRequired = false,
+    this.codAmount,
     this.items = const [],
     this.priority,
     this.scheduledAt,
@@ -231,6 +233,8 @@ class DriverDelivery {
       instructions: json['deliveryInstructions'] as String?,
       totalAmount: (json['totalAmount'] as num?)?.toDouble(),
       currency: json['currency'] as String?,
+      codRequired: json['codRequired'] == true,
+      codAmount: (json['codAmount'] as num?)?.toDouble(),
       items: (json['items'] as List<dynamic>? ?? [])
           .map((item) => OrderItemModel.fromJson(item as Map<String, dynamic>))
           .toList(),
@@ -275,6 +279,16 @@ class DriverDelivery {
   final String? instructions;
   final double? totalAmount;
   final String? currency;
+
+  /// Whether the driver must collect payment on arrival.
+  ///
+  /// Always present, never inferred from [codAmount] being non-null: the screen has to state
+  /// "collect nothing" as plainly as it states an amount. A shop that offers cash on a 30-day
+  /// account, taken by a driver whose screen said nothing, is a reconciliation nobody can close.
+  final bool codRequired;
+
+  /// How much to collect. Null unless [codRequired].
+  final double? codAmount;
   final List<OrderItemModel> items;
   final String? priority;
   final DateTime? scheduledAt;
@@ -416,6 +430,7 @@ class PodPayload {
     this.lng,
     this.isPartial = false,
     this.itemsDone,
+    this.cash,
   });
 
   /// ADR-033 — null for a return collection (no delivery note); dropped from the JSON by toJson.
@@ -427,6 +442,13 @@ class PodPayload {
   final bool isPartial;
   final List<PartialDeliveryItem>? itemsDone;
 
+  /// What was settled at the door. Null when the order carries no collection instruction.
+  ///
+  /// Rides on the proof rather than on a call of its own: the money changed hands at the same
+  /// doorstep, in the same moment, as the parcel. A separate request could succeed while the other
+  /// failed — and the gap between the two is exactly where cash goes missing.
+  final CashEntry? cash;
+
   Map<String, dynamic> toJson() {
     return {
       'bonLivraisonPhotoBase64': bonLivraisonPhotoBase64,
@@ -436,8 +458,47 @@ class PodPayload {
       'lng': lng,
       'isPartial': isPartial,
       'itemsDone': itemsDone?.map((e) => e.toJson()).toList(),
+      'cash': cash?.toJson(),
     }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
   }
+}
+
+/// How much the driver took at the door, and how.
+///
+/// Sent verbatim: the app states what happened and the server decides what it means. A driver's
+/// phone is the worst place to decide whether a short payment is acceptable — it has no view of the
+/// account, and it is held by the person the check exists to verify.
+class CashEntry {
+  const CashEntry({
+    required this.amountCollected,
+    required this.method,
+    this.chequeNumber,
+    this.chequeBank,
+    this.chequeDate,
+    this.reason,
+  });
+
+  final double amountCollected;
+
+  /// `CASH`, `CHEQUE` or `NONE`.
+  final String method;
+  final String? chequeNumber;
+  final String? chequeBank;
+
+  /// ISO `yyyy-MM-dd`.
+  final String? chequeDate;
+
+  /// Failure-reason catalogue code; required by the server when the amount falls short.
+  final String? reason;
+
+  Map<String, dynamic> toJson() => {
+        'amountCollected': amountCollected,
+        'method': method,
+        'chequeNumber': chequeNumber,
+        'chequeBank': chequeBank,
+        'chequeDate': chequeDate,
+        'reason': reason,
+      }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
 }
 
 /// A freshly generated one-time handoff code plus its server-authoritative expiry,

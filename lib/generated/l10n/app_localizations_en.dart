@@ -21,8 +21,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get tabProfile => 'Profile';
 
   @override
-  String get offlineBanner =>
-      'Offline — actions will sync when connection is restored';
+  String get offlineBanner => 'Offline — actions will sync when connection is restored';
 
   @override
   String get notifications => 'Notifications';
@@ -127,8 +126,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logout_confirm_title => 'Sign Out?';
 
   @override
-  String get logout_confirm_body =>
-      'You will need to sign in again to access your deliveries.';
+  String get logout_confirm_body => 'You will need to sign in again to access your deliveries.';
 
   @override
   String get cancel => 'Cancel';
@@ -143,8 +141,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profilePhotoRequired => 'Add your photo';
 
   @override
-  String get profilePhotoRequiredSub =>
-      'Required to continue. Visible to dispatch.';
+  String get profilePhotoRequiredSub => 'Required to continue. Visible to dispatch.';
 
   @override
   String get profilePhotoConfirm => 'Confirm';
@@ -157,6 +154,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get metric_total => 'Total';
+
+  @override
+  String ws_delivery_assigned(Object client) {
+    return 'Delivery assigned — $client';
+  }
+
+  @override
+  String get ws_new_delivery => 'New delivery assigned';
+
+  @override
+  String ws_delivery_removed(Object client) {
+    return 'Delivery removed — $client';
+  }
+
+  @override
+  String get ws_delivery_removed_generic => 'Delivery removed from your route';
 
   @override
   String ws_route_assigned(Object route) {
@@ -304,8 +317,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login_auth_header => 'Authentication';
 
   @override
-  String get login_auth_desc =>
-      'You will be redirected to the secure login page to authenticate.';
+  String get login_auth_desc => 'You will be redirected to the secure login page to authenticate.';
 
   @override
   String get login_action_connect => 'Sign In';
@@ -323,8 +335,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login_action_setup_sub => 'First time · set your password';
 
   @override
-  String get login_action_change_workspace_sub =>
-      'Connect to a different server';
+  String get login_action_change_workspace_sub => 'Connect to a different server';
 
   @override
   String get login_secure_sso => 'Secure sign-in · ASM Track';
@@ -333,19 +344,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get login_version => 'Version';
 
   @override
-  String get login_failed_error =>
-      'Authentication failed. Check your credentials.';
+  String get login_failed_error => 'Authentication failed. Check your credentials.';
 
   @override
   String get loginServerUrl => 'Server URL';
 
   @override
-  String get loginServerUrlHint =>
-      'http://192.168.1.10  (local)  ·  https://dev.asm…';
+  String get loginServerUrlHint => 'http://192.168.1.10  (local)  ·  https://dev.asm…';
 
   @override
-  String get loginServerUrlDesc =>
-      'Authentication follows this host automatically.';
+  String get loginServerUrlDesc => 'Authentication follows this host automatically.';
 
   @override
   String get loginServerUrlInvalid => 'Invalid URL (e.g. http://192.168.1.10)';
@@ -398,8 +406,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get route_empty_title => 'No active route';
 
   @override
-  String get route_empty_subtitle =>
-      'Your route will appear here once assigned by dispatch.';
+  String get route_empty_subtitle => 'Your route will appear here once assigned by dispatch.';
 
   @override
   String get routeRefresh => 'Refresh';
@@ -522,15 +529,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get delivery_detail_locked => 'Completed';
 
   @override
-  String get delivery_detail_offline_queue =>
-      'Offline — will be sent on reconnect';
+  String get delivery_detail_offline_queue => 'Offline — will be sent on reconnect';
 
   @override
   String get delivery_detail_error_prefix => 'Error';
 
   @override
-  String get delivery_detail_unauthorized_link =>
-      'This delivery is not assigned to you.';
+  String get delivery_detail_unauthorized_link => 'This delivery is not assigned to you.';
 
   @override
   String get deliveryItem => 'item';
@@ -548,8 +553,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deliveryPackageTransferred => 'Package transferred to you';
 
   @override
-  String get deliveryHandoffScanHint =>
-      'When you receive it, scan the sender driver\'s QR to confirm. You can keep working in the meantime.';
+  String get deliveryHandoffScanHint => 'When you receive it, scan the sender driver\'s QR to confirm. You can keep working in the meantime.';
 
   @override
   String get deliveryScanSenderQr => 'Scan sender\'s QR';
@@ -558,15 +562,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pod_title => 'Proof of Delivery';
 
   @override
-  String get pod_pdf_open_error =>
-      'Cannot open PDF. No PDF viewer application installed.';
+  String get pod_pdf_open_error => 'Cannot open PDF. No PDF viewer application installed.';
 
   @override
   String get pod_pdf_download_error => 'Error downloading delivery note.';
 
   @override
-  String get pod_step_1 =>
-      '1. Print the delivery note and have the customer sign it.';
+  String get pod_step_1 => '1. Print the delivery note and have the customer sign it.';
 
   @override
   String get pod_step_2 => '2. Take a photo of the signed note.';
@@ -590,8 +592,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pod_photo_pkg_title => 'Package Handover';
 
   @override
-  String get pod_photo_pkg_sub =>
-      'Photograph the package at the moment of handover';
+  String get pod_photo_pkg_sub => 'Photograph the package at the moment of handover';
 
   @override
   String get pod_photo_take => 'Take photo';
@@ -696,8 +697,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffScannerScanSenderQr => 'Scan sender\'s QR';
 
   @override
-  String get handoffScannerAlignHint =>
-      'Align the sender driver\'s QR code in the frame to confirm the transfer of responsibility.';
+  String get handoffScannerAlignHint => 'Align the sender driver\'s QR code in the frame to confirm the transfer of responsibility.';
 
   @override
   String get handoffScannerHoldAligned => 'Hold the code steady…';
@@ -712,32 +712,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffScannerSuccess => 'Transfer confirmed';
 
   @override
-  String get handoffScannerSuccessBody =>
-      'The package has been transferred to you.';
+  String get handoffScannerSuccessBody => 'The package has been transferred to you.';
 
   @override
-  String get handoffScannerInvalidQr =>
-      'This QR code is not a valid transfer token.';
+  String get handoffScannerInvalidQr => 'This QR code is not a valid transfer token.';
 
   @override
-  String get handoffScannerExpired =>
-      'This token has expired. Ask the sender to generate a new one.';
+  String get handoffScannerExpired => 'This token has expired. Ask the sender to generate a new one.';
 
   @override
-  String get handoffScannerUsed =>
-      'Invalid or already-used token. Try a new code.';
+  String get handoffScannerUsed => 'Invalid or already-used token. Try a new code.';
 
   @override
-  String get handoffScannerNotForYou =>
-      'This transfer is not addressed to you.';
+  String get handoffScannerNotForYou => 'This transfer is not addressed to you.';
 
   @override
-  String get handoffScannerUpdated =>
-      'This transfer was just updated. Refresh and try again.';
+  String get handoffScannerUpdated => 'This transfer was just updated. Refresh and try again.';
 
   @override
-  String get handoffScannerNetworkError =>
-      'No connection. Check your network and try again.';
+  String get handoffScannerNetworkError => 'No connection. Check your network and try again.';
 
   @override
   String get handoffScannerFailed => 'Transfer failed. Please try again.';
@@ -749,35 +742,28 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffScannerCameraUnavailable => 'Camera unavailable';
 
   @override
-  String get handoffScannerCameraDeniedHint =>
-      'Allow camera access in settings to scan transfers.';
+  String get handoffScannerCameraDeniedHint => 'Allow camera access in settings to scan transfers.';
 
   @override
-  String get handoffScannerCameraError =>
-      'Could not start the camera. Try again later.';
+  String get handoffScannerCameraError => 'Could not start the camera. Try again later.';
 
   @override
-  String get handoffTokenUnauthorized =>
-      'You are not authorized to generate a token for this package.';
+  String get handoffTokenUnauthorized => 'You are not authorized to generate a token for this package.';
 
   @override
-  String get handoffTokenNoPending =>
-      'No pending transfer for this package. Refresh and try again.';
+  String get handoffTokenNoPending => 'No pending transfer for this package. Refresh and try again.';
 
   @override
-  String get handoffTokenNetworkError =>
-      'No connection. Check your network and try again.';
+  String get handoffTokenNetworkError => 'No connection. Check your network and try again.';
 
   @override
-  String get handoffTokenGenerateFailed =>
-      'Could not generate the token. Please try again.';
+  String get handoffTokenGenerateFailed => 'Could not generate the token. Please try again.';
 
   @override
   String get handoffTokenAuthTitle => 'Transfer authentication';
 
   @override
-  String get handoffTokenAuthHint =>
-      'Ask the other driver to scan this code to confirm the transfer of responsibility.';
+  String get handoffTokenAuthHint => 'Ask the other driver to scan this code to confirm the transfer of responsibility.';
 
   @override
   String get handoffTokenGenerating => 'Generating secure token…';
@@ -909,12 +895,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupPhoneNotFound => 'Phone not found or already activated';
 
   @override
-  String get setupAccountActivated =>
-      'Account activated! Sign in with your phone number.';
+  String get setupAccountActivated => 'Account activated! Sign in with your phone number.';
 
   @override
-  String get setupActivationFailed =>
-      'Activation failed. Check your code and try again.';
+  String get setupActivationFailed => 'Activation failed. Check your code and try again.';
 
   @override
   String get setupSignIn => 'Sign in';
@@ -926,8 +910,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupActivationTitle => 'Driver activation';
 
   @override
-  String get setupActivationSubtitle =>
-      'Enter the activation code received by email, then choose your password.';
+  String get setupActivationSubtitle => 'Enter the activation code received by email, then choose your password.';
 
   @override
   String get setupActivationCode => 'Activation code';
@@ -1358,8 +1341,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffTransferredToYou => 'Package transferred to you';
 
   @override
-  String get handoffScanInstructions =>
-      'At reception, scan the sender driver\'s QR to confirm.';
+  String get handoffScanInstructions => 'At reception, scan the sender driver\'s QR to confirm.';
 
   @override
   String get handoffScanSenderQr => 'Scan sender\'s QR';
@@ -1371,27 +1353,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bonLivraisonOpen => 'Open';
 
   @override
-  String get handoffUnauthorized =>
-      'You are not authorized to generate a token for this package.';
+  String get handoffUnauthorized => 'You are not authorized to generate a token for this package.';
 
   @override
-  String get handoffNoTransfer =>
-      'No pending transfer for this package. Refresh and try again.';
+  String get handoffNoTransfer => 'No pending transfer for this package. Refresh and try again.';
 
   @override
-  String get handoffConnectionError =>
-      'Connection failed. Check your network and try again.';
+  String get handoffConnectionError => 'Connection failed. Check your network and try again.';
 
   @override
-  String get handoffGenerateFailed =>
-      'Failed to generate token. Please try again.';
+  String get handoffGenerateFailed => 'Failed to generate token. Please try again.';
 
   @override
   String get handoffAuthTitle => 'Transfer authentication';
 
   @override
-  String get handoffAuthDescription =>
-      'Ask the other driver to scan this code to confirm the transfer.';
+  String get handoffAuthDescription => 'Ask the other driver to scan this code to confirm the transfer.';
 
   @override
   String get handoffGeneratingToken => 'Generating secure token…';
@@ -1417,8 +1394,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffScanGuidance => 'Scan sender\'s QR';
 
   @override
-  String get handoffScanDescription =>
-      'Align the other driver\'s QR code in the frame to confirm.';
+  String get handoffScanDescription => 'Align the other driver\'s QR code in the frame to confirm.';
 
   @override
   String get handoffKeepAligned => 'Keep the code aligned…';
@@ -1433,26 +1409,22 @@ class AppLocalizationsEn extends AppLocalizations {
   String get handoffTransferConfirmed => 'Transfer confirmed';
 
   @override
-  String get handoffTransferComplete =>
-      'The package has been transferred to you.';
+  String get handoffTransferComplete => 'The package has been transferred to you.';
 
   @override
   String get handoffInvalidQr => 'This QR code is not a valid transfer token.';
 
   @override
-  String get handoffTokenExpiredDetail =>
-      'This token has expired. Ask the sender to generate a new one.';
+  String get handoffTokenExpiredDetail => 'This token has expired. Ask the sender to generate a new one.';
 
   @override
-  String get handoffTokenUsed =>
-      'Invalid or already used token. Try with a new code.';
+  String get handoffTokenUsed => 'Invalid or already used token. Try with a new code.';
 
   @override
   String get handoffNotForYou => 'This transfer is not intended for you.';
 
   @override
-  String get handoffTransferUpdated =>
-      'This transfer was just updated. Refresh and try again.';
+  String get handoffTransferUpdated => 'This transfer was just updated. Refresh and try again.';
 
   @override
   String get cameraAccessDenied => 'Camera access denied';
@@ -1461,8 +1433,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get cameraUnavailable => 'Camera unavailable';
 
   @override
-  String get cameraPermInstructions =>
-      'Grant camera access in settings to scan transfers.';
+  String get cameraPermInstructions => 'Grant camera access in settings to scan transfers.';
 
   @override
   String get cameraStartFailed => 'Couldn\'t start camera. Try again later.';
@@ -1471,8 +1442,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupEnterCodeHint => 'Enter your activation code';
 
   @override
-  String get setupServerInaccessible =>
-      'Server unreachable — check your connection';
+  String get setupServerInaccessible => 'Server unreachable — check your connection';
 
   @override
   String get setupCodeAlreadyUsed => 'This code has already been used';
@@ -1490,12 +1460,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get setupCodeSentEmail => 'An activation code has been sent by email.';
 
   @override
-  String get setupCodeResentEmail =>
-      'A new activation code has been sent by email.';
+  String get setupCodeResentEmail => 'A new activation code has been sent by email.';
 
   @override
-  String get setupPhoneNotFoundOrActive =>
-      'Phone not found or already activated';
+  String get setupPhoneNotFoundOrActive => 'Phone not found or already activated';
 
   @override
   String get setupPasswordLabel => 'Password';

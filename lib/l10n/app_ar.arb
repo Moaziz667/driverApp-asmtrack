@@ -58,6 +58,11 @@
   "metric_failed": "فشل",
   "metric_total": "الإجمالي",
 
+  "ws_delivery_assigned": "تم تعيين شحنة — {client}",
+  "ws_new_delivery": "تم تعيين شحنة جديدة",
+  "ws_delivery_removed": "تم إزالة شحنة — {client}",
+  "ws_delivery_removed_generic": "تم إزالة شحنة من رحلتك",
+
   "ws_route_assigned": "تم تعيين الرحلة {route} — يرجى مراجعتها قبل الانطلاق.",
   "ws_route_cancelled": "تم إلغاء الرحلة {route}.",
   "ws_route_reassigned_away": "تم نقل الرحلة {route} لسائق آخر.",

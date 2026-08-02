@@ -58,6 +58,11 @@
   "metric_failed": "Failed",
   "metric_total": "Total",
 
+  "ws_delivery_assigned": "Delivery assigned — {client}",
+  "ws_new_delivery": "New delivery assigned",
+  "ws_delivery_removed": "Delivery removed — {client}",
+  "ws_delivery_removed_generic": "Delivery removed from your route",
+
   "ws_route_assigned": "Route {route} assigned — please review before departure.",
   "ws_route_cancelled": "Route {route} has been cancelled.",
   "ws_route_reassigned_away": "Route {route} has been reassigned to another driver.",

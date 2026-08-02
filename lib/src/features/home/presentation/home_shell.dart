@@ -122,6 +122,26 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     Color color;
 
     switch (event.event) {
+      case 'DELIVERY_ASSIGNED':
+        {
+          final client = event.clientName ?? '';
+          message = client.isNotEmpty
+              ? loc.ws_delivery_assigned(client)
+              : loc.ws_new_delivery;
+          icon = PhosphorIconsRegular.package;
+          color = statusColors.delivered;
+        }
+        break;
+      case 'DELIVERY_REMOVED':
+        {
+          final client = event.clientName ?? '';
+          message = client.isNotEmpty
+              ? loc.ws_delivery_removed(client)
+              : loc.ws_delivery_removed_generic;
+          icon = PhosphorIconsRegular.minusCircle;
+          color = statusColors.failed;
+        }
+        break;
       case 'ROUTE_ASSIGNED':
         message = loc.ws_route_assigned(routeStr);
         icon = PhosphorIconsRegular.checkCircle;

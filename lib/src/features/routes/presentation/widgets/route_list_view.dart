@@ -745,6 +745,7 @@ class _DeliveryStatusBadge extends StatelessWidget {
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
       DeliveryStatus.failed            => statusColors.failed,
       DeliveryStatus.cancelled         => statusColors.cancelled,
+      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),

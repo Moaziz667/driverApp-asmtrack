@@ -58,6 +58,11 @@
   "metric_failed": "Échoué",
   "metric_total": "Total",
 
+  "ws_delivery_assigned": "Livraison assignée — {client}",
+  "ws_new_delivery": "Nouvelle livraison assignée",
+  "ws_delivery_removed": "Livraison retirée — {client}",
+  "ws_delivery_removed_generic": "Livraison retirée de votre tournée",
+
   "ws_route_assigned": "Tournée {route} assignée — consultez-la avant de partir.",
   "ws_route_cancelled": "La tournée {route} a été annulée.",
   "ws_route_reassigned_away": "La tournée {route} a été réaffectée à un autre chauffeur.",

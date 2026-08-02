@@ -10,6 +10,7 @@ import 'features/auth/presentation/setup_account_screen.dart';
 import 'features/auth/presentation/splash_screen.dart';
 import 'features/deliveries/presentation/delivery_detail_screen.dart';
 import 'features/deliveries/presentation/handoff_inbox_screen.dart';
+import 'features/cash/presentation/cash_handover_screen.dart';
 import 'features/home/presentation/home_shell.dart';
 import 'features/pod/presentation/pod_form_screen.dart';
 import 'package:driver_app/generated/l10n/app_localizations.dart';
@@ -76,6 +77,7 @@ class _DriverAppState extends ConsumerState<DriverApp> {
         SetupAccountScreen.routeName: (_) => const SetupAccountScreen(),
         HomeShell.routeName: (_) => const HomeShell(),
         HandoffInboxScreen.routeName: (_) => const HandoffInboxScreen(),
+        CashHandoverScreen.routeName: (_) => const CashHandoverScreen(),
       },
       initialRoute: SplashScreen.routeName,
       onGenerateRoute: (settings) {

@@ -10,6 +10,7 @@ import '../../../services/locale_provider.dart';
 import '../../../services/location_service.dart';
 import '../../../theme/tokens.dart';
 import '../../deliveries/models/delivery_models.dart';
+import 'widgets/cash_collection_card.dart';
 import 'widgets/pod_widgets.dart';
 import 'package:driver_app/generated/l10n/app_localizations.dart';
 
@@ -39,6 +40,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   bool _attachLocation = true;
   bool _isPartial = false;
   bool _openingBl = false;
+
+  /// Null until the cash card reports; stays null for a delivery with no collection instruction.
+  CashFormState? _cash;
+  /// Mirrors the card's own validity so the submit button can stay honest about why it is disabled.
+  bool _cashValid = true;
 
   /// Per-item state — this State is the single source of truth; the widgets are
   /// purely presentational and report changes through callbacks.
@@ -90,6 +96,22 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   /// A shortfall disposition needs a motif only when the admin referential actually offers one for
   /// it (item-scoped, matching category). Offline / unconfigured → no chips to pick, so we don't
   /// dead-lock the driver: the backend accepts a null reason.
+  /// Mirrors the card's own rules, so the submit button and the card agree on why it is blocked.
+  ///
+  /// Duplicated rather than read off the card's State: a driver who cannot submit and cannot see
+  /// which field is wrong is stuck at a customer's door, and the card is the only thing that can
+  /// point at the field.
+  bool _cashCardValid(CashFormState s) {
+    if (s.method == CashMethod.cheque && (s.chequeNumber == null || s.chequeNumber!.isEmpty)) {
+      return false;
+    }
+    final expected = widget.args.delivery.codAmount ?? 0;
+    final short = s.method == CashMethod.none || s.amount < expected;
+    final reasonAvailable = _adminReasons.any((r) => r.coversDelivery);
+    if (short && reasonAvailable && (s.reasonCode == null || s.reasonCode!.isEmpty)) return false;
+    return true;
+  }
+
   bool _requiresReason(String disposition) =>
       _adminReasons.any((r) => r.coversItem && r.category == disposition);
 
@@ -98,6 +120,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     final isReturn = widget.args.delivery.isReturnPickup;
     if (_packageBytes == null) return false;
     if (!isReturn && _bonLivraisonBytes == null) return false;
+    // A cheque with no number, or a shortfall with no motif, is refused here rather than by the
+    // server: the driver is standing in front of the customer and can still fix it.
+    if (!_cashValid) return false;
     if (!_isPartial) return true;
     return _missingReasonItem == null;
   }
@@ -295,6 +320,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               lng: lng,
               isPartial: _isPartial,
               itemsDone: itemsArray,
+              cash: _cash?.toEntry(),
             );
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).pod_success_message)));
@@ -365,6 +391,22 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               icon: LucideIcons.package,
             ),
             const SizedBox(height: AppTokens.space20),
+
+            // Money, placed above the free-text note and below the photos: the driver has just
+            // proved what he handed over, and the next thing that happens at the door is payment.
+            if (widget.args.delivery.codRequired) ...[
+              CashCollectionCard(
+                expected: widget.args.delivery.codAmount ?? 0,
+                currency: widget.args.delivery.currency ?? 'TND',
+                reasons: _adminReasons,
+                locale: locale,
+                onChanged: (state) => setState(() {
+                  _cash = state;
+                  _cashValid = _cashCardValid(state);
+                }),
+              ),
+              const SizedBox(height: AppTokens.space20),
+            ],
 
             PodNotesField(controller: _notesController, locale: locale),
             const SizedBox(height: AppTokens.space16),
