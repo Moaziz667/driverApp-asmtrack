@@ -30,7 +30,16 @@ class AuthRepository {
           tokenEndpoint: cfg.tokenEndpoint,
           endSessionEndpoint: cfg.endSessionEndpoint,
         ),
-        scopes: const ['openid', 'profile', 'email'],
+        // `offline_access` is what keeps a driver signed in between stops.
+        //
+        // Without it Keycloak binds the refresh token to the SSO session, which expires on idle
+        // (30 minutes by default). A driver who spends half an hour on the road without opening the
+        // app — the normal case, not an edge one — comes back to a refresh token the server has
+        // already forgotten, and the app signs him out mid-round. With it, Keycloak issues an
+        // offline token that survives idle and app restarts, and only ends when someone revokes it.
+        //
+        // The DRIVER role already carries offline_access in the realm; the app simply never asked.
+        scopes: const ['openid', 'profile', 'email', 'offline_access'],
         allowInsecureConnections: true,
       ),
     );
@@ -71,7 +80,7 @@ class AuthRepository {
         'client_id': cfg.clientId,
         'username': email,
         'password': password,
-        'scope': 'openid profile email',
+        'scope': 'openid profile email offline_access',   // see the AppAuth call above
       },
     );
 
