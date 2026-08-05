@@ -313,7 +313,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get login_driver_space => 'AsmTrack Driver';
 
   @override
-  String get login_secure_access => 'دخول آمن · AsmOne';
+  String get login_secure_access => 'دخول آمن';
 
   @override
   String get login_auth_header => 'المصادقة';

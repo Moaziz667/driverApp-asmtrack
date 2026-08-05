@@ -7,6 +7,7 @@ import '../../../app_providers.dart';
 import '../../../theme/tokens.dart';
 import 'package:driver_app/generated/l10n/app_localizations.dart';
 import 'login_screen.dart';
+import '../../../theme/widgets.dart';
 
 class SetupAccountScreen extends ConsumerStatefulWidget {
   const SetupAccountScreen({super.key});
@@ -19,7 +20,6 @@ class SetupAccountScreen extends ConsumerStatefulWidget {
 class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   final _formKey = GlobalKey<FormState>(debugLabel: 'setup_form');
   final _tokenCtrl = TextEditingController();
-  final _phoneCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   final _confirmCtrl = TextEditingController();
 
@@ -27,7 +27,6 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   bool _obscureConfirm = true;
   bool _isLoading = false;
   bool _isValidating = false;
-  bool _isResending = false;
   String? _validatedName;
   String? _error;
   String? _tokenError;
@@ -35,7 +34,6 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   @override
   void dispose() {
     _tokenCtrl.dispose();
-    _phoneCtrl.dispose();
     _passwordCtrl.dispose();
     _confirmCtrl.dispose();
     super.dispose();
@@ -91,57 +89,6 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
       setState(() {
         _tokenError = errorMsg;
         _isValidating = false;
-      });
-    }
-  }
-
-  Future<void> _resendCode() async {
-    final phone = _phoneCtrl.text.trim();
-    if (phone.isEmpty) {
-      setState(() => _tokenError = AppLocalizations.of(context).setupEnterPhoneHint);
-      return;
-    }
-
-    setState(() {
-      _isResending = true;
-      _tokenError = null;
-    });
-
-    try {
-      final client = ref.read(apiClientProvider);
-      final response = await client.dio.post<Map<String, dynamic>>(
-        '/auth/driver/setup/resend',
-        queryParameters: {'phone': phone},
-      );
-      final newToken = response.data?['token'] as String?;
-      final status = response.data?['status'] as String?;
-      
-      setState(() {
-        if (newToken != null) {
-          _tokenCtrl.text = newToken;
-        }
-        _tokenError = null;
-        _isResending = false;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              status == 'SENT' 
-                ? AppLocalizations.of(context).setupCodeSentEmail
-                : AppLocalizations.of(context).setupCodeResentEmail,
-            ),
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    } catch (e) {
-      setState(() {
-        _tokenError = e is DioException && e.type != DioExceptionType.badResponse
-            ? AppLocalizations.of(context).setupServerInaccessible
-            : AppLocalizations.of(context).setupPhoneNotFoundOrActive;
-        _isResending = false;
       });
     }
   }
@@ -219,15 +166,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                   children: [
                     Row(
                       children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            color: colorScheme.primary,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(Icons.local_shipping_rounded, color: Colors.white, size: 28),
-                        ),
+                        // The brand mark, not a generic lorry: this is the first screen a driver
+                        // ever sees, and it should say which company invited him.
+                        const AppLogo(size: 52, showBackground: false),
                         const Spacer(),
                         TextButton(
                           onPressed: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName),
@@ -323,53 +264,6 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                                   child: CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : Text(AppLocalizations.of(context).setupValidateCode),
-                        ),
-                      ),
-                    ],
-                    if (_validatedName == null) ...[
-                      const SizedBox(height: 16),
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest,
-                          border: Border.all(color: colorScheme.outlineVariant),
-                          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              AppLocalizations.of(context).setupNoCodeReceived,
-                              style: theme.textTheme.labelSmall?.copyWith(color: colorScheme.onSurfaceVariant),
-                            ),
-                            const SizedBox(height: 10),
-                            // Full-width field on its own line + button below — no Row/Expanded,
-                            // so nothing can shrink or overlap the input's tap area.
-                            TextField(
-                              controller: _phoneCtrl,
-                              keyboardType: TextInputType.phone,
-                              decoration: InputDecoration(
-                                hintText: AppLocalizations.of(context).setupPhoneHint,
-                                prefixIcon: const Icon(LucideIcons.phone, size: 18),
-                                border: const OutlineInputBorder(),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 44,
-                              child: FilledButton(
-                                onPressed: _isResending ? null : _resendCode,
-                                child: _isResending
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(strokeWidth: 1.5),
-                                      )
-                                    : Text(AppLocalizations.of(context).setupResendCode),
-                              ),
-                            ),
-                          ],
                         ),
                       ),
                     ],

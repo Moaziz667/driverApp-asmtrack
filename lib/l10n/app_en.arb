@@ -105,7 +105,7 @@
   "splash_copyright": "(c) 2026 ASM Logistics Operations",
 
   "login_driver_space": "AsmTrack Driver",
-  "login_secure_access": "Secure Access · AsmOne",
+  "login_secure_access": "Secure Access",
   "login_auth_header": "Authentication",
   "login_auth_desc": "You will be redirected to the secure login page to authenticate.",
   "login_action_connect": "Sign In",

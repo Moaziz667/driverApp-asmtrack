@@ -105,7 +105,7 @@
   "splash_copyright": "© ٢٠٢٦ العمليات اللوجستية ASM",
 
   "login_driver_space": "AsmTrack Driver",
-  "login_secure_access": "دخول آمن · AsmOne",
+  "login_secure_access": "دخول آمن",
   "login_auth_header": "المصادقة",
   "login_auth_desc": "سيتم إعادة توجيهك إلى صفحة تسجيل الدخول الآمن للتحقق من هويتك.",
   "login_action_connect": "تسجيل الدخول",

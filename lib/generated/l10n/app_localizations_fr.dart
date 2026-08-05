@@ -316,7 +316,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_driver_space => 'AsmTrack Driver';
 
   @override
-  String get login_secure_access => 'Accès sécurisé · AsmOne';
+  String get login_secure_access => 'Accès sécurisé';
 
   @override
   String get login_auth_header => 'Authentification';

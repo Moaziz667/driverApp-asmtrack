@@ -643,7 +643,7 @@ abstract class AppLocalizations {
   /// No description provided for @login_secure_access.
   ///
   /// In en, this message translates to:
-  /// **'Secure Access · AsmOne'**
+  /// **'Secure Access'**
   String get login_secure_access;
 
   /// No description provided for @login_auth_header.
