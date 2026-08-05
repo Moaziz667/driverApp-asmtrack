@@ -200,6 +200,8 @@
   "pod_downloading": "Téléchargement…",
   "pod_photo_bl_title": "Bon de livraison signé",
   "pod_photo_bl_sub": "Photographiez le bon signé par le client",
+  "pod_amend_note_title": "Corrigez le bon avant de photographier",
+  "pod_amend_note_body": "Le bon a été imprimé avec les quantités commandées. Barrez-les, inscrivez les quantités réellement remises, et faites signer le client sur cette correction.",
   "pod_photo_pkg_title": "Remise du colis",
   "pod_photo_pkg_sub": "Photographiez le colis au moment de la remise",
   "pod_photo_take": "Prendre une photo",

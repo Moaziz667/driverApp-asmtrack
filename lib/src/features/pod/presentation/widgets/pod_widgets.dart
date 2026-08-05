@@ -180,6 +180,67 @@ class PodInstructionsCard extends StatelessWidget {
   }
 }
 
+// ─── Amend-the-note warning (partial deliveries only) ────────────────────────
+
+/// Told to the driver before he photographs the note, and only on a partial delivery.
+///
+/// The note was printed at the depot with the ordered quantities on it. Hand over less than that and
+/// the customer signs a document that overstates what he received — the trade settles this by having
+/// the driver strike the figures through and the customer sign the correction, and the photograph is
+/// then evidence of what was actually agreed rather than of what was planned.
+///
+/// Deliberately loud: this is the one step of the flow that happens on paper, where nothing in the
+/// app can enforce it and nothing downstream can repair it once the customer has gone.
+class PodAmendNoteWarning extends StatelessWidget {
+  const PodAmendNoteWarning({super.key, required this.locale});
+  final String locale;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.all(AppTokens.space16),
+      decoration: BoxDecoration(
+        color: cs.error.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+        border: Border.all(color: cs.error.withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(LucideIcons.alertTriangle, size: 20, color: cs.error),
+          const SizedBox(width: AppTokens.space12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  AppLocalizations.of(context).pod_amend_note_title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: AppTokens.fwBold,
+                    color: cs.error,
+                  ),
+                ),
+                const SizedBox(height: AppTokens.space4),
+                Text(
+                  AppLocalizations.of(context).pod_amend_note_body,
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.5,
+                    color: cs.onSurface.withValues(alpha: 0.75),
+                    fontWeight: AppTokens.fwMedium,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── "View bon de livraison" button ──────────────────────────────────────────
 class PodViewBlButton extends StatelessWidget {
   const PodViewBlButton({super.key, required this.loading, required this.onTap, required this.locale});

@@ -200,6 +200,8 @@
   "pod_downloading": "Downloading...",
   "pod_photo_bl_title": "Signed Delivery Note",
   "pod_photo_bl_sub": "Photograph the note signed by the customer",
+  "pod_amend_note_title": "Amend the note before photographing",
+  "pod_amend_note_body": "The note was printed with the ordered quantities. Strike them through, write the quantities actually handed over, and have the customer sign the correction.",
   "pod_photo_pkg_title": "Package Handover",
   "pod_photo_pkg_sub": "Photograph the package at the moment of handover",
   "pod_photo_take": "Take photo",

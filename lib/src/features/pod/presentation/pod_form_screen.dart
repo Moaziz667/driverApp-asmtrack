@@ -368,6 +368,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             if (!widget.args.delivery.isReturnPickup) ...[
               PodViewBlButton(loading: _openingBl, onTap: _openBonLivraison, locale: locale),
               const SizedBox(height: AppTokens.space20),
+              // The one instruction the app cannot enforce, so it is placed where it can still be
+              // acted on: above the camera, not below it. The note is on the counter and the customer
+              // is still there; a page further down neither would be.
+              if (_isPartial) ...[
+                const PodAmendNoteWarning(locale: ''),
+                const SizedBox(height: AppTokens.space16),
+              ],
               PodPhotoSection(
                 title: AppLocalizations.of(context).pod_photo_bl_title,
                 subtitle: AppLocalizations.of(context).pod_photo_bl_sub,
@@ -430,7 +437,12 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 title: AppLocalizations.of(context).pod_partial_label,
                 subtitle: AppLocalizations.of(context).pod_partial_sub,
                 value: _isPartial,
-                onChanged: (v) => setState(() => _isPartial = v),
+                onChanged: (v) => setState(() {
+                  _isPartial = v;
+                  // A note photographed before this switch shows the printed quantities. Keeping it
+                  // would file, as proof of a partial delivery, an image of the full one.
+                  if (v) _bonLivraisonBytes = null;
+                }),
                 expanded: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [

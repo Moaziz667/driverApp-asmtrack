@@ -21,7 +21,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get tabProfile => 'الملف الشخصي';
 
   @override
-  String get offlineBanner => 'خارج الشبكة — سيتم مزامنة الإجراءات عند إعادة الاتصال';
+  String get offlineBanner =>
+      'خارج الشبكة — سيتم مزامنة الإجراءات عند إعادة الاتصال';
 
   @override
   String get notifications => 'الإشعارات';
@@ -126,7 +127,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logout_confirm_title => 'تسجيل الخروج؟';
 
   @override
-  String get logout_confirm_body => 'ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى شحناتك.';
+  String get logout_confirm_body =>
+      'ستحتاج إلى تسجيل الدخول مرة أخرى للوصول إلى شحناتك.';
 
   @override
   String get cancel => 'إلغاء';
@@ -317,7 +319,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get login_auth_header => 'المصادقة';
 
   @override
-  String get login_auth_desc => 'سيتم إعادة توجيهك إلى صفحة تسجيل الدخول الآمن للتحقق من هويتك.';
+  String get login_auth_desc =>
+      'سيتم إعادة توجيهك إلى صفحة تسجيل الدخول الآمن للتحقق من هويتك.';
 
   @override
   String get login_action_connect => 'تسجيل الدخول';
@@ -344,19 +347,22 @@ class AppLocalizationsAr extends AppLocalizations {
   String get login_version => 'الإصدار';
 
   @override
-  String get login_failed_error => 'فشلت عملية المصادقة. تحقق من بيانات الاعتماد الخاصة بك.';
+  String get login_failed_error =>
+      'فشلت عملية المصادقة. تحقق من بيانات الاعتماد الخاصة بك.';
 
   @override
   String get loginServerUrl => 'رابط الخادم';
 
   @override
-  String get loginServerUrlHint => 'http://192.168.1.10  (محلي)  ·  https://dev.asm…';
+  String get loginServerUrlHint =>
+      'http://192.168.1.10  (محلي)  ·  https://dev.asm…';
 
   @override
   String get loginServerUrlDesc => 'تتبع المصادقة هذا المضيف تلقائيًا.';
 
   @override
-  String get loginServerUrlInvalid => 'رابط غير صالح (مثال: http://192.168.1.10)';
+  String get loginServerUrlInvalid =>
+      'رابط غير صالح (مثال: http://192.168.1.10)';
 
   @override
   String get loginServerSave => 'حفظ';
@@ -406,7 +412,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get route_empty_title => 'لا توجد رحلة نشطة';
 
   @override
-  String get route_empty_subtitle => 'ستظهر رحلتك هنا بمجرد تعيينها من قِبَل التوزيع.';
+  String get route_empty_subtitle =>
+      'ستظهر رحلتك هنا بمجرد تعيينها من قِبَل التوزيع.';
 
   @override
   String get routeRefresh => 'تحديث';
@@ -529,7 +536,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get delivery_detail_locked => 'مغلق';
 
   @override
-  String get delivery_detail_offline_queue => 'خارج الشبكة — سيتم الإرسال عند الاتصال';
+  String get delivery_detail_offline_queue =>
+      'خارج الشبكة — سيتم الإرسال عند الاتصال';
 
   @override
   String get delivery_detail_error_prefix => 'خطأ';
@@ -553,7 +561,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get deliveryPackageTransferred => 'طرد محوّل إليك';
 
   @override
-  String get deliveryHandoffScanHint => 'عند الاستلام، امسح رمز QR الخاص بالسائق المرسل لتأكيد الاستلام. يمكنك متابعة عملك في هذه الأثناء.';
+  String get deliveryHandoffScanHint =>
+      'عند الاستلام، امسح رمز QR الخاص بالسائق المرسل لتأكيد الاستلام. يمكنك متابعة عملك في هذه الأثناء.';
 
   @override
   String get deliveryScanSenderQr => 'امسح رمز المرسل';
@@ -562,7 +571,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pod_title => 'إثبات التوصيل';
 
   @override
-  String get pod_pdf_open_error => 'لا يمكن فتح ملف الـ PDF. لم يتم تثبيت تطبيق قارئ PDF.';
+  String get pod_pdf_open_error =>
+      'لا يمكن فتح ملف الـ PDF. لم يتم تثبيت تطبيق قارئ PDF.';
 
   @override
   String get pod_pdf_download_error => 'حدث خطأ أثناء تحميل إذن التسليم.';
@@ -587,6 +597,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get pod_photo_bl_sub => 'التقط صورة لإذن التسليم الموقع من العميل';
+
+  @override
+  String get pod_amend_note_title => 'صحّح إذن التسليم قبل التصوير';
+
+  @override
+  String get pod_amend_note_body =>
+      'طُبع الإذن بالكميات المطلوبة. اشطبها، واكتب الكميات المسلَّمة فعليًا، ثم اطلب من العميل التوقيع على التصحيح.';
 
   @override
   String get pod_photo_pkg_title => 'تسليم الطرد';
@@ -826,7 +843,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get offlinePendingUpdates => 'تعديلات معلقة';
 
   @override
-  String get offlineConnectionRestored => 'تم استعادة الاتصال · جاري المزامنة...';
+  String get offlineConnectionRestored =>
+      'تم استعادة الاتصال · جاري المزامنة...';
 
   @override
   String get registerTitle => 'إنشاء حساب';
@@ -889,7 +907,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupCodeSent => 'تم إرسال رمز التنشيط عبر البريد الإلكتروني.';
 
   @override
-  String get setupCodeResent => 'تم إرسال رمز تنشيط جديد عبر البريد الإلكتروني.';
+  String get setupCodeResent =>
+      'تم إرسال رمز تنشيط جديد عبر البريد الإلكتروني.';
 
   @override
   String get setupPhoneNotFound => 'الهاتف غير موجود أو تم تنشيطه بالفعل';
@@ -898,7 +917,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupAccountActivated => 'تم تنشيط الحساب! سجل الدخول برقم هاتفك.';
 
   @override
-  String get setupActivationFailed => 'فشل التنشيط. تحقق من الرمز وحاول مرة أخرى.';
+  String get setupActivationFailed =>
+      'فشل التنشيط. تحقق من الرمز وحاول مرة أخرى.';
 
   @override
   String get setupSignIn => 'تسجيل الدخول';
@@ -910,7 +930,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupActivationTitle => 'تنشيط السائق';
 
   @override
-  String get setupActivationSubtitle => 'أدخل رمز التنشيط المستلم عبر البريد الإلكتروني، ثم اختر كلمة المرور.';
+  String get setupActivationSubtitle =>
+      'أدخل رمز التنشيط المستلم عبر البريد الإلكتروني، ثم اختر كلمة المرور.';
 
   @override
   String get setupActivationCode => 'رمز التنشيط';
@@ -1341,7 +1362,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoffTransferredToYou => 'تم تحويل الطرد إليك';
 
   @override
-  String get handoffScanInstructions => 'عند الاستلام، امسح رمز QR للسائق المرسل للتأكيد.';
+  String get handoffScanInstructions =>
+      'عند الاستلام، امسح رمز QR للسائق المرسل للتأكيد.';
 
   @override
   String get handoffScanSenderQr => 'مسح رمز QR للمرسل';
@@ -1356,10 +1378,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoffUnauthorized => 'لست مخولاً لإنشاء رمز لهذا الطرد.';
 
   @override
-  String get handoffNoTransfer => 'لا يوجد تحويل معلق لهذا الطرد. حدّث وأعد المحاولة.';
+  String get handoffNoTransfer =>
+      'لا يوجد تحويل معلق لهذا الطرد. حدّث وأعد المحاولة.';
 
   @override
-  String get handoffConnectionError => 'فشل الاتصال. تحقق من شبكتك وأعد المحاولة.';
+  String get handoffConnectionError =>
+      'فشل الاتصال. تحقق من شبكتك وأعد المحاولة.';
 
   @override
   String get handoffGenerateFailed => 'فشل إنشاء الرمز. يرجى إعادة المحاولة.';
@@ -1368,7 +1392,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoffAuthTitle => 'مصادقة التحويل';
 
   @override
-  String get handoffAuthDescription => 'اطلب من السائق الآخر مسح هذا الرمز لتأكيد التحويل.';
+  String get handoffAuthDescription =>
+      'اطلب من السائق الآخر مسح هذا الرمز لتأكيد التحويل.';
 
   @override
   String get handoffGeneratingToken => 'جاري إنشاء الرمز الآمن...';
@@ -1394,7 +1419,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoffScanGuidance => 'مسح رمز QR للمرسل';
 
   @override
-  String get handoffScanDescription => 'ضع رمز QR للسائق الآخر في الإطار لتأكيد التحويل.';
+  String get handoffScanDescription =>
+      'ضع رمز QR للسائق الآخر في الإطار لتأكيد التحويل.';
 
   @override
   String get handoffKeepAligned => 'أبقِ الرمز مصطفاً...';
@@ -1415,16 +1441,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get handoffInvalidQr => 'هذا الرمز ليس رمز تحويل صالح.';
 
   @override
-  String get handoffTokenExpiredDetail => 'انتهت صلاحية الرمز. اطلب من المرسل إنشاء رمز جديد.';
+  String get handoffTokenExpiredDetail =>
+      'انتهت صلاحية الرمز. اطلب من المرسل إنشاء رمز جديد.';
 
   @override
-  String get handoffTokenUsed => 'رمز غير صالح أو مستخدم بالفعل. أعد المحاولة برمز جديد.';
+  String get handoffTokenUsed =>
+      'رمز غير صالح أو مستخدم بالفعل. أعد المحاولة برمز جديد.';
 
   @override
   String get handoffNotForYou => 'هذا التحويل ليس لك.';
 
   @override
-  String get handoffTransferUpdated => 'تم تحديث هذا التحويل للتو. حدّث وأعد المحاولة.';
+  String get handoffTransferUpdated =>
+      'تم تحديث هذا التحويل للتو. حدّث وأعد المحاولة.';
 
   @override
   String get cameraAccessDenied => 'تم رفض الوصول إلى الكاميرا';
@@ -1433,7 +1462,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get cameraUnavailable => 'الكاميرا غير متاحة';
 
   @override
-  String get cameraPermInstructions => 'امنح صلاحية الكاميرا في الإعدادات لمسح التحويلات.';
+  String get cameraPermInstructions =>
+      'امنح صلاحية الكاميرا في الإعدادات لمسح التحويلات.';
 
   @override
   String get cameraStartFailed => 'تعذّر تشغيل الكاميرا. أعد المحاولة لاحقاً.';
@@ -1460,7 +1490,8 @@ class AppLocalizationsAr extends AppLocalizations {
   String get setupCodeSentEmail => 'تم إرسال رمز التنشيط بالبريد الإلكتروني.';
 
   @override
-  String get setupCodeResentEmail => 'تم إرسال رمز تنشيط جديد بالبريد الإلكتروني.';
+  String get setupCodeResentEmail =>
+      'تم إرسال رمز تنشيط جديد بالبريد الإلكتروني.';
 
   @override
   String get setupPhoneNotFoundOrActive => 'الهاتف غير موجود أو مُنشّط بالفعل';

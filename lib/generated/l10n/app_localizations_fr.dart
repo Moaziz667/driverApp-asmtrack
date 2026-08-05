@@ -21,7 +21,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get tabProfile => 'Profil';
 
   @override
-  String get offlineBanner => 'Hors ligne — les actions seront synchronisées à la reconnexion';
+  String get offlineBanner =>
+      'Hors ligne — les actions seront synchronisées à la reconnexion';
 
   @override
   String get notifications => 'Notifications';
@@ -126,7 +127,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get logout_confirm_title => 'Se déconnecter ?';
 
   @override
-  String get logout_confirm_body => 'Vous devrez vous reconnecter pour accéder à vos livraisons.';
+  String get logout_confirm_body =>
+      'Vous devrez vous reconnecter pour accéder à vos livraisons.';
 
   @override
   String get cancel => 'Annuler';
@@ -141,7 +143,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profilePhotoRequired => 'Ajoutez votre photo';
 
   @override
-  String get profilePhotoRequiredSub => 'Obligatoire pour continuer. Elle sera visible par le dispatching.';
+  String get profilePhotoRequiredSub =>
+      'Obligatoire pour continuer. Elle sera visible par le dispatching.';
 
   @override
   String get profilePhotoConfirm => 'Confirmer';
@@ -169,7 +172,8 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
-  String get ws_delivery_removed_generic => 'Livraison retirée de votre tournée';
+  String get ws_delivery_removed_generic =>
+      'Livraison retirée de votre tournée';
 
   @override
   String ws_route_assigned(Object route) {
@@ -272,7 +276,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoff_inbox_empty_title => 'Aucun transfert';
 
   @override
-  String get handoff_inbox_empty_sub => 'Les transferts de colis apparaîtront ici.';
+  String get handoff_inbox_empty_sub =>
+      'Les transferts de colis apparaîtront ici.';
 
   @override
   String get handoff_inbox_error => 'Impossible de charger les transferts';
@@ -317,7 +322,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_auth_header => 'Authentification';
 
   @override
-  String get login_auth_desc => 'Vous allez être redirigé vers la page de connexion sécurisée pour vous identifier.';
+  String get login_auth_desc =>
+      'Vous allez être redirigé vers la page de connexion sécurisée pour vous identifier.';
 
   @override
   String get login_action_connect => 'Se connecter';
@@ -332,10 +338,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_action_change_workspace => 'Changer d\'espace de travail';
 
   @override
-  String get login_action_setup_sub => 'Première connexion · définir le mot de passe';
+  String get login_action_setup_sub =>
+      'Première connexion · définir le mot de passe';
 
   @override
-  String get login_action_change_workspace_sub => 'Se connecter à un autre serveur';
+  String get login_action_change_workspace_sub =>
+      'Se connecter à un autre serveur';
 
   @override
   String get login_secure_sso => 'Connexion sécurisée · ASM Track';
@@ -344,16 +352,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get login_version => 'Version';
 
   @override
-  String get login_failed_error => 'Échec de l\'authentification. Vérifiez vos identifiants.';
+  String get login_failed_error =>
+      'Échec de l\'authentification. Vérifiez vos identifiants.';
 
   @override
   String get loginServerUrl => 'URL du serveur';
 
   @override
-  String get loginServerUrlHint => 'http://192.168.1.10  (local)  ·  https://dev.asm…';
+  String get loginServerUrlHint =>
+      'http://192.168.1.10  (local)  ·  https://dev.asm…';
 
   @override
-  String get loginServerUrlDesc => 'L\'authentification suit cet hôte automatiquement.';
+  String get loginServerUrlDesc =>
+      'L\'authentification suit cet hôte automatiquement.';
 
   @override
   String get loginServerUrlInvalid => 'URL invalide (ex: http://192.168.1.10)';
@@ -406,7 +417,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get route_empty_title => 'Aucune tournée en cours';
 
   @override
-  String get route_empty_subtitle => 'Votre tournée apparaîtra ici une fois assignée par le dispatching.';
+  String get route_empty_subtitle =>
+      'Votre tournée apparaîtra ici une fois assignée par le dispatching.';
 
   @override
   String get routeRefresh => 'Actualiser';
@@ -448,10 +460,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delivery_detail_fail_report => 'Signaler un échec';
 
   @override
-  String get delivery_detail_fail_select => 'Sélectionnez la raison de l\'échec de cette livraison.';
+  String get delivery_detail_fail_select =>
+      'Sélectionnez la raison de l\'échec de cette livraison.';
 
   @override
-  String get delivery_detail_comment_hint => 'Commentaire supplémentaire (optionnel)';
+  String get delivery_detail_comment_hint =>
+      'Commentaire supplémentaire (optionnel)';
 
   @override
   String get delivery_detail_fail_submit => 'Soumettre le rapport d\'échec';
@@ -529,13 +543,15 @@ class AppLocalizationsFr extends AppLocalizations {
   String get delivery_detail_locked => 'Clôturé';
 
   @override
-  String get delivery_detail_offline_queue => 'Hors ligne — sera envoyé à la reconnexion';
+  String get delivery_detail_offline_queue =>
+      'Hors ligne — sera envoyé à la reconnexion';
 
   @override
   String get delivery_detail_error_prefix => 'Erreur';
 
   @override
-  String get delivery_detail_unauthorized_link => 'Cette livraison ne vous est pas assignée.';
+  String get delivery_detail_unauthorized_link =>
+      'Cette livraison ne vous est pas assignée.';
 
   @override
   String get deliveryItem => 'article';
@@ -553,7 +569,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get deliveryPackageTransferred => 'Colis transféré vers vous';
 
   @override
-  String get deliveryHandoffScanHint => 'À la réception, scannez le QR du chauffeur expéditeur pour confirmer. Vous pouvez continuer votre travail entre-temps.';
+  String get deliveryHandoffScanHint =>
+      'À la réception, scannez le QR du chauffeur expéditeur pour confirmer. Vous pouvez continuer votre travail entre-temps.';
 
   @override
   String get deliveryScanSenderQr => 'Scanner le QR de l\'expéditeur';
@@ -562,13 +579,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pod_title => 'Preuve de livraison';
 
   @override
-  String get pod_pdf_open_error => 'Impossible d\'ouvrir le PDF. Aucune application PDF installée.';
+  String get pod_pdf_open_error =>
+      'Impossible d\'ouvrir le PDF. Aucune application PDF installée.';
 
   @override
-  String get pod_pdf_download_error => 'Erreur lors du téléchargement du bon de livraison.';
+  String get pod_pdf_download_error =>
+      'Erreur lors du téléchargement du bon de livraison.';
 
   @override
-  String get pod_step_1 => '1. Imprimez le bon de livraison et faites-le signer par le client.';
+  String get pod_step_1 =>
+      '1. Imprimez le bon de livraison et faites-le signer par le client.';
 
   @override
   String get pod_step_2 => '2. Photographiez le bon signé.';
@@ -589,10 +609,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pod_photo_bl_sub => 'Photographiez le bon signé par le client';
 
   @override
+  String get pod_amend_note_title => 'Corrigez le bon avant de photographier';
+
+  @override
+  String get pod_amend_note_body =>
+      'Le bon a été imprimé avec les quantités commandées. Barrez-les, inscrivez les quantités réellement remises, et faites signer le client sur cette correction.';
+
+  @override
   String get pod_photo_pkg_title => 'Remise du colis';
 
   @override
-  String get pod_photo_pkg_sub => 'Photographiez le colis au moment de la remise';
+  String get pod_photo_pkg_sub =>
+      'Photographiez le colis au moment de la remise';
 
   @override
   String get pod_photo_take => 'Prendre une photo';
@@ -607,22 +635,26 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pod_photo_tap_hint => 'Appuyer pour photographier';
 
   @override
-  String get pod_photo_access_error => 'Impossible d\'accéder à l\'appareil photo.';
+  String get pod_photo_access_error =>
+      'Impossible d\'accéder à l\'appareil photo.';
 
   @override
-  String get pod_comments_label => 'Commentaires (code porte, nom personne, etc.)';
+  String get pod_comments_label =>
+      'Commentaires (code porte, nom personne, etc.)';
 
   @override
   String get pod_gps_label => 'Joindre la position GPS';
 
   @override
-  String get pod_gps_sub => 'Coordonnées envoyées une seule fois à la soumission.';
+  String get pod_gps_sub =>
+      'Coordonnées envoyées une seule fois à la soumission.';
 
   @override
   String get pod_partial_label => 'Livraison partielle';
 
   @override
-  String get pod_partial_sub => 'Activez si certains articles n\'ont pas été livrés.';
+  String get pod_partial_sub =>
+      'Activez si certains articles n\'ont pas été livrés.';
 
   @override
   String get pod_item_outcome_header => 'Résultat par article :';
@@ -697,7 +729,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffScannerScanSenderQr => 'Scanner le QR de l\'expéditeur';
 
   @override
-  String get handoffScannerAlignHint => 'Alignez le code QR de l\'autre chauffeur dans le cadre pour confirmer le transfert de responsabilité.';
+  String get handoffScannerAlignHint =>
+      'Alignez le code QR de l\'autre chauffeur dans le cadre pour confirmer le transfert de responsabilité.';
 
   @override
   String get handoffScannerHoldAligned => 'Maintenez le code bien aligné…';
@@ -715,22 +748,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffScannerSuccessBody => 'Le colis vous a été transféré.';
 
   @override
-  String get handoffScannerInvalidQr => 'Ce QR code n\'est pas un jeton de transfert valide.';
+  String get handoffScannerInvalidQr =>
+      'Ce QR code n\'est pas un jeton de transfert valide.';
 
   @override
-  String get handoffScannerExpired => 'Ce jeton a expiré. Demandez à l\'expéditeur d\'en générer un nouveau.';
+  String get handoffScannerExpired =>
+      'Ce jeton a expiré. Demandez à l\'expéditeur d\'en générer un nouveau.';
 
   @override
-  String get handoffScannerUsed => 'Jeton invalide ou déjà utilisé. Réessayez avec un nouveau code.';
+  String get handoffScannerUsed =>
+      'Jeton invalide ou déjà utilisé. Réessayez avec un nouveau code.';
 
   @override
   String get handoffScannerNotForYou => 'Ce transfert ne vous est pas destiné.';
 
   @override
-  String get handoffScannerUpdated => 'Ce transfert vient d\'être mis à jour. Actualisez puis réessayez.';
+  String get handoffScannerUpdated =>
+      'Ce transfert vient d\'être mis à jour. Actualisez puis réessayez.';
 
   @override
-  String get handoffScannerNetworkError => 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+  String get handoffScannerNetworkError =>
+      'Connexion impossible. Vérifiez votre réseau et réessayez.';
 
   @override
   String get handoffScannerFailed => 'Échec du transfert. Veuillez réessayer.';
@@ -742,28 +780,35 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffScannerCameraUnavailable => 'Caméra indisponible';
 
   @override
-  String get handoffScannerCameraDeniedHint => 'Autorisez l\'accès à la caméra dans les réglages pour scanner les transferts.';
+  String get handoffScannerCameraDeniedHint =>
+      'Autorisez l\'accès à la caméra dans les réglages pour scanner les transferts.';
 
   @override
-  String get handoffScannerCameraError => 'Impossible de démarrer la caméra. Réessayez plus tard.';
+  String get handoffScannerCameraError =>
+      'Impossible de démarrer la caméra. Réessayez plus tard.';
 
   @override
-  String get handoffTokenUnauthorized => 'Vous n\'êtes pas autorisé à générer un jeton pour ce colis.';
+  String get handoffTokenUnauthorized =>
+      'Vous n\'êtes pas autorisé à générer un jeton pour ce colis.';
 
   @override
-  String get handoffTokenNoPending => 'Aucun transfert en attente pour ce colis. Actualisez puis réessayez.';
+  String get handoffTokenNoPending =>
+      'Aucun transfert en attente pour ce colis. Actualisez puis réessayez.';
 
   @override
-  String get handoffTokenNetworkError => 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+  String get handoffTokenNetworkError =>
+      'Connexion impossible. Vérifiez votre réseau et réessayez.';
 
   @override
-  String get handoffTokenGenerateFailed => 'Impossible de générer le jeton. Veuillez réessayer.';
+  String get handoffTokenGenerateFailed =>
+      'Impossible de générer le jeton. Veuillez réessayer.';
 
   @override
   String get handoffTokenAuthTitle => 'Authentification du transfert';
 
   @override
-  String get handoffTokenAuthHint => 'Demandez à l\'autre chauffeur de scanner ce code pour confirmer le transfert de responsabilité.';
+  String get handoffTokenAuthHint =>
+      'Demandez à l\'autre chauffeur de scanner ce code pour confirmer le transfert de responsabilité.';
 
   @override
   String get handoffTokenGenerating => 'Génération du jeton sécurisé…';
@@ -826,7 +871,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get offlinePendingUpdates => 'modifications en attente';
 
   @override
-  String get offlineConnectionRestored => 'Connexion rétablie · Synchronisation…';
+  String get offlineConnectionRestored =>
+      'Connexion rétablie · Synchronisation…';
 
   @override
   String get registerTitle => 'Créer un compte';
@@ -865,10 +911,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setupEnterCode => 'Entrez votre code d\'activation';
 
   @override
-  String get setupServerError => 'Serveur inaccessible — vérifiez votre connexion';
+  String get setupServerError =>
+      'Serveur inaccessible — vérifiez votre connexion';
 
   @override
-  String get setupCodeNotFound => 'Code non trouve - Contactez votre responsable';
+  String get setupCodeNotFound =>
+      'Code non trouve - Contactez votre responsable';
 
   @override
   String get setupCodeExpired => 'Code expire - Demandez un nouveau code';
@@ -889,16 +937,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setupCodeSent => 'Un code d\'activation a été envoyé par email.';
 
   @override
-  String get setupCodeResent => 'Un code d\'activation a été renvoyé par email.';
+  String get setupCodeResent =>
+      'Un code d\'activation a été renvoyé par email.';
 
   @override
   String get setupPhoneNotFound => 'Téléphone non trouvé ou déjà activé';
 
   @override
-  String get setupAccountActivated => 'Compte activé ! Connectez-vous avec votre numéro de téléphone.';
+  String get setupAccountActivated =>
+      'Compte activé ! Connectez-vous avec votre numéro de téléphone.';
 
   @override
-  String get setupActivationFailed => 'Activation échouée. Vérifiez votre code et réessayez.';
+  String get setupActivationFailed =>
+      'Activation échouée. Vérifiez votre code et réessayez.';
 
   @override
   String get setupSignIn => 'Se connecter';
@@ -910,7 +961,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setupActivationTitle => 'Activation chauffeur';
 
   @override
-  String get setupActivationSubtitle => 'Entrez le code d\'activation reçu par email, puis choisissez votre mot de passe.';
+  String get setupActivationSubtitle =>
+      'Entrez le code d\'activation reçu par email, puis choisissez votre mot de passe.';
 
   @override
   String get setupActivationCode => 'Code d\'activation';
@@ -1075,7 +1127,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get calendarLoadRoutesError => 'Impossible de charger les tournées';
 
   @override
-  String get calendarCheckConnection => 'Vérifiez votre connexion et réessayez.';
+  String get calendarCheckConnection =>
+      'Vérifiez votre connexion et réessayez.';
 
   @override
   String get statusScheduledLabel => 'Planifié';
@@ -1256,7 +1309,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get historyEmpty => 'Aucun enregistrement';
 
   @override
-  String get historyEmptySubtitle => 'Les livraisons terminées apparaîtront ici.';
+  String get historyEmptySubtitle =>
+      'Les livraisons terminées apparaîtront ici.';
 
   @override
   String get historySectionTitle => 'Historique';
@@ -1341,7 +1395,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffTransferredToYou => 'Colis transféré vers vous';
 
   @override
-  String get handoffScanInstructions => 'À la réception, scannez le QR du chauffeur expéditeur pour confirmer.';
+  String get handoffScanInstructions =>
+      'À la réception, scannez le QR du chauffeur expéditeur pour confirmer.';
 
   @override
   String get handoffScanSenderQr => 'Scanner le QR de l\'expéditeur';
@@ -1353,22 +1408,27 @@ class AppLocalizationsFr extends AppLocalizations {
   String get bonLivraisonOpen => 'Ouvrir';
 
   @override
-  String get handoffUnauthorized => 'Vous n\'êtes pas autorisé à générer un jeton pour ce colis.';
+  String get handoffUnauthorized =>
+      'Vous n\'êtes pas autorisé à générer un jeton pour ce colis.';
 
   @override
-  String get handoffNoTransfer => 'Aucun transfert en attente pour ce colis. Actualisez puis réessayez.';
+  String get handoffNoTransfer =>
+      'Aucun transfert en attente pour ce colis. Actualisez puis réessayez.';
 
   @override
-  String get handoffConnectionError => 'Connexion impossible. Vérifiez votre réseau et réessayez.';
+  String get handoffConnectionError =>
+      'Connexion impossible. Vérifiez votre réseau et réessayez.';
 
   @override
-  String get handoffGenerateFailed => 'Impossible de générer le jeton. Veuillez réessayer.';
+  String get handoffGenerateFailed =>
+      'Impossible de générer le jeton. Veuillez réessayer.';
 
   @override
   String get handoffAuthTitle => 'Authentification du transfert';
 
   @override
-  String get handoffAuthDescription => 'Demandez à l\'autre chauffeur de scanner ce code pour confirmer le transfert.';
+  String get handoffAuthDescription =>
+      'Demandez à l\'autre chauffeur de scanner ce code pour confirmer le transfert.';
 
   @override
   String get handoffGeneratingToken => 'Génération du jeton sécurisé…';
@@ -1394,7 +1454,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffScanGuidance => 'Scanner le QR de l\'expéditeur';
 
   @override
-  String get handoffScanDescription => 'Alignez le code QR de l\'autre chauffeur dans le cadre pour confirmer.';
+  String get handoffScanDescription =>
+      'Alignez le code QR de l\'autre chauffeur dans le cadre pour confirmer.';
 
   @override
   String get handoffKeepAligned => 'Maintenez le code bien aligné…';
@@ -1412,19 +1473,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get handoffTransferComplete => 'Le colis vous a été transféré.';
 
   @override
-  String get handoffInvalidQr => 'Ce QR code n\'est pas un jeton de transfert valide.';
+  String get handoffInvalidQr =>
+      'Ce QR code n\'est pas un jeton de transfert valide.';
 
   @override
-  String get handoffTokenExpiredDetail => 'Ce jeton a expiré. Demandez à l\'expéditeur d\'en générer un nouveau.';
+  String get handoffTokenExpiredDetail =>
+      'Ce jeton a expiré. Demandez à l\'expéditeur d\'en générer un nouveau.';
 
   @override
-  String get handoffTokenUsed => 'Jeton invalide ou déjà utilisé. Réessayez avec un nouveau code.';
+  String get handoffTokenUsed =>
+      'Jeton invalide ou déjà utilisé. Réessayez avec un nouveau code.';
 
   @override
   String get handoffNotForYou => 'Ce transfert ne vous est pas destiné.';
 
   @override
-  String get handoffTransferUpdated => 'Ce transfert vient d\'être mis à jour. Actualisez puis réessayez.';
+  String get handoffTransferUpdated =>
+      'Ce transfert vient d\'être mis à jour. Actualisez puis réessayez.';
 
   @override
   String get cameraAccessDenied => 'Accès à la caméra refusé';
@@ -1433,16 +1498,19 @@ class AppLocalizationsFr extends AppLocalizations {
   String get cameraUnavailable => 'Caméra indisponible';
 
   @override
-  String get cameraPermInstructions => 'Autorisez l\'accès à la caméra dans les réglages pour scanner les transferts.';
+  String get cameraPermInstructions =>
+      'Autorisez l\'accès à la caméra dans les réglages pour scanner les transferts.';
 
   @override
-  String get cameraStartFailed => 'Impossible de démarrer la caméra. Réessayez plus tard.';
+  String get cameraStartFailed =>
+      'Impossible de démarrer la caméra. Réessayez plus tard.';
 
   @override
   String get setupEnterCodeHint => 'Entrez votre code d\'activation';
 
   @override
-  String get setupServerInaccessible => 'Serveur inaccessible - Verifiez votre connexion';
+  String get setupServerInaccessible =>
+      'Serveur inaccessible - Verifiez votre connexion';
 
   @override
   String get setupCodeAlreadyUsed => 'Ce code a deja ete utilise';
@@ -1457,19 +1525,23 @@ class AppLocalizationsFr extends AppLocalizations {
   String get setupEnterPhoneHint => 'Entrez votre numero de telephone';
 
   @override
-  String get setupCodeSentEmail => 'Un code d\'activation a ete envoye par email.';
+  String get setupCodeSentEmail =>
+      'Un code d\'activation a ete envoye par email.';
 
   @override
-  String get setupCodeResentEmail => 'Un code d\'activation a ete renvoye par email.';
+  String get setupCodeResentEmail =>
+      'Un code d\'activation a ete renvoye par email.';
 
   @override
-  String get setupPhoneNotFoundOrActive => 'Telephone non trouve ou deja active';
+  String get setupPhoneNotFoundOrActive =>
+      'Telephone non trouve ou deja active';
 
   @override
   String get setupPasswordLabel => 'Mot de passe';
 
   @override
-  String get registerDescription => 'Remplissez vos informations pour commencer.';
+  String get registerDescription =>
+      'Remplissez vos informations pour commencer.';
 
   @override
   String get registerPhone => 'Numéro de téléphone';
