@@ -83,24 +83,52 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
         }
       });
 
+  /// Hand the whole round to the phone's map, depots included.
+  ///
+  /// This filtered on `hasPinned`, which is a delivery's dropoff and null on a PICKUP stop, so
+  /// every depot fell out of the itinerary: the driver was routed from wherever he stood to the
+  /// first customer, past the warehouse holding the parcels. On a single-depot round he knows the
+  /// way; on a multi-depot one he arrives at the second half of his stops with an empty van.
+  ///
+  /// The stops are kept in `stopOrder`, which is what the optimiser decided and what already puts
+  /// each load before the drops it serves — so the depot is not merely present, it is in the right
+  /// place. Only stops still to be done are sent: re-routing a driver through a customer he has
+  /// already served is worse than not routing him at all.
   Future<void> _openMaps(List<DriverRouteStop> stops) async {
-    final pinned = stops.where((s) => s.hasPinned).toList();
-    if (pinned.isEmpty) return;
-    final dest = pinned.last;
-    final waypoints = pinned.length > 1
-        ? pinned.sublist(0, pinned.length - 1).map((s) => '${s.lat},${s.lng}').join('|')
-        : null;
+    const done = {
+      DriverRouteStopStatus.completed,
+      DriverRouteStopStatus.failed,
+      DriverRouteStopStatus.partial,
+    };
+    final remaining = stops
+        .where((s) => s.hasNavPoint && !done.contains(s.status))
+        .toList()
+      ..sort((a, b) => a.stopOrder.compareTo(b.stopOrder));
+    if (remaining.isEmpty) return;
+
+    final dest = remaining.last;
+    // Google Maps caps the free-form waypoint list; past that it drops the tail silently, which
+    // would quietly amputate the end of a long round. Better to carry the first stops — the ones
+    // he is about to drive — and let him reopen the link later for the rest.
+    const maxWaypoints = 9;
+    final intermediate = remaining.sublist(0, remaining.length - 1);
+    final waypoints = intermediate.length > maxWaypoints
+        ? intermediate.sublist(0, maxWaypoints)
+        : intermediate;
+
     final buffer = StringBuffer(
       'https://www.google.com/maps/dir/?api=1&travelmode=driving'
-      '&destination=${dest.lat},${dest.lng}',
+      '&destination=${dest.navLat},${dest.navLng}',
     );
-    if (waypoints != null) buffer.write('&waypoints=$waypoints');
+    if (waypoints.isNotEmpty) {
+      buffer.write('&waypoints=${waypoints.map((s) => '${s.navLat},${s.navLng}').join('|')}');
+    }
     final uri = Uri.parse(buffer.toString());
     try {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (_) {
       // Fallback to geo: URI for devices without Google Maps
-      final geoUri = Uri.parse('geo:${dest.lat},${dest.lng}?q=${dest.lat},${dest.lng}');
+      final geoUri = Uri.parse('geo:${dest.navLat},${dest.navLng}?q=${dest.navLat},${dest.navLng}');
       try {
         await launchUrl(geoUri, mode: LaunchMode.externalApplication);
       } catch (_) {}

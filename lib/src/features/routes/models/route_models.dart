@@ -134,6 +134,20 @@ class DriverRouteStop {
 
   bool get hasPinned => lat != null && lng != null;
 
+  /// Where this stop actually is, whichever kind it is.
+  ///
+  /// A PICKUP stop has no delivery, so [lat]/[lng] — which come from the order's dropoff — are
+  /// null on it. Navigation filtered on those alone and so dropped every depot from the
+  /// itinerary: the map sent the driver from wherever he stood straight to the first customer,
+  /// past the warehouse holding the parcels. On a single-depot round he knows the way and nobody
+  /// notices; on a multi-depot one he misses the second load entirely.
+  ///
+  /// The depot's coordinates were already in the payload and on this model, simply never used.
+  double? get navLat => isPickup ? sourceDepotLat : lat;
+  double? get navLng => isPickup ? sourceDepotLng : lng;
+
+  bool get hasNavPoint => navLat != null && navLng != null;
+
   DeliveryStatus get parsedDeliveryStatus =>
       DeliveryStatusX.fromApi(deliveryStatus);
 
