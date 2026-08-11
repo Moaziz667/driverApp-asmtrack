@@ -618,14 +618,25 @@ class _StopListItem extends StatelessWidget {
                 ],
                 if (stop.orderRef != null || stop.totalAmount != null) ...[
                   const SizedBox(height: 6),
+                  // Reference and amount. Every other Row on this card constrains its text child;
+                  // this one laid two intrinsically-sized Texts side by side, so a long reference
+                  // or a larger system font size pushed it past the card and Flutter painted the
+                  // overflow stripes over the stop.
+                  //
+                  // Only the reference yields. The amount is what the driver collects at the door —
+                  // an ellipsised total is worse than no total at all, so it keeps its full width
+                  // and the reference gives up the pixels.
                   Row(
                     children: [
                       if (stop.orderRef != null)
-                        Text(
-                          stop.orderRef!,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onSurfaceVariant,
-                            fontFamily: 'monospace',
+                        Flexible(
+                          child: Text(
+                            stop.orderRef!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                              fontFamily: 'monospace',
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       if (stop.orderRef != null && stop.totalAmount != null)
