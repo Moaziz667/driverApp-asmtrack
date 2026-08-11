@@ -456,6 +456,8 @@
   "statusHistoryInTransit": "In Transit",
   "statusHistoryPickedUp": "Picked Up",
   "statusHistoryScheduled": "Scheduled",
+  "statusHistoryUnscheduled": "Unscheduled",
+  "statusHistoryAwaitingHandoff": "Awaiting Handoff",
   "statusHistoryUnknown": "Unknown",
   "handoffTransferredToYou": "Package transferred to you",
   "handoffScanInstructions": "At reception, scan the sender driver's QR to confirm.",

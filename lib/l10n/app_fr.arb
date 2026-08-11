@@ -457,6 +457,8 @@
   "statusHistoryInTransit": "En transit",
   "statusHistoryPickedUp": "Récupéré",
   "statusHistoryScheduled": "Planifié",
+  "statusHistoryUnscheduled": "Non planifié",
+  "statusHistoryAwaitingHandoff": "En attente de transfert",
   "statusHistoryUnknown": "Inconnu",
   "handoffTransferredToYou": "Colis transféré vers vous",
   "handoffScanInstructions": "À la réception, scannez le QR du chauffeur expéditeur pour confirmer.",

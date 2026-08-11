@@ -1283,6 +1283,8 @@ class StatusHistoryCard extends StatelessWidget {
       'CANCELLED'            => cs.onSurfaceVariant,
       'IN_TRANSIT'           => cs.primary,
       'PICKED_UP'            => cs.tertiary,
+      'UNSCHEDULED'          => cs.outline,
+      'AWAITING_HANDOFF'     => Colors.orange,
       _                      => cs.outline,
     };
   }
@@ -1297,6 +1299,8 @@ class StatusHistoryCard extends StatelessWidget {
       'IN_TRANSIT'           => l10n.statusHistoryInTransit,
       'PICKED_UP'            => l10n.statusHistoryPickedUp,
       'SCHEDULED'            => l10n.statusHistoryScheduled,
+      'UNSCHEDULED'          => l10n.statusHistoryUnscheduled,
+      'AWAITING_HANDOFF'     => l10n.statusHistoryAwaitingHandoff,
       _                      => l10n.statusHistoryUnknown,
     };
   }

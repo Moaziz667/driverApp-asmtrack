@@ -2644,6 +2644,18 @@ abstract class AppLocalizations {
   /// **'Scheduled'**
   String get statusHistoryScheduled;
 
+  /// No description provided for @statusHistoryUnscheduled.
+  ///
+  /// In en, this message translates to:
+  /// **'Unscheduled'**
+  String get statusHistoryUnscheduled;
+
+  /// No description provided for @statusHistoryAwaitingHandoff.
+  ///
+  /// In en, this message translates to:
+  /// **'Awaiting Handoff'**
+  String get statusHistoryAwaitingHandoff;
+
   /// No description provided for @statusHistoryUnknown.
   ///
   /// In en, this message translates to:

@@ -1375,6 +1375,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get statusHistoryScheduled => 'Scheduled';
 
   @override
+  String get statusHistoryUnscheduled => 'Unscheduled';
+
+  @override
+  String get statusHistoryAwaitingHandoff => 'Awaiting Handoff';
+
+  @override
   String get statusHistoryUnknown => 'Unknown';
 
   @override

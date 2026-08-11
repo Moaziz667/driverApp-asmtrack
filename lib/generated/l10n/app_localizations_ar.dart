@@ -1356,6 +1356,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get statusHistoryScheduled => 'مجدول';
 
   @override
+  String get statusHistoryUnscheduled => 'غير مجدول';
+
+  @override
+  String get statusHistoryAwaitingHandoff => 'في انتظار التسليم';
+
+  @override
   String get statusHistoryUnknown => 'غير معروف';
 
   @override

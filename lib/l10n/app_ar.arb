@@ -456,6 +456,8 @@
   "statusHistoryInTransit": "في الطريق",
   "statusHistoryPickedUp": "تم الاستلام",
   "statusHistoryScheduled": "مجدول",
+  "statusHistoryUnscheduled": "غير مجدول",
+  "statusHistoryAwaitingHandoff": "في انتظار التسليم",
   "statusHistoryUnknown": "غير معروف",
   "handoffTransferredToYou": "تم تحويل الطرد إليك",
   "handoffScanInstructions": "عند الاستلام، امسح رمز QR للسائق المرسل للتأكيد.",
