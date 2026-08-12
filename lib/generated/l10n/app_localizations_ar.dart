@@ -642,6 +642,10 @@ class AppLocalizationsAr extends AppLocalizations {
   String get pod_partial_sub => 'قم بالتفعيل إذا لم يتم توصيل بعض السلع.';
 
   @override
+  String get pod_partial_bl_cleared =>
+      'تمت إزالة صورة الوصل: أعد التقاطها بالكميات المصححة.';
+
+  @override
   String get pod_item_outcome_header => 'النتيجة لكل سلعة:';
 
   @override

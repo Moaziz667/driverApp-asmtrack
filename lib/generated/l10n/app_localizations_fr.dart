@@ -657,6 +657,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'Activez si certains articles n\'ont pas été livrés.';
 
   @override
+  String get pod_partial_bl_cleared =>
+      'Photo du bon retiree : reprenez-la avec les quantites corrigees.';
+
+  @override
   String get pod_item_outcome_header => 'Résultat par article :';
 
   @override

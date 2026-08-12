@@ -1276,6 +1276,12 @@ abstract class AppLocalizations {
   /// **'Enable if some items were not delivered.'**
   String get pod_partial_sub;
 
+  /// No description provided for @pod_partial_bl_cleared.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery-note photo removed: take it again with the corrected quantities.'**
+  String get pod_partial_bl_cleared;
+
   /// No description provided for @pod_item_outcome_header.
   ///
   /// In en, this message translates to:

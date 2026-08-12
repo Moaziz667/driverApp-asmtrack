@@ -52,7 +52,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void _initFcmHandlers() {
     final store = ref.read(notificationStoreProvider.notifier);
     ref.read(fcmServiceProvider).setHandlers(
-      onReceived: (title, body, type) => store.add(title: title, body: body, type: type),
+      onReceived: (title, body, type) {
+        store.add(title: title, body: body, type: type);
+        // A handoff opened while the app is in the foreground usually arrives here, as FCM, and not
+        // as a STOMP frame — and only the STOMP path refreshed the list. So the transfers button
+        // beside the bell stayed hidden (it hides itself at zero) until the app was restarted: the
+        // parcel was waiting to change hands and the driver had no way in.
+        if (type.startsWith('HANDOFF_')) {
+          ref.invalidate(handoffsProvider);
+        }
+      },
       onTap: (type, deliveryId) {
         if (type.startsWith('HANDOFF_') && deliveryId != null && deliveryId.isNotEmpty) {
           _openHandoffDelivery(deliveryId);
@@ -360,7 +369,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   void _startTracking() {
     if (_isTracking) return;
     _isTracking = true;
-    _locationTimer = Timer.periodic(const Duration(seconds: 20), (_) => _pushLocation());
+    // TEMPORAIRE (demo suivi public) : 5 s au lieu de 20. A remettre a 20 avant toute mise en
+    // service — quatre fois plus d'envois, c'est quatre fois plus de batterie sur une journee de
+    // tournee, pour un gain qui se traite mieux en interpolant l'affichage cote carte.
+    _locationTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pushLocation());
     _pushLocation();
   }
 

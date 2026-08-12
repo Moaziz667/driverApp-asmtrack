@@ -214,6 +214,7 @@
   "pod_gps_sub": "يتم إرسال الإحداثيات مرة واحدة فقط عند التقديم.",
   "pod_partial_label": "توصيل جزئي",
   "pod_partial_sub": "قم بالتفعيل إذا لم يتم توصيل بعض السلع.",
+  "pod_partial_bl_cleared": "تمت إزالة صورة الوصل: أعد التقاطها بالكميات المصححة.",
   "pod_item_outcome_header": "النتيجة لكل سلعة:",
   "pod_delivered_qty": "الكمية المسلمة",
   "pod_reason_label": "السبب *",

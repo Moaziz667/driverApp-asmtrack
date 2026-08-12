@@ -214,6 +214,7 @@
   "pod_gps_sub": "Coordinates sent only once at submission.",
   "pod_partial_label": "Partial delivery",
   "pod_partial_sub": "Enable if some items were not delivered.",
+  "pod_partial_bl_cleared": "Delivery-note photo removed: take it again with the corrected quantities.",
   "pod_item_outcome_header": "Outcome per item:",
   "pod_delivered_qty": "Delivered quantity",
   "pod_reason_label": "Reason *",

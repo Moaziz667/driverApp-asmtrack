@@ -647,6 +647,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get pod_partial_sub => 'Enable if some items were not delivered.';
 
   @override
+  String get pod_partial_bl_cleared =>
+      'Delivery-note photo removed: take it again with the corrected quantities.';
+
+  @override
   String get pod_item_outcome_header => 'Outcome per item:';
 
   @override

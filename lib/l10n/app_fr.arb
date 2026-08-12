@@ -214,6 +214,7 @@
   "pod_gps_sub": "Coordonnées envoyées une seule fois à la soumission.",
   "pod_partial_label": "Livraison partielle",
   "pod_partial_sub": "Activez si certains articles n'ont pas été livrés.",
+  "pod_partial_bl_cleared": "Photo du bon retiree : reprenez-la avec les quantites corrigees.",
   "pod_item_outcome_header": "Résultat par article :",
   "pod_delivered_qty": "Quantité livrée",
   "pod_reason_label": "Motif *",

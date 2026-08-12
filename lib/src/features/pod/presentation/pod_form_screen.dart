@@ -437,12 +437,23 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 title: AppLocalizations.of(context).pod_partial_label,
                 subtitle: AppLocalizations.of(context).pod_partial_sub,
                 value: _isPartial,
-                onChanged: (v) => setState(() {
-                  _isPartial = v;
-                  // A note photographed before this switch shows the printed quantities. Keeping it
-                  // would file, as proof of a partial delivery, an image of the full one.
-                  if (v) _bonLivraisonBytes = null;
-                }),
+                onChanged: (v) {
+                  // A note photographed before this switch shows the printed quantities, so it is
+                  // dropped: keeping it would file, as proof of a partial delivery, an image of the
+                  // full one. It used to vanish in silence — the driver saw his photo disappear and
+                  // the submit button grey out with nothing said, and read it as the app losing his
+                  // work. Removing it is right; not saying so was not.
+                  final hadPhoto = _bonLivraisonBytes != null;
+                  setState(() {
+                    _isPartial = v;
+                    if (v) _bonLivraisonBytes = null;
+                  });
+                  if (v && hadPhoto) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text(AppLocalizations.of(context).pod_partial_bl_cleared),
+                    ));
+                  }
+                },
                 expanded: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
