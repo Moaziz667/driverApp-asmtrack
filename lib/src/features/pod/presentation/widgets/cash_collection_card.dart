@@ -69,7 +69,8 @@ class CashCollectionCard extends StatefulWidget {
   final double expected;
   final String currency;
 
-  /// Admin reason catalogue. Empty offline — the card then accepts a shortfall without one rather
+  /// Admin reason catalogue, filtered to the payment scope at the point of use. Empty offline — the
+  /// card then accepts a shortfall without one rather
   /// than dead-locking the driver, exactly like the item cards do.
   final List<FailureReasonOption> reasons;
   final ValueChanged<CashFormState> onChanged;
@@ -122,7 +123,7 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
 
   /// Only demand a motif when the catalogue actually offers one — offline it is empty, and blocking
   /// the proof of a delivery that physically happened is never the right trade.
-  bool get _reasonAvailable => widget.reasons.any((r) => r.coversDelivery);
+  bool get _reasonAvailable => widget.reasons.any((r) => r.coversPayment);
 
   bool get isValid {
     if (_method == CashMethod.cheque && _chequeNumberCtrl.text.trim().isEmpty) return false;
@@ -399,7 +400,7 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
               Wrap(
                 spacing: AppTokens.space8,
                 runSpacing: AppTokens.space8,
-                children: widget.reasons.where((r) => r.coversDelivery).map((r) {
+                children: widget.reasons.where((r) => r.coversPayment).map((r) {
                   final selected = _reasonCode == r.code;
                   return ChoiceChip(
                     label: Text(r.label, style: const TextStyle(fontSize: 12)),

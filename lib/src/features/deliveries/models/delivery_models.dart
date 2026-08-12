@@ -73,11 +73,14 @@ class FailureReasonOption {
   /// or CLIENT_ABSENT | WRONG_ADDRESS | OTHER (delivery-only).
   final String? category;
 
-  /// Where this motif is usable: DELIVERY | ITEM | BOTH. The disposition comes from [category].
+  /// Where this motif is usable: DELIVERY | ITEM | BOTH | PAYMENT. The disposition comes from
+  /// [category]. PAYMENT stands apart from BOTH on purpose — a cash shortfall is not a delivery
+  /// failure, and mixing the two is what put "adresse introuvable" in the cash picker.
   final String scope;
 
   bool get coversItem => scope == 'ITEM' || scope == 'BOTH';
   bool get coversDelivery => scope == 'DELIVERY' || scope == 'BOTH';
+  bool get coversPayment => scope == 'PAYMENT';
 
   factory FailureReasonOption.fromJson(Map<String, dynamic> json) => FailureReasonOption(
         code: json['code'] as String? ?? 'OTHER',

@@ -186,82 +186,96 @@ class _HandoffCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5)),
       ),
-      child: Row(
+      // Identity on the first row, actions on their own row underneath. Side by side, the buttons
+      // ("Afficher le code" + "Saisir le code") took the width first and squeezed the client name to
+      // nothing, so a card read as a bare QR icon — and the manual-entry button was pushed off-screen
+      // entirely, which is why the code could not be typed in when a camera refused to focus.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: cs.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-            ),
-            child: Icon(
-              incoming ? LucideIcons.scanLine : LucideIcons.qrCode,
-              size: 20,
-              color: cs.primary,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  handoff.clientName ?? '—',
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          Row(
+            children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: cs.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                 ),
-                if (subtitle != null && subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                child: Icon(
+                  incoming ? LucideIcons.scanLine : LucideIcons.qrCode,
+                  size: 20,
+                  color: cs.primary,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      handoff.clientName ?? '—',
+                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null && subtitle.isNotEmpty) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    const SizedBox(height: 4),
+                    Text(
+                      '$counterpartLabel ${counterpartName ?? '—'}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: onAction,
+                  icon: Icon(incoming ? LucideIcons.scanLine : LucideIcons.qrCode, size: 16),
+                  label: Text(
+                    incoming
+                        ? AppLocalizations.of(context).handoff_action_scan
+                        : AppLocalizations.of(context).handoff_action_show,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                const SizedBox(height: 4),
-                Text(
-                  '$counterpartLabel ${counterpartName ?? '—'}',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: cs.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              FilledButton.icon(
-                onPressed: onAction,
-                icon: Icon(incoming ? LucideIcons.scanLine : LucideIcons.qrCode, size: 16),
-                label: Text(
-                  incoming ? AppLocalizations.of(context).handoff_action_scan : AppLocalizations.of(context).handoff_action_show,
-                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ),
               // Camera-broken fallback: enter the 6-char code by hand (incoming only).
-              if (incoming && onManual != null)
-                TextButton.icon(
-                  onPressed: onManual,
-                  icon: const Icon(LucideIcons.keyboard, size: 14),
-                  label: Text(
-                    AppLocalizations.of(context).handoff_manual_action,
-                    style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600),
-                  ),
-                  style: TextButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              if (incoming && onManual != null) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: onManual,
+                    icon: const Icon(LucideIcons.keyboard, size: 16),
+                    label: Text(
+                      AppLocalizations.of(context).handoff_manual_action,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ),
+              ],
             ],
           ),
         ],
