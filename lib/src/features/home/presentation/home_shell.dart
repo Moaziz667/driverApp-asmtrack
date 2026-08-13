@@ -43,6 +43,11 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     super.initState();
     _assignmentRefreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _refreshAssignmentsAndNotify();
+      // Retried, because the first attempt below usually comes too early: the shell mounts before
+      // the driver profile has loaded, _initWebSocket finds no id and gives up — and nothing used to
+      // call it again, so the socket was never opened for the whole session. connect() is
+      // idempotent, so this costs nothing once the connection is up.
+      _initWebSocket();
     });
     _initWebSocket();
     _initConnectivityListener();
