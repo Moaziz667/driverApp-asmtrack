@@ -467,7 +467,43 @@ class _PickupStopCard extends StatelessWidget {
                   Icon(LucideIcons.checkCircle2, size: 18, color: pickupColor),
               ],
             ),
-            if (pickList.isNotEmpty) ...[
+            // The lines to carry out, when the server sends them. A reference tells a dispatcher
+            // what is being loaded; it tells the man in front of the pallets nothing, and it
+            // misleads him once an order is split — only part of it is collected here.
+            if (stop.pickupLoad.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              ...stop.pickupLoad.map((line) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '×${line.quantity ?? 1}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: pickupColor,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            line.label,
+                            style: TextStyle(fontSize: 11, color: cs.onSurface),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (line.orderRef != null && line.orderRef!.isNotEmpty) ...[
+                          const SizedBox(width: 6),
+                          Text(
+                            line.orderRef!,
+                            style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
+                          ),
+                        ],
+                      ],
+                    ),
+                  )),
+            ] else if (pickList.isNotEmpty) ...[
               const SizedBox(height: 10),
               ...pickList.map((d) => Padding(
                     padding: const EdgeInsets.only(bottom: 4),

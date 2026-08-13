@@ -52,6 +52,28 @@ extension DriverRouteStopStatusX on DriverRouteStopStatus {
   }
 }
 
+/// One line to carry out of a depot at a pickup stop.
+class PickupLoadLine {
+  const PickupLoadLine({this.orderRef, this.clientName, this.sku, this.name, this.quantity});
+
+  factory PickupLoadLine.fromJson(Map<String, dynamic> json) => PickupLoadLine(
+        orderRef: json['orderRef'] as String?,
+        clientName: json['clientName'] as String?,
+        sku: json['sku'] as String?,
+        name: json['name'] as String?,
+        quantity: (json['quantity'] as num?)?.toInt(),
+      );
+
+  final String? orderRef;
+  final String? clientName;
+  final String? sku;
+  final String? name;
+  final int? quantity;
+
+  /// What the article is, falling back to its code when the ERP sent no label.
+  String get label => name?.isNotEmpty == true ? name! : (sku ?? '');
+}
+
 class DriverRouteStop {
   const DriverRouteStop({
     required this.id,
@@ -72,6 +94,7 @@ class DriverRouteStop {
     this.stopType = 'DELIVERY',
     this.sourceDepotId,
     this.sourceDepotIds = const [],
+    this.pickupLoad = const [],
     this.sourceDepotName,
     this.sourceDepotLat,
     this.sourceDepotLng,
@@ -100,6 +123,10 @@ class DriverRouteStop {
       sourceDepotId: json['sourceDepotId'] as String?,
       sourceDepotIds: (json['sourceDepotIds'] as List<dynamic>?)
               ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      pickupLoad: (json['pickupLoad'] as List<dynamic>?)
+              ?.map((e) => PickupLoadLine.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       sourceDepotName: json['sourceDepotName'] as String?,
@@ -137,6 +164,12 @@ class DriverRouteStop {
   /// single field then hid the second load: the depot said it held nothing, and worse,
   /// [isDepotPicked] found no pickup for it and answered "already loaded".
   final List<String> sourceDepotIds;
+
+  /// For a PICKUP: what to physically carry out of the depot.
+  ///
+  /// An order reference is not a loading instruction, and it misleads once an order is split
+  /// across warehouses — at Sousse one collects the water of order 127, its dates stay in Tunis.
+  final List<PickupLoadLine> pickupLoad;
 
   /// The depots to match on — falls back to the single field for an older payload.
   List<String> get loadedFrom =>
