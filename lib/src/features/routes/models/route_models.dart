@@ -71,6 +71,7 @@ class DriverRouteStop {
     this.slaDeadline,
     this.stopType = 'DELIVERY',
     this.sourceDepotId,
+    this.sourceDepotIds = const [],
     this.sourceDepotName,
     this.sourceDepotLat,
     this.sourceDepotLng,
@@ -97,6 +98,10 @@ class DriverRouteStop {
       slaDeadline: json['slaDeadline'] as String?,
       stopType: (json['stopType'] as String?) ?? 'DELIVERY',
       sourceDepotId: json['sourceDepotId'] as String?,
+      sourceDepotIds: (json['sourceDepotIds'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
       sourceDepotName: json['sourceDepotName'] as String?,
       sourceDepotLat: (json['sourceDepotLat'] as num?)?.toDouble(),
       sourceDepotLng: (json['sourceDepotLng'] as num?)?.toDouble(),
@@ -124,6 +129,19 @@ class DriverRouteStop {
   // Multi-depot (slice 6)
   final String stopType;
   final String? sourceDepotId;
+
+  /// Every depot this stop's goods are loaded from.
+  ///
+  /// [sourceDepotId] names one, which is all an ERP issuing a note per warehouse ever needs. One
+  /// that puts the warehouse on the line can send half an order from elsewhere, and matching on the
+  /// single field then hid the second load: the depot said it held nothing, and worse,
+  /// [isDepotPicked] found no pickup for it and answered "already loaded".
+  final List<String> sourceDepotIds;
+
+  /// The depots to match on — falls back to the single field for an older payload.
+  List<String> get loadedFrom =>
+      sourceDepotIds.isNotEmpty ? sourceDepotIds : (sourceDepotId != null ? [sourceDepotId!] : const []);
+
   final String? sourceDepotName;
   final double? sourceDepotLat;
   final double? sourceDepotLng;
@@ -254,19 +272,29 @@ class DriverRoute {
 
   // ── Multi-depot helpers (slice 6) ──────────────────────────────────────────
 
-  /// Delivery stops (non-pickup) loaded from the given source depot.
-  List<DriverRouteStop> deliveriesForDepot(String? depotId) => stops
-      .where((s) => !s.isPickup && s.sourceDepotId != null && s.sourceDepotId == depotId)
-      .toList();
+  /// Delivery stops loaded from the given source depot.
+  ///
+  /// A delivery drawn from two warehouses appears under both, which is why this asks
+  /// [DriverRouteStop.loadedFrom] rather than comparing the single depot field.
+  List<DriverRouteStop> deliveriesForDepot(String? depotId) => depotId == null
+      ? const []
+      : stops.where((s) => !s.isPickup && s.loadedFrom.contains(depotId)).toList();
 
   /// Number of parcels (delivery stops) a pickup stop loads.
   int pickupParcelCount(DriverRouteStop pickup) => deliveriesForDepot(pickup.sourceDepotId).length;
 
-  /// True when the depot pickup for a delivery stop has been confirmed (or none is required —
-  /// i.e. a home-depot delivery with no matching PICKUP stop on the route).
+  /// True when every depot this delivery draws from has been collected (or none needs collecting —
+  /// a home-depot delivery has no PICKUP stop, it was loaded before departure).
+  ///
+  /// This used to look for a pickup whose depot equalled the delivery's own, so a delivery headed
+  /// "Tunis" with a line waiting in Sousse matched nothing, fell into the home-depot branch and
+  /// reported itself loaded. The driver could complete it without ever stopping in Sousse — the
+  /// precedence rule the backend enforces, silently bypassed on the phone.
   bool isDepotPicked(DriverRouteStop deliveryStop) {
-    final pickup = stops.where((s) => s.isPickup && s.sourceDepotId == deliveryStop.sourceDepotId).toList();
-    if (pickup.isEmpty) return true; // home depot — loaded at start
-    return pickup.every((p) => p.status == DriverRouteStopStatus.completed);
+    final pickups = stops
+        .where((s) => s.isPickup && deliveryStop.loadedFrom.contains(s.sourceDepotId))
+        .toList();
+    if (pickups.isEmpty) return true; // home depot — loaded at start
+    return pickups.every((p) => p.status == DriverRouteStopStatus.completed);
   }
 }
