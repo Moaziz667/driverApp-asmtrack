@@ -12,6 +12,7 @@ import '../../../../services/offline_queue_service.dart';
 import '../../../../theme/status_colors.dart';
 import '../../../../theme/tokens.dart';
 import '../../../deliveries/presentation/handoff_inbox_screen.dart';
+import 'sync_center.dart';
 
 class ModernBottomNav extends StatelessWidget {
   const ModernBottomNav({super.key, 
@@ -573,7 +574,7 @@ class OfflineStatusBar extends ConsumerStatefulWidget {
 }
 
 class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
-  bool _wasOffline = false;
+  bool _hadWork = false;
   bool _showSyncedBanner = false;
   Timer? _dismissTimer;
 
@@ -583,97 +584,118 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
     super.dispose();
   }
 
+  void _flashSynced() {
+    _showSyncedBanner = true;
+    _dismissTimer?.cancel();
+    _dismissTimer = Timer(const Duration(seconds: 3), () {
+      if (mounted) setState(() => _showSyncedBanner = false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isOnlineAsync = ref.watch(connectionStatusProvider);
-    final pendingCount = ref.watch(offlineQueueProvider);
+    final l10n = AppLocalizations.of(context);
+    final isOnline = ref.watch(connectionStatusProvider).value ?? true;
+    final sync = ref.watch(offlineQueueProvider);
 
-    final isOnline = isOnlineAsync.value ?? true;
-
-    if (isOnline && _wasOffline) {
-      _wasOffline = false;
-      _showSyncedBanner = true;
-      _dismissTimer?.cancel();
-      _dismissTimer = Timer(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _showSyncedBanner = false;
-          });
-        }
+    // "Everything is up to date" only fires when the queue has *actually* drained
+    // (total == 0) after having had work — not merely because the link came back.
+    if (sync.total > 0) {
+      _hadWork = true;
+    } else if (_hadWork && isOnline) {
+      _hadWork = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(_flashSynced);
       });
-    } else if (!isOnline) {
-      _wasOffline = true;
-      _showSyncedBanner = false;
     }
 
     final double topPadding = MediaQuery.of(context).padding.top;
 
+    // State precedence: offline → syncing/pending → failed → just-synced → hidden.
     if (!isOnline) {
-      final l10n = AppLocalizations.of(context);
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        width: double.infinity,
-        padding: EdgeInsets.only(
-          top: topPadding + 6,
-          bottom: 8,
-          left: 16,
-          right: 16,
-        ),
+      return _bar(
+        topPadding,
         color: const Color(0xFFF59E0B),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(PhosphorIconsRegular.cloudSlash, size: 14, color: Colors.white),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                pendingCount > 0
-                    ? '${l10n.offlineBanner} · $pendingCount ${l10n.offlinePendingUpdates}'
-                    : l10n.offlineBanner,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
-      );
-    } else if (_showSyncedBanner) {
-      final l10n = AppLocalizations.of(context);
-      return AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        width: double.infinity,
-        padding: EdgeInsets.only(
-          top: topPadding + 6,
-          bottom: 8,
-          left: 16,
-          right: 16,
-        ),
-        color: const Color(0xFF10B981),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(PhosphorIconsBold.cloudArrowUp, size: 14, color: Colors.white),
-            const SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                l10n.offlineConnectionRestored,
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          ],
-        ),
+        icon: PhosphorIconsRegular.cloudSlash,
+        text: sync.pending > 0 ? l10n.syncPendingBanner(sync.pending) : l10n.offlineBanner,
+        tappable: sync.total > 0,
       );
     }
-
+    if (sync.syncing || sync.pending > 0) {
+      return _bar(
+        topPadding,
+        color: const Color(0xFF3B82F6),
+        icon: PhosphorIconsRegular.cloudArrowUp,
+        text: l10n.syncSyncing(sync.pending),
+        showSpinner: true,
+        tappable: true,
+      );
+    }
+    if (sync.failed > 0) {
+      return _bar(
+        topPadding,
+        color: const Color(0xFFDC2626),
+        icon: PhosphorIconsBold.warning,
+        text: l10n.syncFailedBanner(sync.failed),
+        tappable: true,
+      );
+    }
+    if (_showSyncedBanner) {
+      return _bar(
+        topPadding,
+        color: const Color(0xFF10B981),
+        icon: PhosphorIconsBold.checkCircle,
+        text: l10n.syncUpToDate,
+        tappable: false,
+      );
+    }
     return const SizedBox.shrink();
+  }
+
+  Widget _bar(
+    double topPadding, {
+    required Color color,
+    required IconData icon,
+    required String text,
+    bool showSpinner = false,
+    bool tappable = false,
+  }) {
+    final bar = AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      width: double.infinity,
+      padding: EdgeInsets.only(top: topPadding + 6, bottom: 8, left: 16, right: 16),
+      color: color,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          if (showSpinner)
+            const SizedBox(
+              width: 12,
+              height: 12,
+              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+            )
+          else
+            Icon(icon, size: 14, color: Colors.white),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              text,
+              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+          ),
+          if (tappable) ...[
+            const SizedBox(width: 6),
+            const Icon(PhosphorIconsRegular.caretRight, size: 12, color: Colors.white),
+          ],
+        ],
+      ),
+    );
+    if (!tappable) return bar;
+    return GestureDetector(
+      onTap: () => showSyncCenter(context),
+      behavior: HitTestBehavior.opaque,
+      child: bar,
+    );
   }
 }

@@ -3009,6 +3009,168 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count} stop(s)'**
   String calendarStopCount(Object count);
+
+  /// No description provided for @syncCenterTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get syncCenterTitle;
+
+  /// No description provided for @syncUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Everything is up to date'**
+  String get syncUpToDate;
+
+  /// No description provided for @syncSyncing.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending… {count} left'**
+  String syncSyncing(Object count);
+
+  /// No description provided for @syncPendingBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline · {count} pending'**
+  String syncPendingBanner(Object count);
+
+  /// No description provided for @syncFailedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} action(s) to review'**
+  String syncFailedBanner(Object count);
+
+  /// No description provided for @syncRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get syncRetry;
+
+  /// No description provided for @syncRetryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry all'**
+  String get syncRetryAll;
+
+  /// No description provided for @syncDiscard.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get syncDiscard;
+
+  /// No description provided for @syncViewDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'View delivery'**
+  String get syncViewDelivery;
+
+  /// No description provided for @syncEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending actions'**
+  String get syncEmpty;
+
+  /// No description provided for @syncStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get syncStatusPending;
+
+  /// No description provided for @syncStatusFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get syncStatusFailed;
+
+  /// No description provided for @syncStatusSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending…'**
+  String get syncStatusSending;
+
+  /// No description provided for @syncRejectedByServer.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected by the server'**
+  String get syncRejectedByServer;
+
+  /// No description provided for @syncExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired (too old)'**
+  String get syncExpired;
+
+  /// No description provided for @syncEnqueuedAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved at {time}'**
+  String syncEnqueuedAt(Object time);
+
+  /// No description provided for @offlineDataAsOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline data · {time}'**
+  String offlineDataAsOf(Object time);
+
+  /// No description provided for @syncActionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivered'**
+  String get syncActionComplete;
+
+  /// No description provided for @syncActionPod.
+  ///
+  /// In en, this message translates to:
+  /// **'Proof of delivery'**
+  String get syncActionPod;
+
+  /// No description provided for @syncActionFail.
+  ///
+  /// In en, this message translates to:
+  /// **'Delivery failed'**
+  String get syncActionFail;
+
+  /// No description provided for @syncActionCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancellation'**
+  String get syncActionCancel;
+
+  /// No description provided for @syncActionTransit.
+  ///
+  /// In en, this message translates to:
+  /// **'In transit'**
+  String get syncActionTransit;
+
+  /// No description provided for @syncActionPickup.
+  ///
+  /// In en, this message translates to:
+  /// **'Pickup'**
+  String get syncActionPickup;
+
+  /// No description provided for @syncActionAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted'**
+  String get syncActionAccept;
+
+  /// No description provided for @syncActionArrive.
+  ///
+  /// In en, this message translates to:
+  /// **'Arrival'**
+  String get syncActionArrive;
+
+  /// No description provided for @syncActionRouteStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Route start'**
+  String get syncActionRouteStart;
+
+  /// No description provided for @syncActionGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get syncActionGeneric;
 }
 
 class _AppLocalizationsDelegate

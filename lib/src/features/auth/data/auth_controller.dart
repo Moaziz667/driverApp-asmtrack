@@ -5,6 +5,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../services/api_client.dart';
 import '../../../services/fcm_service.dart';
+import '../../../services/offline_queue_service.dart';
 import '../../../services/token_storage.dart';
 import '../models/auth_models.dart';
 import 'auth_repository.dart';
@@ -66,6 +67,10 @@ class AuthController extends StateNotifier<AuthState> {
       // Re-arm session handling so a future suspension/expiry is acted upon.
       _ref.read(apiClientProvider).resetSession();
       state = AuthState(status: AuthStatus.authenticated, driver: payload.driver);
+      // P1-a: a driver who queued writes, was signed out (token fully expired),
+      // and just signed back in should have those writes flushed now — a fresh
+      // token is available and connectivity may not change again.
+      _ref.read(offlineQueueProvider.notifier).processQueue();
       // Tag crash reports with the driver id only (no name/phone — PII-free).
       await Sentry.configureScope((s) => s.setUser(SentryUser(id: payload.driver.id)));
       Sentry.addBreadcrumb(Breadcrumb(category: 'auth', message: 'login success'));

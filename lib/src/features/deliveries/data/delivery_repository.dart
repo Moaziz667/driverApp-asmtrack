@@ -22,6 +22,15 @@ class DeliveryRepository {
 
   Box get _box => Hive.box('domain_cache');
 
+  /// When the detail cache for [id] (or the active-list cache it falls back to)
+  /// was last refreshed from the server — drives the "offline data · HH:MM"
+  /// banner so the driver knows how fresh what he's looking at is.
+  DateTime? detailCachedAt(String id) {
+    final raw = (_box.get('${_detailCachePrefix}${id}_at') as String?) ??
+        (_box.get('${_cacheKey}_at') as String?);
+    return raw != null ? DateTime.tryParse(raw) : null;
+  }
+
   /// Fetch active deliveries with cache fallback for offline.
   Future<List<DriverDelivery>> fetchActive() async {
     try {
@@ -31,6 +40,7 @@ class DeliveryRepository {
       // Save to cache
       try {
         await _box.put(_cacheKey, jsonEncode(list));
+        await _box.put('${_cacheKey}_at', DateTime.now().toIso8601String());
       } catch (_) {
         // Cache write failures are non-fatal
       }
@@ -72,6 +82,7 @@ class DeliveryRepository {
       final delivery = DriverDelivery.fromJson(response.data ?? {});
       try {
         await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
+        await _box.put('${_detailCachePrefix}${id}_at', DateTime.now().toIso8601String());
       } catch (_) {}
       return delivery;
     } on DioException catch (e) {
@@ -79,10 +90,25 @@ class DeliveryRepository {
           e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.sendTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
+        // 1) Per-delivery cache (populated when this fiche was opened online).
         try {
           final raw = _box.get('$_detailCachePrefix$id') as String?;
           if (raw != null) {
             return DriverDelivery.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+          }
+        } catch (_) {}
+        // 2) P2-e fallback: the fiche was never opened online, but it's in the
+        // cached active-deliveries list the driver is looking at. Serve that so
+        // the detail screen opens offline instead of failing with a network error.
+        try {
+          final rawList = _box.get(_cacheKey) as String?;
+          if (rawList != null) {
+            final list = jsonDecode(rawList) as List<dynamic>;
+            final match = list.cast<Map<String, dynamic>>().firstWhere(
+                  (e) => e['id']?.toString() == id,
+                  orElse: () => const <String, dynamic>{},
+                );
+            if (match.isNotEmpty) return DriverDelivery.fromJson(match);
           }
         } catch (_) {}
       }
@@ -111,7 +137,10 @@ class DeliveryRepository {
         'failureReasonCode': reasonCode,
         if (comment != null && comment.isNotEmpty) 'failureComment': comment,
       },
-      idempotencyKey: 'fail-$id-$reasonCode',
+      // Key on the delivery only (not the reason): a driver who changes the
+      // failure reason before reconnecting should replace the queued entry, not
+      // queue a second, contradictory FAIL for the same delivery.
+      idempotencyKey: 'fail-$id',
     );
   }
 

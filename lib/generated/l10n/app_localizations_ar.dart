@@ -1556,4 +1556,95 @@ class AppLocalizationsAr extends AppLocalizations {
   String calendarStopCount(Object count) {
     return '$count محطة (ות)';
   }
+
+  @override
+  String get syncCenterTitle => 'المزامنة';
+
+  @override
+  String get syncUpToDate => 'كل شيء محدَّث';
+
+  @override
+  String syncSyncing(Object count) {
+    return 'جارٍ الإرسال… $count متبقٍ';
+  }
+
+  @override
+  String syncPendingBanner(Object count) {
+    return 'دون اتصال · $count قيد الانتظار';
+  }
+
+  @override
+  String syncFailedBanner(Object count) {
+    return '$count إجراء بحاجة للمراجعة';
+  }
+
+  @override
+  String get syncRetry => 'إعادة المحاولة';
+
+  @override
+  String get syncRetryAll => 'إعادة الكل';
+
+  @override
+  String get syncDiscard => 'تجاهل';
+
+  @override
+  String get syncViewDelivery => 'عرض التوصيل';
+
+  @override
+  String get syncEmpty => 'لا إجراءات معلّقة';
+
+  @override
+  String get syncStatusPending => 'قيد الانتظار';
+
+  @override
+  String get syncStatusFailed => 'فشل';
+
+  @override
+  String get syncStatusSending => 'جارٍ…';
+
+  @override
+  String get syncRejectedByServer => 'مرفوض من الخادم';
+
+  @override
+  String get syncExpired => 'منتهي (قديم جدًا)';
+
+  @override
+  String syncEnqueuedAt(Object time) {
+    return 'حُفظ في $time';
+  }
+
+  @override
+  String offlineDataAsOf(Object time) {
+    return 'بيانات دون اتصال · $time';
+  }
+
+  @override
+  String get syncActionComplete => 'تم التسليم';
+
+  @override
+  String get syncActionPod => 'إثبات التسليم';
+
+  @override
+  String get syncActionFail => 'فشل التسليم';
+
+  @override
+  String get syncActionCancel => 'إلغاء';
+
+  @override
+  String get syncActionTransit => 'في الطريق';
+
+  @override
+  String get syncActionPickup => 'الاستلام';
+
+  @override
+  String get syncActionAccept => 'مقبول';
+
+  @override
+  String get syncActionArrive => 'الوصول';
+
+  @override
+  String get syncActionRouteStart => 'بدء الجولة';
+
+  @override
+  String get syncActionGeneric => 'إجراء';
 }

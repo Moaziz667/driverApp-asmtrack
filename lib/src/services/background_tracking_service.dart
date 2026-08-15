@@ -57,7 +57,10 @@ class BackgroundTrackingService {
         'timestamp': DateTime.now().toIso8601String(),
       });
     } catch (_) {
-      // P1: Queue unsent location updates if offline (handled by ApiClient + OfflineQueue)
+      // Location pings are intentionally NOT queued: a stale position is worse
+      // than no position, and the next tick sends a fresh one within seconds.
+      // Only state-changing driver actions (accept/pickup/POD/…) go through the
+      // durable OfflineQueue.
     }
   }
 }

@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/app_config.dart';
@@ -23,13 +24,34 @@ final appConfigProvider = StateProvider<AppConfig>((ref) => AppConfig.fromEnviro
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
-final connectivityServiceProvider = Provider<ConnectivityService>(
-  (ref) => ConnectivityService(),
-);
+final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
+  // Reachability probe: a bare Dio (no auth interceptors, so it can never kick
+  // off a token refresh) that hits the API host. Any HTTP response — even a 404
+  // — proves the server is reachable; a timeout / DNS failure means "Wi-Fi but
+  // no internet", which we then treat as offline.
+  return ConnectivityService(reachabilityProbe: () async {
+    final baseUrl = ref.read(appConfigProvider).apiBaseUrlV1;
+    try {
+      final res = await Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 3),
+      )).get<void>(
+        baseUrl,
+        options: Options(validateStatus: (_) => true),
+      );
+      return res.statusCode != null;
+    } catch (_) {
+      return false;
+    }
+  });
+});
 
 final connectionStatusProvider = StreamProvider<bool>((ref) {
   final connectivity = ref.watch(connectivityServiceProvider);
-  return connectivity.onlineStream;
+  // Reachability, not link state: on Wi-Fi with no internet the banner must read
+  // "offline" — the same truth the write path uses — so the UI never contradicts
+  // what actually happens when the driver taps an action.
+  return connectivity.reachabilityStream();
 });
 
 final apiClientProvider = Provider<ApiClient>((Ref ref) {
