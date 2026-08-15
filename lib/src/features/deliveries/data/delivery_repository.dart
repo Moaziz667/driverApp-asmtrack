@@ -79,29 +79,47 @@ class DeliveryRepository {
   /// meant every unopened delivery was a dead end, and the driver had to guess in advance which ones
   /// he would need.
   ///
-  /// Fire-and-forget and best-effort: sequential to avoid a burst of parallel requests on a phone
-  /// radio, silent on failure, and it skips anything cached in the last [freshFor].
+  /// Fire-and-forget and best-effort: silent on failure, and it skips anything cached in the last
+  /// [freshFor]. Runs a few requests at a time rather than one by one — a driver who opens the app
+  /// and closes it again a few seconds later must still leave with a usable copy, and twenty
+  /// sequential round-trips did not finish in that window.
+  static const _prefetchConcurrency = 4;
+
   Future<void> prefetchDetails(
     Iterable<String> ids, {
     Duration freshFor = const Duration(minutes: 30),
   }) async {
     if (!await _connectivity.isOnline) return;
     final now = DateTime.now();
-    for (final id in ids) {
-      if (id.isEmpty) continue;
+    final pending = ids.toSet().where((id) {
+      if (id.isEmpty) return false;
       final at = detailCachedAt(id);
-      if (at != null && now.difference(at) < freshFor) continue;
-      try {
-        final response =
-            await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
-        if (response.data == null) continue;
-        await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
-        await _box.put('${_detailCachePrefix}${id}_at', now.toIso8601String());
-      } catch (_) {
-        // A delivery we cannot pre-load is not an error the driver should see; the detail screen
-        // still falls back to the cached list.
+      return at == null || now.difference(at) >= freshFor;
+    }).toList();
+    if (pending.isEmpty) return;
+
+    var next = 0;
+    Future<void> worker() async {
+      while (true) {
+        final i = next++;
+        if (i >= pending.length) return;
+        final id = pending[i];
+        try {
+          final response =
+              await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
+          if (response.data == null) continue;
+          await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
+          await _box.put(
+              '${_detailCachePrefix}${id}_at', DateTime.now().toIso8601String());
+        } catch (_) {
+          // A delivery we cannot pre-load is not an error the driver should see; the detail screen
+          // still falls back to the cached list.
+        }
       }
     }
+
+    await Future.wait(
+        List.generate(pending.length.clamp(0, _prefetchConcurrency), (_) => worker()));
   }
 
   Future<DriverDelivery> fetchById(String id) async {

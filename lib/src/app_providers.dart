@@ -124,9 +124,14 @@ final fcmServiceProvider = Provider<FcmService>((ref) {
   return FcmService(client);
 });
 
-final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) {
+final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) async {
   final repo = ref.watch(deliveryRepositoryProvider);
-  return repo.fetchActive();
+  final deliveries = await repo.fetchActive();
+  // Warm the detail of everything the driver can actually see in his list. Prefetching only the
+  // stops of today's route missed the deliveries that are assigned to him without being on it (pool,
+  // direct assignment) — exactly the ones that opened onto nothing once the signal was gone.
+  unawaited(repo.prefetchDetails(deliveries.map((d) => d.id)));
+  return deliveries;
 });
 
 /// Paginated, infinite-scroll driver history — accumulates pages + tracks whether more exist.
