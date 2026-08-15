@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import '../firebase_options.dart';
@@ -18,6 +19,14 @@ const _sentryRelease = String.fromEnvironment('SENTRY_RELEASE', defaultValue: ''
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Never fetch fonts over the network at runtime. google_fonts otherwise tries
+  // to download Inter from fonts.gstatic.com on first paint — which throws
+  // unhandled SocketExceptions all over the app when the driver is offline. Fonts
+  // already cached from an online run still load; a cold offline start just falls
+  // back to the platform font instead of crashing.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   await Hive.initFlutter();
 
   final tokenStorage = TokenStorage();

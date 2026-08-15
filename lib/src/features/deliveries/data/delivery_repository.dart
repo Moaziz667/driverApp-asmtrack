@@ -46,10 +46,8 @@ class DeliveryRepository {
       }
       return deliveries;
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
+      // Network-level failure (no HTTP response): offline, DNS lookup failure, timeout.
+      if (e.response == null) {
         // Offline fallback: load from cache
         try {
           final raw = _box.get(_cacheKey) as String?;
@@ -86,10 +84,10 @@ class DeliveryRepository {
       } catch (_) {}
       return delivery;
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
+      // Any failure where we never got an HTTP response = network-level: offline,
+      // DNS lookup failure (surfaced as `unknown`), timeouts. Serve cache in all
+      // of them — gating on specific DioExceptionTypes missed "Wi-Fi off" (DNS).
+      if (e.response == null) {
         // 1) Per-delivery cache (populated when this fiche was opened online).
         try {
           final raw = _box.get('$_detailCachePrefix$id') as String?;
