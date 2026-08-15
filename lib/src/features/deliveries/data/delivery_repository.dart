@@ -93,7 +93,11 @@ class DeliveryRepository {
     final now = DateTime.now();
     final pending = ids.toSet().where((id) {
       if (id.isEmpty) return false;
-      final at = detailCachedAt(id);
+      // Strictly this delivery's own timestamp — NOT detailCachedAt, which falls back to the active
+      // list's timestamp to drive the "offline data · HH:MM" banner. That fallback is right for the
+      // banner and wrong here: the list is refreshed on every launch, so every delivery looked fresh
+      // and nothing was ever pre-loaded.
+      final at = _detailOnlyCachedAt(id);
       return at == null || now.difference(at) >= freshFor;
     }).toList();
     if (pending.isEmpty) return;
@@ -120,6 +124,12 @@ class DeliveryRepository {
 
     await Future.wait(
         List.generate(pending.length.clamp(0, _prefetchConcurrency), (_) => worker()));
+  }
+
+  /// When this delivery's own detail was cached — no list fallback. See [prefetchDetails].
+  DateTime? _detailOnlyCachedAt(String id) {
+    final raw = _box.get('${_detailCachePrefix}${id}_at') as String?;
+    return raw != null ? DateTime.tryParse(raw) : null;
   }
 
   Future<DriverDelivery> fetchById(String id) async {
