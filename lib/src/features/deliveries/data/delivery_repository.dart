@@ -438,9 +438,12 @@ class DeliveryRepository {
       return projected;
     }
 
-    final options = idempotencyKey != null
-        ? Options(headers: {'X-Idempotency-Key': idempotencyKey})
-        : null;
+    // X-Client-Timestamp on the direct path too: the server reads the header, so an online action
+    // must carry it as well or the two paths would timestamp differently.
+    final options = Options(headers: {
+      if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
+      'X-Client-Timestamp': stamped['clientTimestamp'],
+    });
 
     try {
       final response = await _client.dio.post<Map<String, dynamic>>(path, data: stamped, options: options);

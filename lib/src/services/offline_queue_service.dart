@@ -313,6 +313,21 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
     ));
   }
 
+  /// The moment the driver tapped, in UTC ISO-8601. Prefers the `clientTimestamp` the repository
+  /// stamped into the payload (already UTC); falls back to the queue entry's own local timestamp.
+  static String _utcIso(Map<dynamic, dynamic> entry) {
+    try {
+      final raw = entry['data'] as String?;
+      if (raw != null) {
+        final decoded = jsonDecode(raw);
+        final stamped = decoded is Map ? decoded['clientTimestamp'] as String? : null;
+        if (stamped != null && stamped.isNotEmpty) return stamped;
+      }
+    } catch (_) {}
+    final fallback = DateTime.tryParse((entry['timestamp'] as String?) ?? '');
+    return (fallback ?? DateTime.now()).toUtc().toIso8601String();
+  }
+
   Future<void> processQueue() async {
     if (_processing) return;
     if (_pendingKeys().isEmpty) return;
@@ -351,6 +366,9 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
         final options = Options(headers: {
           if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
           if (correlationId != null) 'X-Correlation-ID': correlationId,
+          // When the driver actually tapped. Without it the server timestamps the replay, so a
+          // parcel handed over in a basement at 14:10 was proven delivered at 17:53 in the van.
+          if (entry['timestamp'] != null) 'X-Client-Timestamp': _utcIso(entry),
         });
 
         try {

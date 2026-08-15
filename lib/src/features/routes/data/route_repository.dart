@@ -90,9 +90,12 @@ class RouteRepository {
       return _queue(path, idempotencyKey, clientTimestamp, project);
     }
 
-    final options = idempotencyKey != null
-        ? Options(headers: {'X-Idempotency-Key': idempotencyKey})
-        : null;
+    // See DeliveryRepository: the server reads the action time off the header, so the direct path
+    // must send it too, not only the queued replay.
+    final options = Options(headers: {
+      if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
+      'X-Client-Timestamp': clientTimestamp,
+    });
 
     try {
       final response = await _client.dio.post<Map<String, dynamic>>(

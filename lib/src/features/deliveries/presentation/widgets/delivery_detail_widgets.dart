@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 
 import '../../../../app_providers.dart';
 import '../../../../services/locale_provider.dart';
+import '../../../../services/pdf_service.dart';
 import '../../../../theme/status_colors.dart';
 import '../../../../theme/swipe_button.dart';
 import '../../models/delivery_models.dart';
@@ -869,10 +870,15 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
           SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_open_error)),
         );
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
+        // Show the server's own reason when it gave one ("cette livraison n'a pas de référence de
+        // bon de livraison dans l'ERP"): it tells the driver whether to retry or to call the office.
+        final message = e is PdfDownloadException
+            ? e.message
+            : AppLocalizations.of(context).pod_pdf_download_error;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_download_error)),
+          SnackBar(content: Text(message), duration: const Duration(seconds: 6)),
         );
       }
     } finally {
