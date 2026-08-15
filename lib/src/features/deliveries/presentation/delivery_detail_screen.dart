@@ -41,6 +41,15 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     try {
       await task();
       await _refresh();
+      // Offline actions now go through: they are queued and applied to the cached delivery, so the
+      // screen advances. The notice therefore has to be raised on success, not on a failure.
+      if (mounted && !await ref.read(connectivityServiceProvider).isOnline) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
+          );
+        }
+      }
     } catch (e) {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {

@@ -74,6 +74,36 @@ class DeliveryRepository {
     return (items: items, hasNext: data['hasNext'] as bool? ?? false);
   }
 
+  /// Warm the detail cache for a whole route, so any delivery opens offline — not only the ones the
+  /// driver happened to tap while he still had signal. That was the practical failure: losing signal
+  /// meant every unopened delivery was a dead end, and the driver had to guess in advance which ones
+  /// he would need.
+  ///
+  /// Fire-and-forget and best-effort: sequential to avoid a burst of parallel requests on a phone
+  /// radio, silent on failure, and it skips anything cached in the last [freshFor].
+  Future<void> prefetchDetails(
+    Iterable<String> ids, {
+    Duration freshFor = const Duration(minutes: 30),
+  }) async {
+    if (!await _connectivity.isOnline) return;
+    final now = DateTime.now();
+    for (final id in ids) {
+      if (id.isEmpty) continue;
+      final at = detailCachedAt(id);
+      if (at != null && now.difference(at) < freshFor) continue;
+      try {
+        final response =
+            await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
+        if (response.data == null) continue;
+        await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
+        await _box.put('${_detailCachePrefix}${id}_at', now.toIso8601String());
+      } catch (_) {
+        // A delivery we cannot pre-load is not an error the driver should see; the detail screen
+        // still falls back to the cached list.
+      }
+    }
+  }
+
   Future<DriverDelivery> fetchById(String id) async {
     try {
       final response = await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
@@ -115,22 +145,29 @@ class DeliveryRepository {
   }
 
 
-  Future<DriverDelivery> accept(String id) => _mutate('/driver/deliveries/$id/accept', idempotencyKey: 'acc-$id');
-  Future<DriverDelivery> pickup(String id) => _mutate('/driver/deliveries/$id/pickup', idempotencyKey: 'pkp-$id');
+  // `localStatus` is the status the server would set — the same transition, applied to the cached
+  // copy so an offline driver keeps moving through his round instead of stalling on the last screen.
+  Future<DriverDelivery> accept(String id) => _mutate('/driver/deliveries/$id/accept',
+      idempotencyKey: 'acc-$id', localStatus: 'SCHEDULED');
+  Future<DriverDelivery> pickup(String id) => _mutate('/driver/deliveries/$id/pickup',
+      idempotencyKey: 'pkp-$id', localStatus: 'PICKED_UP');
 
   Future<DriverDelivery> startTransit(String id, {double? lat, double? lng}) {
     return _mutate(
       '/driver/deliveries/$id/transit',
       data: lat != null && lng != null ? {'lat': lat, 'lng': lng} : null,
       idempotencyKey: 'trns-$id',
+      localStatus: 'IN_TRANSIT',
     );
   }
 
-  Future<DriverDelivery> complete(String id) => _mutate('/driver/deliveries/$id/complete', idempotencyKey: 'cmp-$id');
+  Future<DriverDelivery> complete(String id) => _mutate('/driver/deliveries/$id/complete',
+      idempotencyKey: 'cmp-$id', localStatus: 'DELIVERED');
 
   Future<DriverDelivery> fail(String id, {required String reasonCode, String? comment}) {
     return _mutate(
       '/driver/deliveries/$id/fail',
+      localStatus: 'FAILED',
       data: {
         'failureReasonCode': reasonCode,
         if (comment != null && comment.isNotEmpty) 'failureComment': comment,
@@ -159,9 +196,10 @@ class DeliveryRepository {
   }
 
   Future<DriverDelivery> cancel(String id, {String? reason}) {
-    return _mutate('/driver/deliveries/$id/cancel', 
+    return _mutate('/driver/deliveries/$id/cancel',
       data: reason != null ? {'reason': reason} : null,
       idempotencyKey: 'can-$id',
+      localStatus: 'CANCELLED',
     );
   }
 
@@ -169,6 +207,9 @@ class DeliveryRepository {
     return _mutate('/driver/deliveries/$id/pod',
       data: payload.toJson(),
       idempotencyKey: 'pod-$id',
+      // Proof of delivery is what completes the delivery, so the local projection must say DELIVERED
+      // — otherwise the driver signs, sees nothing move, and signs again.
+      localStatus: 'DELIVERED',
     );
   }
 
@@ -295,7 +336,56 @@ class DeliveryRepository {
     });
   }
 
-  Future<DriverDelivery> _mutate(String path, {Map<String, dynamic>? data, String? idempotencyKey}) async {
+  /// Project a queued write onto the cached delivery (and the cached active list) so the screen
+  /// advances while the request waits for signal. Without this the driver saw "sync deferred" and a
+  /// delivery frozen on its previous status — an action he could not see the effect of.
+  ///
+  /// Optimistic and short-lived by design: the next successful fetch overwrites it with the server's
+  /// truth, so a write the server ends up rejecting corrects itself without any reconciliation code.
+  Future<DriverDelivery?> _applyLocalStatus(String id, String status) async {
+    try {
+      final raw = _box.get('$_detailCachePrefix$id') as String?;
+      Map<String, dynamic>? detail =
+          raw != null ? jsonDecode(raw) as Map<String, dynamic> : null;
+
+      // Fall back to the entry inside the cached active list — the driver may have seen the delivery
+      // in the list without ever opening its detail screen.
+      if (detail == null) {
+        final listRaw = _box.get(_cacheKey) as String?;
+        if (listRaw != null) {
+          final list = jsonDecode(listRaw) as List<dynamic>;
+          for (final e in list) {
+            if (e is Map<String, dynamic> && e['id']?.toString() == id) {
+              detail = Map<String, dynamic>.from(e);
+              break;
+            }
+          }
+        }
+      }
+      if (detail == null) return null;
+
+      detail['status'] = status;
+      await _box.put('$_detailCachePrefix$id', jsonEncode(detail));
+
+      // Keep the list consistent too, otherwise going back shows the old status.
+      final listRaw = _box.get(_cacheKey) as String?;
+      if (listRaw != null) {
+        final list = jsonDecode(listRaw) as List<dynamic>;
+        for (final e in list) {
+          if (e is Map<String, dynamic> && e['id']?.toString() == id) {
+            e['status'] = status;
+          }
+        }
+        await _box.put(_cacheKey, jsonEncode(list));
+      }
+      return DriverDelivery.fromJson(detail);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<DriverDelivery> _mutate(String path,
+      {Map<String, dynamic>? data, String? idempotencyKey, String? localStatus}) async {
     // Capture the action time NOW — before any network attempt.
     // The backend uses clientTimestamp when present so offline actions are
     // recorded at the moment the driver tapped, not when connectivity returned.
@@ -313,7 +403,11 @@ class DeliveryRepository {
         data: stamped,
         idempotencyKey: idempotencyKey,
       );
-      throw 'OFFLINE_QUEUED';
+      final projected = localStatus != null
+          ? await _applyLocalStatus(_deliveryIdOf(path), localStatus)
+          : null;
+      if (projected == null) throw 'OFFLINE_QUEUED';
+      return projected;
     }
 
     final options = idempotencyKey != null
@@ -322,7 +416,17 @@ class DeliveryRepository {
 
     try {
       final response = await _client.dio.post<Map<String, dynamic>>(path, data: stamped, options: options);
-      return DriverDelivery.fromJson(response.data ?? {});
+      final body = response.data ?? <String, dynamic>{};
+      // Refresh the detail cache from the server's answer: if signal drops right after, the driver
+      // resumes from the state the server actually acknowledged.
+      if (body['id'] != null) {
+        try {
+          await _box.put('$_detailCachePrefix${body['id']}', jsonEncode(body));
+          await _box.put('${_detailCachePrefix}${body['id']}_at',
+              DateTime.now().toIso8601String());
+        } catch (_) {}
+      }
+      return DriverDelivery.fromJson(body);
     } on DioException catch (e) {
       // Network dropped mid-request — enqueue for later
       if (e.type == DioExceptionType.connectionError ||
@@ -335,9 +439,20 @@ class DeliveryRepository {
           data: stamped,
           idempotencyKey: idempotencyKey,
         );
-        throw 'OFFLINE_QUEUED';
+        final projected = localStatus != null
+            ? await _applyLocalStatus(_deliveryIdOf(path), localStatus)
+            : null;
+        if (projected == null) throw 'OFFLINE_QUEUED';
+        return projected;
       }
       rethrow;
     }
+  }
+
+  /// `/driver/deliveries/{id}/complete` → `{id}`.
+  static String _deliveryIdOf(String path) {
+    final segs = path.split('/').where((s) => s.isNotEmpty).toList();
+    final i = segs.indexOf('deliveries');
+    return (i >= 0 && i + 1 < segs.length) ? segs[i + 1] : '';
   }
 }

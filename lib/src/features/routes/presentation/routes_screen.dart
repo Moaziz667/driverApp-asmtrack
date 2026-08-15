@@ -42,6 +42,15 @@ class _RoutesScreenState extends ConsumerState<RoutesScreen> {
     try {
       await fn();
       await _refresh();
+      // The action now succeeds offline too (it is queued and projected onto the cached route), so
+      // the "deferred" notice can no longer ride on an exception — the screen has already moved on.
+      if (mounted && !await ref.read(connectivityServiceProvider).isOnline) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context).routeOfflineAction)),
+          );
+        }
+      }
     } catch (e) {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {

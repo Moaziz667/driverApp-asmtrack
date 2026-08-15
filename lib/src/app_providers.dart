@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -210,9 +212,19 @@ final driverStatsProvider = FutureProvider<DriverStats>((ref) {
   return repo.fetchStats();
 });
 
-final todayRouteProvider = FutureProvider<DriverRoute?>((ref) {
+final todayRouteProvider = FutureProvider<DriverRoute?>((ref) async {
   final repo = ref.watch(routeRepositoryProvider);
-  return repo.fetchToday();
+  final route = await repo.fetchToday();
+  // Warm every delivery of the round while there is still signal. Unawaited on purpose: the route
+  // must render at once, and a pre-load that fails changes nothing the driver can see.
+  if (route != null && !route.fromCache) {
+    final ids = route.stops
+        .map((s) => s.deliveryId)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    unawaited(ref.read(deliveryRepositoryProvider).prefetchDetails(ids));
+  }
+  return route;
 });
 
 final deliveryDetailProvider = FutureProvider.family<DriverDelivery, String>((ref, id) {
