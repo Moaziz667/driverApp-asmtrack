@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 
 import '../../../services/api_client.dart';
@@ -153,6 +154,13 @@ class AuthController extends StateNotifier<AuthState> {
     }
 
     await _tokenStorage.clear();
+    // The offline cache holds this driver's round, his customers and his profile. Leaving it behind
+    // would show the next driver signing in on this handset someone else's deliveries.
+    try {
+      await Hive.box('domain_cache').clear();
+    } catch (_) {
+      // Best effort: never let a cache wipe block a sign-out.
+    }
     Sentry.addBreadcrumb(Breadcrumb(category: 'auth', message: 'logout'));
     await Sentry.configureScope((s) => s.setUser(null));
     // Session handling stays disarmed until the next successful sign-in (see
