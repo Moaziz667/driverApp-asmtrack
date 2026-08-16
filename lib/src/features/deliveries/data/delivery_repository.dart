@@ -7,15 +7,17 @@ import 'package:hive/hive.dart';
 import '../../../services/api_client.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../services/offline_queue_service.dart';
+import '../../../services/delivery_note_cache.dart';
 import '../models/delivery_models.dart';
 import '../models/handoff_models.dart';
 
 class DeliveryRepository {
-  DeliveryRepository(this._client, this._offlineQueue, this._connectivity);
+  DeliveryRepository(this._client, this._offlineQueue, this._connectivity, this._noteCache);
 
   final ApiClient _client;
   final OfflineQueueService _offlineQueue;
   final ConnectivityService _connectivity;
+  final DeliveryNoteCache _noteCache;
 
   static const _cacheKey = 'cached_active_deliveries';
   static const _detailCachePrefix = 'cached_delivery_';
@@ -125,6 +127,49 @@ class DeliveryRepository {
     await Future.wait(
         List.generate(pending.length.clamp(0, _prefetchConcurrency), (_) => worker()));
   }
+
+  /// Pull the ERP delivery note for each delivery ahead of time, and drop the ones from previous
+  /// rounds. The note is fetched live from Odoo/ERPNext on every open, so without this the button is
+  /// simply dead as soon as signal drops — at the doorstep, where the customer signs for it.
+  ///
+  /// One ERP call per delivery makes this the heaviest prefetch we do, so it only ever runs for notes
+  /// we do not already hold, and at a low concurrency. A failure is silent: the button then behaves
+  /// as before, needing signal.
+  Future<void> prefetchDeliveryNotes(Iterable<String> ids) async {
+    if (!await _connectivity.isOnline) return;
+    final wanted = ids.where((id) => id.isNotEmpty).toSet();
+    // Prune first: a handset that ran out of room could not store today's notes otherwise.
+    await _noteCache.retainOnly(wanted);
+
+    final missing = wanted.where((id) => !_noteCache.has(id)).toList();
+    if (missing.isEmpty) return;
+
+    var next = 0;
+    Future<void> worker() async {
+      while (true) {
+        final i = next++;
+        if (i >= missing.length) return;
+        final id = missing[i];
+        try {
+          final response = await _client.dio.get<Uint8List>(
+            '/driver/deliveries/$id/bon-livraison',
+            options: Options(responseType: ResponseType.bytes),
+          );
+          final bytes = response.data;
+          if (bytes != null && bytes.isNotEmpty) await _noteCache.put(id, bytes);
+        } catch (_) {
+          // No note for this delivery (no ERP picking reference), or the ERP is unreachable. Both
+          // are normal and neither is worth telling the driver about ahead of time.
+        }
+      }
+    }
+
+    await Future.wait(
+        List.generate(missing.length.clamp(0, _notePrefetchConcurrency), (_) => worker()));
+  }
+
+  /// Lower than the detail prefetch: each of these round-trips all the way to the ERP.
+  static const _notePrefetchConcurrency = 2;
 
   /// When this delivery's own detail was cached — no list fallback. See [prefetchDetails].
   DateTime? _detailOnlyCachedAt(String id) {

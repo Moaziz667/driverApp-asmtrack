@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -42,6 +43,9 @@ Future<void> bootstrap() async {
   await _openSafeBox<Map<dynamic, dynamic>>('offline_queue', cipher);
   await _openSafeBox('notifications', cipher);
   await _openSafeBox('domain_cache', cipher);
+  // Delivery-note PDFs, kept apart from domain_cache: they are binary and comparatively large, and
+  // they are purged on their own schedule (see DeliveryNoteCache).
+  await _openSafeBox<Uint8List>('delivery_notes', cipher);
 
   // Firebase init must never block app launch — time it out so a slow/absent Play Services
   // (or a flaky network) can't freeze the splash. FCM re-initialises lazily afterwards.

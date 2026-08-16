@@ -16,6 +16,7 @@ import 'features/routes/data/route_repository.dart';
 import 'features/routes/models/route_models.dart';
 import 'services/api_client.dart';
 import 'services/connectivity_service.dart';
+import 'services/delivery_note_cache.dart';
 import 'services/fcm_service.dart';
 import 'services/pdf_service.dart';
 import 'services/route_cache_service.dart';
@@ -96,8 +97,10 @@ final deliveryRepositoryProvider = Provider<DeliveryRepository>((Ref ref) {
   final client = ref.watch(apiClientProvider);
   final queue = ref.watch(offlineQueueProvider.notifier);
   final connectivity = ref.watch(connectivityServiceProvider);
-  return DeliveryRepository(client, queue, connectivity);
+  return DeliveryRepository(client, queue, connectivity, ref.watch(deliveryNoteCacheProvider));
 });
+
+final deliveryNoteCacheProvider = Provider<DeliveryNoteCache>((ref) => DeliveryNoteCache());
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -227,7 +230,10 @@ final todayRouteProvider = FutureProvider<DriverRoute?>((ref) async {
         .map((s) => s.deliveryId)
         .where((id) => id.isNotEmpty)
         .toSet();
-    unawaited(ref.read(deliveryRepositoryProvider).prefetchDetails(ids));
+    final repo = ref.read(deliveryRepositoryProvider);
+    unawaited(repo.prefetchDetails(ids));
+    // And the ERP delivery notes, so the button still works at the doorstep with no signal.
+    unawaited(repo.prefetchDeliveryNotes(ids));
   }
   return route;
 });

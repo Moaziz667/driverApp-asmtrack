@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,6 +8,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../services/api_client.dart';
 import '../../../services/fcm_service.dart';
 import '../../../services/offline_queue_service.dart';
+import '../../../services/delivery_note_cache.dart';
 import '../../../services/token_storage.dart';
 import '../models/auth_models.dart';
 import 'auth_repository.dart';
@@ -158,6 +160,8 @@ class AuthController extends StateNotifier<AuthState> {
     // would show the next driver signing in on this handset someone else's deliveries.
     try {
       await Hive.box('domain_cache').clear();
+      // The delivery notes go too: they carry the customers' names and addresses.
+      await Hive.box<Uint8List>(DeliveryNoteCache.boxName).clear();
     } catch (_) {
       // Best effort: never let a cache wipe block a sign-out.
     }

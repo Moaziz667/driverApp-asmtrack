@@ -6,6 +6,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 import '../../../../app_providers.dart';
 import '../../../../services/locale_provider.dart';
 import '../../../../services/pdf_service.dart';
+import '../../../../services/pdf_service_web.dart'
+    if (dart.library.io) '../../../../services/pdf_service_io.dart';
 import '../../../../theme/status_colors.dart';
 import '../../../../theme/swipe_button.dart';
 import '../../models/delivery_models.dart';
@@ -849,8 +851,22 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
   Future<void> _open() async {
     if (_loading) return;
 
+    final fileName = 'bon-livraison-${widget.deliveryId}.pdf';
+
+    // Prefetched at the depot, so the note opens with no signal — this is the document the customer
+    // signs for, and the doorstep is the worst place to need the network.
+    final cached = ref.read(deliveryNoteCacheProvider).get(widget.deliveryId);
     final isOnline = await ref.read(connectivityServiceProvider).isOnline;
     if (!isOnline) {
+      if (cached != null) {
+        setState(() => _loading = true);
+        try {
+          await openPdfBytes(cached, fileName);
+        } finally {
+          if (mounted) setState(() => _loading = false);
+        }
+        return;
+      }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context).bonLivraisonOffline)),
@@ -863,7 +879,7 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
     try {
       final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
         '/driver/deliveries/${widget.deliveryId}/bon-livraison',
-        fileName: 'bon-livraison-${widget.deliveryId}.pdf',
+        fileName: fileName,
       );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
