@@ -127,20 +127,22 @@ void main() {
     testWidgets('renders item name + outcome chips, no exception (fr)', (tester) async {
       await pumpThemed(
         tester,
+        // A line of 5 with one unit refused: 4 delivered, and the refusal carries its motif.
         PodItemOutcomeRow(
           item: _FakeItem(),
-          currentQty: 5,
-          outcome: 'DELIVERED',
-          reason: null,
+          delivered: 4,
+          dispQty: const {'REFUSED': 1},
+          dispReason: const {'REFUSED': 'CLIENT_REFUSED'},
           locale: 'fr',
-          onOutcome: (_) {},
-          onQty: (_) {},
-          onReason: (_) {},
+          onDispQty: (_, __) {},
+          onDispReason: (_, __) {},
         ),
         locale: const Locale('fr'),
       );
       expect(find.text('Test Item'), findsOneWidget);
-      expect(find.text(podOutcomeLabel('DELIVERED', 'fr')), findsWidgets);
+      // The row is now a per-unit breakdown: the delivered slice is derived and shown as a count,
+      // not as a single outcome chip for the whole line.
+      expect(find.text('4'), findsWidgets);
       expect(tester.takeException(), isNull);
     });
   });

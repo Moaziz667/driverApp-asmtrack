@@ -7,6 +7,7 @@ import '../../../../app_providers.dart';
 import '../../../../../generated/l10n/app_localizations.dart';
 import '../../../../services/offline_queue_service.dart';
 import '../../../deliveries/presentation/delivery_detail_screen.dart';
+import '../../../../theme/status_colors.dart';
 
 /// Re-arms one or all failed items, then tells the driver the truth: if we're
 /// offline the retry is queued, not sent — so "Retry" never looks like success
@@ -182,9 +183,12 @@ class _QueueRow extends ConsumerWidget {
     final queue = ref.read(offlineQueueProvider.notifier);
     final failed = item.status == QueueItemStatus.deadLetter;
 
+    // A queued write is "on hold" and a dead-lettered one has "failed" — the same two states the
+    // status palette already names, so they take its colours and follow the theme.
+    final statusColors = Theme.of(context).extension<StatusColors>()!;
     final (Color badgeColor, String badgeText, IconData badgeIcon) = failed
-        ? (const Color(0xFFDC2626), l10n.syncStatusFailed, PhosphorIconsBold.warning)
-        : (const Color(0xFFF59E0B), l10n.syncStatusPending, PhosphorIconsRegular.clock);
+        ? (statusColors.failed, l10n.syncStatusFailed, PhosphorIconsBold.warning)
+        : (statusColors.onBreak, l10n.syncStatusPending, PhosphorIconsRegular.clock);
 
     final ref0 = item.reference;
     final title = ref0 != null

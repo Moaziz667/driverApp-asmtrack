@@ -11,6 +11,7 @@ import '../models/status_labels.dart';
 import 'handoff_scanner_screen.dart';
 import 'widgets/delivery_detail_widgets.dart';
 import 'package:driver_app/generated/l10n/app_localizations.dart';
+import '../../../theme/status_colors.dart';
 
 class DeliveryDetailArgs {
   const DeliveryDetailArgs({required this.deliveryId});
@@ -344,25 +345,30 @@ class _OfflineDataBanner extends StatelessWidget {
     final time = cachedAt != null
         ? '${cachedAt!.hour.toString().padLeft(2, '0')}:${cachedAt!.minute.toString().padLeft(2, '0')}'
         : '—';
+    // Stale-but-usable data is the same "on hold" state the status palette already names.
+    final amber = Theme.of(context).extension<StatusColors>()!.onBreak;
+    // Pulled towards the page's own text colour so it stays readable on the tinted background —
+    // darker in the light theme, lighter in the dark one, instead of one fixed brown.
+    final amberInk = Color.lerp(amber, Theme.of(context).colorScheme.onSurface, 0.45)!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+        color: amber.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
+        border: Border.all(color: amber.withValues(alpha: 0.35)),
       ),
       child: Row(
         children: [
-          const Icon(PhosphorIconsRegular.cloudSlash, size: 15, color: Color(0xFFB45309)),
+          Icon(PhosphorIconsRegular.cloudSlash, size: 15, color: amberInk),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               l10n.offlineDataAsOf(time),
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFFB45309),
+                color: amberInk,
               ),
             ),
           ),
