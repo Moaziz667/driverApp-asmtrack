@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'config/app_config.dart';
@@ -13,6 +16,7 @@ import 'features/routes/data/route_repository.dart';
 import 'features/routes/models/route_models.dart';
 import 'services/api_client.dart';
 import 'services/connectivity_service.dart';
+import 'services/delivery_note_cache.dart';
 import 'services/fcm_service.dart';
 import 'services/pdf_service.dart';
 import 'services/route_cache_service.dart';
@@ -23,13 +27,34 @@ final appConfigProvider = StateProvider<AppConfig>((ref) => AppConfig.fromEnviro
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
-final connectivityServiceProvider = Provider<ConnectivityService>(
-  (ref) => ConnectivityService(),
-);
+final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
+  // Reachability probe: a bare Dio (no auth interceptors, so it can never kick
+  // off a token refresh) that hits the API host. Any HTTP response — even a 404
+  // — proves the server is reachable; a timeout / DNS failure means "Wi-Fi but
+  // no internet", which we then treat as offline.
+  return ConnectivityService(reachabilityProbe: () async {
+    final baseUrl = ref.read(appConfigProvider).apiBaseUrlV1;
+    try {
+      final res = await Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 3),
+        receiveTimeout: const Duration(seconds: 3),
+      )).get<void>(
+        baseUrl,
+        options: Options(validateStatus: (_) => true),
+      );
+      return res.statusCode != null;
+    } catch (_) {
+      return false;
+    }
+  });
+});
 
 final connectionStatusProvider = StreamProvider<bool>((ref) {
   final connectivity = ref.watch(connectivityServiceProvider);
-  return connectivity.onlineStream;
+  // Reachability, not link state: on Wi-Fi with no internet the banner must read
+  // "offline" — the same truth the write path uses — so the UI never contradicts
+  // what actually happens when the driver taps an action.
+  return connectivity.reachabilityStream();
 });
 
 final apiClientProvider = Provider<ApiClient>((Ref ref) {
@@ -72,8 +97,10 @@ final deliveryRepositoryProvider = Provider<DeliveryRepository>((Ref ref) {
   final client = ref.watch(apiClientProvider);
   final queue = ref.watch(offlineQueueProvider.notifier);
   final connectivity = ref.watch(connectivityServiceProvider);
-  return DeliveryRepository(client, queue, connectivity);
+  return DeliveryRepository(client, queue, connectivity, ref.watch(deliveryNoteCacheProvider));
 });
+
+final deliveryNoteCacheProvider = Provider<DeliveryNoteCache>((ref) => DeliveryNoteCache());
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -100,9 +127,14 @@ final fcmServiceProvider = Provider<FcmService>((ref) {
   return FcmService(client);
 });
 
-final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) {
+final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) async {
   final repo = ref.watch(deliveryRepositoryProvider);
-  return repo.fetchActive();
+  final deliveries = await repo.fetchActive();
+  // Warm the detail of everything the driver can actually see in his list. Prefetching only the
+  // stops of today's route missed the deliveries that are assigned to him without being on it (pool,
+  // direct assignment) — exactly the ones that opened onto nothing once the signal was gone.
+  unawaited(repo.prefetchDetails(deliveries.map((d) => d.id)));
+  return deliveries;
 });
 
 /// Paginated, infinite-scroll driver history — accumulates pages + tracks whether more exist.
@@ -188,9 +220,22 @@ final driverStatsProvider = FutureProvider<DriverStats>((ref) {
   return repo.fetchStats();
 });
 
-final todayRouteProvider = FutureProvider<DriverRoute?>((ref) {
+final todayRouteProvider = FutureProvider<DriverRoute?>((ref) async {
   final repo = ref.watch(routeRepositoryProvider);
-  return repo.fetchToday();
+  final route = await repo.fetchToday();
+  // Warm every delivery of the round while there is still signal. Unawaited on purpose: the route
+  // must render at once, and a pre-load that fails changes nothing the driver can see.
+  if (route != null && !route.fromCache) {
+    final ids = route.stops
+        .map((s) => s.deliveryId)
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    final repo = ref.read(deliveryRepositoryProvider);
+    unawaited(repo.prefetchDetails(ids));
+    // And the ERP delivery notes, so the button still works at the doorstep with no signal.
+    unawaited(repo.prefetchDeliveryNotes(ids));
+  }
+  return route;
 });
 
 final deliveryDetailProvider = FutureProvider.family<DriverDelivery, String>((ref, id) {

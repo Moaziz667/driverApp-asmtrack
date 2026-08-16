@@ -92,7 +92,7 @@ void main() {
       expect((captured[1] as Options).headers?['X-Idempotency-Key'], 'k1');
     });
 
-    test('drops the entry on a 4xx permanent failure', () async {
+    test('dead-letters (keeps, marks failed) on a 4xx permanent failure', () async {
       when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options'))).thenThrow(
         DioException(
           requestOptions: RequestOptions(path: '/p'),
@@ -101,7 +101,34 @@ void main() {
       );
       await svc.enqueueRequest(path: '/p', method: 'POST', idempotencyKey: 'k1');
       await svc.processQueue();
-      expect(box.length, 0);
+      // Not dropped silently: kept on disk, flagged for the driver to see + retry.
+      expect(box.length, 1);
+      expect(box.values.first['status'], 'DEAD_LETTER');
+      expect(box.values.first['lastError'], 'HTTP_409');
+      expect(svc.state.failed, 1);
+      expect(svc.state.pending, 0);
+    });
+
+    test('retryItem re-arms a dead-letter and re-sends it', () async {
+      // Fail with 500 throughout the exhaust phase so the item dead-letters.
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenThrow(DioException(
+        requestOptions: RequestOptions(path: '/p'),
+        type: DioExceptionType.badResponse,
+        response: Response(requestOptions: RequestOptions(path: '/p'), statusCode: 500),
+      ));
+      await svc.enqueueRequest(path: '/p', method: 'POST', idempotencyKey: 'k1');
+      for (var i = 0; i < 4; i++) {
+        await svc.processQueue();
+      }
+      expect(box.values.first['status'], 'DEAD_LETTER',
+          reason: '5xx past max retries dead-letters (not dropped)');
+      final key = box.keys.first;
+      // Now the server recovers and a manual retry succeeds → entry cleared.
+      when(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')))
+          .thenAnswer((_) async => Response(requestOptions: RequestOptions(path: '/p')));
+      await svc.retryItem(key);
+      expect(box.length, 0, reason: 'a successful manual retry clears the entry');
     });
 
     test('keeps the entry on a connection error (retry later)', () async {
@@ -116,7 +143,7 @@ void main() {
       expect(box.length, 1);
     });
 
-    test('expires entries older than the TTL without hitting the network', () async {
+    test('dead-letters entries older than the TTL without hitting the network', () async {
       await box.add({
         'id': 'old',
         'path': '/p',
@@ -125,9 +152,12 @@ void main() {
         'timestamp': DateTime.now().subtract(const Duration(hours: 25)).toIso8601String(),
         'idempotencyKey': 'old',
         'retryCount': 0,
+        'status': 'PENDING',
       });
       await svc.processQueue();
-      expect(box.length, 0);
+      expect(box.length, 1);
+      expect(box.values.first['status'], 'DEAD_LETTER');
+      expect(box.values.first['lastError'], 'TTL_EXPIRED');
       verifyNever(() => dio.post(any(), data: any(named: 'data'), options: any(named: 'options')));
     });
   });

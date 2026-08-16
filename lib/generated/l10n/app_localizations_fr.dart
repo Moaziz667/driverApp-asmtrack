@@ -1597,4 +1597,95 @@ class AppLocalizationsFr extends AppLocalizations {
   String calendarStopCount(Object count) {
     return '$count arrêt(s)';
   }
+
+  @override
+  String get syncCenterTitle => 'Synchronisation';
+
+  @override
+  String get syncUpToDate => 'Tout est à jour';
+
+  @override
+  String syncSyncing(Object count) {
+    return 'Envoi… $count restant(s)';
+  }
+
+  @override
+  String syncPendingBanner(Object count) {
+    return 'Hors ligne · $count en attente';
+  }
+
+  @override
+  String syncFailedBanner(Object count) {
+    return '$count action(s) à revoir';
+  }
+
+  @override
+  String get syncRetry => 'Réessayer';
+
+  @override
+  String get syncRetryAll => 'Tout réessayer';
+
+  @override
+  String get syncDiscard => 'Ignorer';
+
+  @override
+  String get syncViewDelivery => 'Voir la livraison';
+
+  @override
+  String get syncEmpty => 'Aucune action en attente';
+
+  @override
+  String get syncStatusPending => 'En attente';
+
+  @override
+  String get syncStatusFailed => 'Échec';
+
+  @override
+  String get syncStatusSending => 'En cours…';
+
+  @override
+  String get syncRejectedByServer => 'Refusé par le serveur';
+
+  @override
+  String get syncExpired => 'Expiré (trop ancien)';
+
+  @override
+  String syncEnqueuedAt(Object time) {
+    return 'Enregistré à $time';
+  }
+
+  @override
+  String offlineDataAsOf(Object time) {
+    return 'Données hors ligne · $time';
+  }
+
+  @override
+  String get syncActionComplete => 'Livré';
+
+  @override
+  String get syncActionPod => 'Preuve de livraison';
+
+  @override
+  String get syncActionFail => 'Échec de livraison';
+
+  @override
+  String get syncActionCancel => 'Annulation';
+
+  @override
+  String get syncActionTransit => 'En route';
+
+  @override
+  String get syncActionPickup => 'Ramassage';
+
+  @override
+  String get syncActionAccept => 'Acceptée';
+
+  @override
+  String get syncActionArrive => 'Arrivée';
+
+  @override
+  String get syncActionRouteStart => 'Départ de tournée';
+
+  @override
+  String get syncActionGeneric => 'Action';
 }

@@ -62,9 +62,14 @@ class ApiClient {
                   'req-${DateTime.now().millisecondsSinceEpoch}-${options.path.hashCode}';
             }
           }
-          // P2: Distributed Tracing & Correlation IDs
-          final correlationId = 'trace-${DateTime.now().millisecondsSinceEpoch}-${options.path.hashCode}';
-          options.headers['X-Correlation-ID'] = correlationId;
+          // P2: Distributed Tracing & Correlation IDs.
+          // Only generate one if the caller didn't supply it — the offline queue
+          // provides a stable id so a replayed write keeps the SAME correlation id
+          // across every retry (end-to-end traceability in the backend logs).
+          if (!options.headers.containsKey('X-Correlation-ID')) {
+            options.headers['X-Correlation-ID'] =
+                'trace-${DateTime.now().millisecondsSinceEpoch}-${options.path.hashCode}';
+          }
 
           handler.next(options);
         },

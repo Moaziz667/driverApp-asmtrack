@@ -7,20 +7,31 @@ import 'package:hive/hive.dart';
 import '../../../services/api_client.dart';
 import '../../../services/connectivity_service.dart';
 import '../../../services/offline_queue_service.dart';
+import '../../../services/delivery_note_cache.dart';
 import '../models/delivery_models.dart';
 import '../models/handoff_models.dart';
 
 class DeliveryRepository {
-  DeliveryRepository(this._client, this._offlineQueue, this._connectivity);
+  DeliveryRepository(this._client, this._offlineQueue, this._connectivity, this._noteCache);
 
   final ApiClient _client;
   final OfflineQueueService _offlineQueue;
   final ConnectivityService _connectivity;
+  final DeliveryNoteCache _noteCache;
 
   static const _cacheKey = 'cached_active_deliveries';
   static const _detailCachePrefix = 'cached_delivery_';
 
   Box get _box => Hive.box('domain_cache');
+
+  /// When the detail cache for [id] (or the active-list cache it falls back to)
+  /// was last refreshed from the server — drives the "offline data · HH:MM"
+  /// banner so the driver knows how fresh what he's looking at is.
+  DateTime? detailCachedAt(String id) {
+    final raw = (_box.get('${_detailCachePrefix}${id}_at') as String?) ??
+        (_box.get('${_cacheKey}_at') as String?);
+    return raw != null ? DateTime.tryParse(raw) : null;
+  }
 
   /// Fetch active deliveries with cache fallback for offline.
   Future<List<DriverDelivery>> fetchActive() async {
@@ -31,15 +42,14 @@ class DeliveryRepository {
       // Save to cache
       try {
         await _box.put(_cacheKey, jsonEncode(list));
+        await _box.put('${_cacheKey}_at', DateTime.now().toIso8601String());
       } catch (_) {
         // Cache write failures are non-fatal
       }
       return deliveries;
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
+      // Network-level failure (no HTTP response): offline, DNS lookup failure, timeout.
+      if (e.response == null) {
         // Offline fallback: load from cache
         try {
           final raw = _box.get(_cacheKey) as String?;
@@ -66,23 +76,140 @@ class DeliveryRepository {
     return (items: items, hasNext: data['hasNext'] as bool? ?? false);
   }
 
+  /// Warm the detail cache for a whole route, so any delivery opens offline — not only the ones the
+  /// driver happened to tap while he still had signal. That was the practical failure: losing signal
+  /// meant every unopened delivery was a dead end, and the driver had to guess in advance which ones
+  /// he would need.
+  ///
+  /// Fire-and-forget and best-effort: silent on failure, and it skips anything cached in the last
+  /// [freshFor]. Runs a few requests at a time rather than one by one — a driver who opens the app
+  /// and closes it again a few seconds later must still leave with a usable copy, and twenty
+  /// sequential round-trips did not finish in that window.
+  static const _prefetchConcurrency = 4;
+
+  Future<void> prefetchDetails(
+    Iterable<String> ids, {
+    Duration freshFor = const Duration(minutes: 30),
+  }) async {
+    if (!await _connectivity.isOnline) return;
+    final now = DateTime.now();
+    final pending = ids.toSet().where((id) {
+      if (id.isEmpty) return false;
+      // Strictly this delivery's own timestamp — NOT detailCachedAt, which falls back to the active
+      // list's timestamp to drive the "offline data · HH:MM" banner. That fallback is right for the
+      // banner and wrong here: the list is refreshed on every launch, so every delivery looked fresh
+      // and nothing was ever pre-loaded.
+      final at = _detailOnlyCachedAt(id);
+      return at == null || now.difference(at) >= freshFor;
+    }).toList();
+    if (pending.isEmpty) return;
+
+    var next = 0;
+    Future<void> worker() async {
+      while (true) {
+        final i = next++;
+        if (i >= pending.length) return;
+        final id = pending[i];
+        try {
+          final response =
+              await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
+          if (response.data == null) continue;
+          await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
+          await _box.put(
+              '${_detailCachePrefix}${id}_at', DateTime.now().toIso8601String());
+        } catch (_) {
+          // A delivery we cannot pre-load is not an error the driver should see; the detail screen
+          // still falls back to the cached list.
+        }
+      }
+    }
+
+    await Future.wait(
+        List.generate(pending.length.clamp(0, _prefetchConcurrency), (_) => worker()));
+  }
+
+  /// Pull the ERP delivery note for each delivery ahead of time, and drop the ones from previous
+  /// rounds. The note is fetched live from Odoo/ERPNext on every open, so without this the button is
+  /// simply dead as soon as signal drops — at the doorstep, where the customer signs for it.
+  ///
+  /// One ERP call per delivery makes this the heaviest prefetch we do, so it only ever runs for notes
+  /// we do not already hold, and at a low concurrency. A failure is silent: the button then behaves
+  /// as before, needing signal.
+  Future<void> prefetchDeliveryNotes(Iterable<String> ids) async {
+    if (!await _connectivity.isOnline) return;
+    final wanted = ids.where((id) => id.isNotEmpty).toSet();
+    // Prune first: a handset that ran out of room could not store today's notes otherwise.
+    await _noteCache.retainOnly(wanted);
+
+    final missing = wanted.where((id) => !_noteCache.has(id)).toList();
+    if (missing.isEmpty) return;
+
+    var next = 0;
+    Future<void> worker() async {
+      while (true) {
+        final i = next++;
+        if (i >= missing.length) return;
+        final id = missing[i];
+        try {
+          final response = await _client.dio.get<Uint8List>(
+            '/driver/deliveries/$id/bon-livraison',
+            options: Options(responseType: ResponseType.bytes),
+          );
+          final bytes = response.data;
+          if (bytes != null && bytes.isNotEmpty) await _noteCache.put(id, bytes);
+        } catch (_) {
+          // No note for this delivery (no ERP picking reference), or the ERP is unreachable. Both
+          // are normal and neither is worth telling the driver about ahead of time.
+        }
+      }
+    }
+
+    await Future.wait(
+        List.generate(missing.length.clamp(0, _notePrefetchConcurrency), (_) => worker()));
+  }
+
+  /// Lower than the detail prefetch: each of these round-trips all the way to the ERP.
+  static const _notePrefetchConcurrency = 2;
+
+  /// When this delivery's own detail was cached — no list fallback. See [prefetchDetails].
+  DateTime? _detailOnlyCachedAt(String id) {
+    final raw = _box.get('${_detailCachePrefix}${id}_at') as String?;
+    return raw != null ? DateTime.tryParse(raw) : null;
+  }
+
   Future<DriverDelivery> fetchById(String id) async {
     try {
       final response = await _client.dio.get<Map<String, dynamic>>('/driver/deliveries/$id');
       final delivery = DriverDelivery.fromJson(response.data ?? {});
       try {
         await _box.put('$_detailCachePrefix$id', jsonEncode(response.data));
+        await _box.put('${_detailCachePrefix}${id}_at', DateTime.now().toIso8601String());
       } catch (_) {}
       return delivery;
     } on DioException catch (e) {
-      if (e.type == DioExceptionType.connectionError ||
-          e.type == DioExceptionType.connectionTimeout ||
-          e.type == DioExceptionType.sendTimeout ||
-          e.type == DioExceptionType.receiveTimeout) {
+      // Any failure where we never got an HTTP response = network-level: offline,
+      // DNS lookup failure (surfaced as `unknown`), timeouts. Serve cache in all
+      // of them — gating on specific DioExceptionTypes missed "Wi-Fi off" (DNS).
+      if (e.response == null) {
+        // 1) Per-delivery cache (populated when this fiche was opened online).
         try {
           final raw = _box.get('$_detailCachePrefix$id') as String?;
           if (raw != null) {
             return DriverDelivery.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+          }
+        } catch (_) {}
+        // 2) P2-e fallback: the fiche was never opened online, but it's in the
+        // cached active-deliveries list the driver is looking at. Serve that so
+        // the detail screen opens offline instead of failing with a network error.
+        try {
+          final rawList = _box.get(_cacheKey) as String?;
+          if (rawList != null) {
+            final list = jsonDecode(rawList) as List<dynamic>;
+            final match = list.cast<Map<String, dynamic>>().firstWhere(
+                  (e) => e['id']?.toString() == id,
+                  orElse: () => const <String, dynamic>{},
+                );
+            if (match.isNotEmpty) return DriverDelivery.fromJson(match);
           }
         } catch (_) {}
       }
@@ -91,27 +218,37 @@ class DeliveryRepository {
   }
 
 
-  Future<DriverDelivery> accept(String id) => _mutate('/driver/deliveries/$id/accept', idempotencyKey: 'acc-$id');
-  Future<DriverDelivery> pickup(String id) => _mutate('/driver/deliveries/$id/pickup', idempotencyKey: 'pkp-$id');
+  // `localStatus` is the status the server would set — the same transition, applied to the cached
+  // copy so an offline driver keeps moving through his round instead of stalling on the last screen.
+  Future<DriverDelivery> accept(String id) => _mutate('/driver/deliveries/$id/accept',
+      idempotencyKey: 'acc-$id', localStatus: 'SCHEDULED');
+  Future<DriverDelivery> pickup(String id) => _mutate('/driver/deliveries/$id/pickup',
+      idempotencyKey: 'pkp-$id', localStatus: 'PICKED_UP');
 
   Future<DriverDelivery> startTransit(String id, {double? lat, double? lng}) {
     return _mutate(
       '/driver/deliveries/$id/transit',
       data: lat != null && lng != null ? {'lat': lat, 'lng': lng} : null,
       idempotencyKey: 'trns-$id',
+      localStatus: 'IN_TRANSIT',
     );
   }
 
-  Future<DriverDelivery> complete(String id) => _mutate('/driver/deliveries/$id/complete', idempotencyKey: 'cmp-$id');
+  Future<DriverDelivery> complete(String id) => _mutate('/driver/deliveries/$id/complete',
+      idempotencyKey: 'cmp-$id', localStatus: 'DELIVERED');
 
   Future<DriverDelivery> fail(String id, {required String reasonCode, String? comment}) {
     return _mutate(
       '/driver/deliveries/$id/fail',
+      localStatus: 'FAILED',
       data: {
         'failureReasonCode': reasonCode,
         if (comment != null && comment.isNotEmpty) 'failureComment': comment,
       },
-      idempotencyKey: 'fail-$id-$reasonCode',
+      // Key on the delivery only (not the reason): a driver who changes the
+      // failure reason before reconnecting should replace the queued entry, not
+      // queue a second, contradictory FAIL for the same delivery.
+      idempotencyKey: 'fail-$id',
     );
   }
 
@@ -132,9 +269,10 @@ class DeliveryRepository {
   }
 
   Future<DriverDelivery> cancel(String id, {String? reason}) {
-    return _mutate('/driver/deliveries/$id/cancel', 
+    return _mutate('/driver/deliveries/$id/cancel',
       data: reason != null ? {'reason': reason} : null,
       idempotencyKey: 'can-$id',
+      localStatus: 'CANCELLED',
     );
   }
 
@@ -142,6 +280,9 @@ class DeliveryRepository {
     return _mutate('/driver/deliveries/$id/pod',
       data: payload.toJson(),
       idempotencyKey: 'pod-$id',
+      // Proof of delivery is what completes the delivery, so the local projection must say DELIVERED
+      // — otherwise the driver signs, sees nothing move, and signs again.
+      localStatus: 'DELIVERED',
     );
   }
 
@@ -268,7 +409,56 @@ class DeliveryRepository {
     });
   }
 
-  Future<DriverDelivery> _mutate(String path, {Map<String, dynamic>? data, String? idempotencyKey}) async {
+  /// Project a queued write onto the cached delivery (and the cached active list) so the screen
+  /// advances while the request waits for signal. Without this the driver saw "sync deferred" and a
+  /// delivery frozen on its previous status — an action he could not see the effect of.
+  ///
+  /// Optimistic and short-lived by design: the next successful fetch overwrites it with the server's
+  /// truth, so a write the server ends up rejecting corrects itself without any reconciliation code.
+  Future<DriverDelivery?> _applyLocalStatus(String id, String status) async {
+    try {
+      final raw = _box.get('$_detailCachePrefix$id') as String?;
+      Map<String, dynamic>? detail =
+          raw != null ? jsonDecode(raw) as Map<String, dynamic> : null;
+
+      // Fall back to the entry inside the cached active list — the driver may have seen the delivery
+      // in the list without ever opening its detail screen.
+      if (detail == null) {
+        final listRaw = _box.get(_cacheKey) as String?;
+        if (listRaw != null) {
+          final list = jsonDecode(listRaw) as List<dynamic>;
+          for (final e in list) {
+            if (e is Map<String, dynamic> && e['id']?.toString() == id) {
+              detail = Map<String, dynamic>.from(e);
+              break;
+            }
+          }
+        }
+      }
+      if (detail == null) return null;
+
+      detail['status'] = status;
+      await _box.put('$_detailCachePrefix$id', jsonEncode(detail));
+
+      // Keep the list consistent too, otherwise going back shows the old status.
+      final listRaw = _box.get(_cacheKey) as String?;
+      if (listRaw != null) {
+        final list = jsonDecode(listRaw) as List<dynamic>;
+        for (final e in list) {
+          if (e is Map<String, dynamic> && e['id']?.toString() == id) {
+            e['status'] = status;
+          }
+        }
+        await _box.put(_cacheKey, jsonEncode(list));
+      }
+      return DriverDelivery.fromJson(detail);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<DriverDelivery> _mutate(String path,
+      {Map<String, dynamic>? data, String? idempotencyKey, String? localStatus}) async {
     // Capture the action time NOW — before any network attempt.
     // The backend uses clientTimestamp when present so offline actions are
     // recorded at the moment the driver tapped, not when connectivity returned.
@@ -286,16 +476,33 @@ class DeliveryRepository {
         data: stamped,
         idempotencyKey: idempotencyKey,
       );
-      throw 'OFFLINE_QUEUED';
+      final projected = localStatus != null
+          ? await _applyLocalStatus(_deliveryIdOf(path), localStatus)
+          : null;
+      if (projected == null) throw 'OFFLINE_QUEUED';
+      return projected;
     }
 
-    final options = idempotencyKey != null
-        ? Options(headers: {'X-Idempotency-Key': idempotencyKey})
-        : null;
+    // X-Client-Timestamp on the direct path too: the server reads the header, so an online action
+    // must carry it as well or the two paths would timestamp differently.
+    final options = Options(headers: {
+      if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
+      'X-Client-Timestamp': stamped['clientTimestamp'],
+    });
 
     try {
       final response = await _client.dio.post<Map<String, dynamic>>(path, data: stamped, options: options);
-      return DriverDelivery.fromJson(response.data ?? {});
+      final body = response.data ?? <String, dynamic>{};
+      // Refresh the detail cache from the server's answer: if signal drops right after, the driver
+      // resumes from the state the server actually acknowledged.
+      if (body['id'] != null) {
+        try {
+          await _box.put('$_detailCachePrefix${body['id']}', jsonEncode(body));
+          await _box.put('${_detailCachePrefix}${body['id']}_at',
+              DateTime.now().toIso8601String());
+        } catch (_) {}
+      }
+      return DriverDelivery.fromJson(body);
     } on DioException catch (e) {
       // Network dropped mid-request — enqueue for later
       if (e.type == DioExceptionType.connectionError ||
@@ -308,9 +515,20 @@ class DeliveryRepository {
           data: stamped,
           idempotencyKey: idempotencyKey,
         );
-        throw 'OFFLINE_QUEUED';
+        final projected = localStatus != null
+            ? await _applyLocalStatus(_deliveryIdOf(path), localStatus)
+            : null;
+        if (projected == null) throw 'OFFLINE_QUEUED';
+        return projected;
       }
       rethrow;
     }
+  }
+
+  /// `/driver/deliveries/{id}/complete` → `{id}`.
+  static String _deliveryIdOf(String path) {
+    final segs = path.split('/').where((s) => s.isNotEmpty).toList();
+    final i = segs.indexOf('deliveries');
+    return (i >= 0 && i + 1 < segs.length) ? segs[i + 1] : '';
   }
 }

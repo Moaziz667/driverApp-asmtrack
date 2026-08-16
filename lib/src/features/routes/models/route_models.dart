@@ -268,6 +268,8 @@ class DriverRoute {
       depotAddress: json['depotAddress'] as String?,
       vehicleName: json['vehicleName'] as String?,
       vehiclePlate: json['vehiclePlate'] as String?,
+      // Set by RouteCacheService when the payload comes off disk rather than the wire.
+      fromCache: json['fromCache'] == true,
       stops: stops,
     );
   }

@@ -1580,4 +1580,95 @@ class AppLocalizationsEn extends AppLocalizations {
   String calendarStopCount(Object count) {
     return '$count stop(s)';
   }
+
+  @override
+  String get syncCenterTitle => 'Sync';
+
+  @override
+  String get syncUpToDate => 'Everything is up to date';
+
+  @override
+  String syncSyncing(Object count) {
+    return 'Sending… $count left';
+  }
+
+  @override
+  String syncPendingBanner(Object count) {
+    return 'Offline · $count pending';
+  }
+
+  @override
+  String syncFailedBanner(Object count) {
+    return '$count action(s) to review';
+  }
+
+  @override
+  String get syncRetry => 'Retry';
+
+  @override
+  String get syncRetryAll => 'Retry all';
+
+  @override
+  String get syncDiscard => 'Discard';
+
+  @override
+  String get syncViewDelivery => 'View delivery';
+
+  @override
+  String get syncEmpty => 'No pending actions';
+
+  @override
+  String get syncStatusPending => 'Pending';
+
+  @override
+  String get syncStatusFailed => 'Failed';
+
+  @override
+  String get syncStatusSending => 'Sending…';
+
+  @override
+  String get syncRejectedByServer => 'Rejected by the server';
+
+  @override
+  String get syncExpired => 'Expired (too old)';
+
+  @override
+  String syncEnqueuedAt(Object time) {
+    return 'Saved at $time';
+  }
+
+  @override
+  String offlineDataAsOf(Object time) {
+    return 'Offline data · $time';
+  }
+
+  @override
+  String get syncActionComplete => 'Delivered';
+
+  @override
+  String get syncActionPod => 'Proof of delivery';
+
+  @override
+  String get syncActionFail => 'Delivery failed';
+
+  @override
+  String get syncActionCancel => 'Cancellation';
+
+  @override
+  String get syncActionTransit => 'In transit';
+
+  @override
+  String get syncActionPickup => 'Pickup';
+
+  @override
+  String get syncActionAccept => 'Accepted';
+
+  @override
+  String get syncActionArrive => 'Arrival';
+
+  @override
+  String get syncActionRouteStart => 'Route start';
+
+  @override
+  String get syncActionGeneric => 'Action';
 }

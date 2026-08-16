@@ -41,6 +41,15 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     try {
       await task();
       await _refresh();
+      // Offline actions now go through: they are queued and applied to the cached delivery, so the
+      // screen advances. The notice therefore has to be raised on success, not on a failure.
+      if (mounted && !await ref.read(connectivityServiceProvider).isOnline) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
+          );
+        }
+      }
     } catch (e) {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {
@@ -82,6 +91,12 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
             children: [
+              if (!(ref.watch(connectionStatusProvider).value ?? true))
+                _OfflineDataBanner(
+                  cachedAt: ref
+                      .read(deliveryRepositoryProvider)
+                      .detailCachedAt(delivery.id),
+                ),
               HeroCard(delivery: delivery),
               const SizedBox(height: 16),
               if (delivery.instructions != null && delivery.instructions!.isNotEmpty) ...[
@@ -315,3 +330,44 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   }
 }
 
+
+/// Small banner shown when the driver is viewing a delivery offline, so a cached
+/// (possibly stale) fiche is never mistaken for live data. Shows when the cache
+/// was last refreshed.
+class _OfflineDataBanner extends StatelessWidget {
+  const _OfflineDataBanner({this.cachedAt});
+  final DateTime? cachedAt;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final time = cachedAt != null
+        ? '${cachedAt!.hour.toString().padLeft(2, '0')}:${cachedAt!.minute.toString().padLeft(2, '0')}'
+        : '—';
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFF59E0B).withValues(alpha: 0.35)),
+      ),
+      child: Row(
+        children: [
+          const Icon(PhosphorIconsRegular.cloudSlash, size: 15, color: Color(0xFFB45309)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              l10n.offlineDataAsOf(time),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFFB45309),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

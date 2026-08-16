@@ -30,7 +30,7 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> {
+class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserver {
   Timer? _locationTimer;
   Timer? _assignmentRefreshTimer;
   bool _isTracking = false;
@@ -41,6 +41,10 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
+    // P1-a: flush the offline queue whenever the app returns to the foreground —
+    // connectivity events alone miss the case where the app was killed and
+    // reopened on a network that never changed state.
+    WidgetsBinding.instance.addObserver(this);
     _assignmentRefreshTimer = Timer.periodic(const Duration(seconds: 15), (_) {
       _refreshAssignmentsAndNotify();
       // Retried, because the first attempt below usually comes too early: the shell mounts before
@@ -363,7 +367,15 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   }
 
   @override
+  void didChangeAppLifecycleState(AppLifecycleState lifecycleState) {
+    if (lifecycleState == AppLifecycleState.resumed) {
+      ref.read(offlineQueueProvider.notifier).processQueue();
+    }
+  }
+
+  @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _locationTimer?.cancel();
     _assignmentRefreshTimer?.cancel();
     _connectivitySub?.cancel();

@@ -1,6 +1,8 @@
+import 'dart:typed_data';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import '../firebase_options.dart';
@@ -18,6 +20,14 @@ const _sentryRelease = String.fromEnvironment('SENTRY_RELEASE', defaultValue: ''
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Never fetch fonts over the network at runtime. google_fonts otherwise tries
+  // to download Inter from fonts.gstatic.com on first paint — which throws
+  // unhandled SocketExceptions all over the app when the driver is offline. Fonts
+  // already cached from an online run still load; a cold offline start just falls
+  // back to the platform font instead of crashing.
+  GoogleFonts.config.allowRuntimeFetching = false;
+
   await Hive.initFlutter();
 
   final tokenStorage = TokenStorage();
@@ -33,6 +43,9 @@ Future<void> bootstrap() async {
   await _openSafeBox<Map<dynamic, dynamic>>('offline_queue', cipher);
   await _openSafeBox('notifications', cipher);
   await _openSafeBox('domain_cache', cipher);
+  // Delivery-note PDFs, kept apart from domain_cache: they are binary and comparatively large, and
+  // they are purged on their own schedule (see DeliveryNoteCache).
+  await _openSafeBox<Uint8List>('delivery_notes', cipher);
 
   // Firebase init must never block app launch — time it out so a slow/absent Play Services
   // (or a flaky network) can't freeze the splash. FCM re-initialises lazily afterwards.
