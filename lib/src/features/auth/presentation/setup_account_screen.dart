@@ -375,10 +375,11 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           ),
                         ),
                         validator: (v) {
-                          if (v == null || v.length < 6)
+                          if (v == null || v.length < 6) {
                             return AppLocalizations.of(
                               context,
                             ).setupPasswordMin;
+                          }
                           return null;
                         },
                       ),
@@ -411,10 +412,11 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                           ),
                         ),
                         validator: (v) {
-                          if (v != _passwordCtrl.text)
+                          if (v != _passwordCtrl.text) {
                             return AppLocalizations.of(
                               context,
                             ).setupPasswordMismatch;
+                          }
                           return null;
                         },
                       ),

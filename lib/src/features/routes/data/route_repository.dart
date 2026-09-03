@@ -173,8 +173,9 @@ class RouteRepository {
         });
         _eachStop(route, (stop) {
           if ((stop['stopType'] as String?)?.toUpperCase() == 'PICKUP') return;
-          if (_stopDrawsFrom(stop, depotIds))
+          if (_stopDrawsFrom(stop, depotIds)) {
             stop['deliveryStatus'] = 'PICKED_UP';
+          }
         });
         _recountCompleted(route);
       },

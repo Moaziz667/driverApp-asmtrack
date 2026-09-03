@@ -397,10 +397,12 @@ class ProofOfDeliveryModel {
   List<String> get imageUrls {
     final urls = <String>[];
     if (photoUrl != null && photoUrl!.isNotEmpty) urls.add(photoUrl!);
-    if (bonLivraisonPhotoUrl != null && bonLivraisonPhotoUrl!.isNotEmpty)
+    if (bonLivraisonPhotoUrl != null && bonLivraisonPhotoUrl!.isNotEmpty) {
       urls.add(bonLivraisonPhotoUrl!);
-    if (signatureUrl != null && signatureUrl!.isNotEmpty)
+    }
+    if (signatureUrl != null && signatureUrl!.isNotEmpty) {
       urls.add(signatureUrl!);
+    }
     return urls;
   }
 }

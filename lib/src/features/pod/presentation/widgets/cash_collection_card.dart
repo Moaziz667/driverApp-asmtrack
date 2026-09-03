@@ -129,8 +129,9 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
   bool get _reasonAvailable => widget.reasons.any((r) => r.coversPayment);
 
   bool get isValid {
-    if (_method == CashMethod.cheque && _chequeNumberCtrl.text.trim().isEmpty)
+    if (_method == CashMethod.cheque && _chequeNumberCtrl.text.trim().isEmpty) {
       return false;
+    }
     if (_isShort && _reasonAvailable && _reasonCode == null) return false;
     return true;
   }

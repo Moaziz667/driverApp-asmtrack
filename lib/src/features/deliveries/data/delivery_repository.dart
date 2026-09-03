@@ -180,8 +180,9 @@ class DeliveryRepository {
             options: Options(responseType: ResponseType.bytes),
           );
           final bytes = response.data;
-          if (bytes != null && bytes.isNotEmpty)
+          if (bytes != null && bytes.isNotEmpty) {
             await _noteCache.put(id, bytes);
+          }
         } catch (_) {
           // No note for this delivery (no ERP picking reference), or the ERP is unreachable. Both
           // are normal and neither is worth telling the driver about ahead of time.

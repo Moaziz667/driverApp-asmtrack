@@ -114,8 +114,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     final reasonAvailable = _adminReasons.any((r) => r.coversDelivery);
     if (short &&
         reasonAvailable &&
-        (s.reasonCode == null || s.reasonCode!.isEmpty))
+        (s.reasonCode == null || s.reasonCode!.isEmpty)) {
       return false;
+    }
     return true;
   }
 
@@ -305,13 +306,14 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
           // Per-unit breakdown: the delivered slice + one slice per non-zero shortfall disposition,
           // each with its own motif. Summing to `planned` is guaranteed by construction.
           final segments = <ItemSegment>[];
-          if (delivered > 0)
+          if (delivered > 0) {
             segments.add(
               ItemSegment(disposition: 'DELIVERED', quantity: delivered),
             );
+          }
           for (final disp in _kShortfallDisps) {
             final q = qtys[disp] ?? 0;
-            if (q > 0)
+            if (q > 0) {
               segments.add(
                 ItemSegment(
                   disposition: disp,
@@ -319,6 +321,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                   reasonCode: reasons[disp],
                 ),
               );
+            }
           }
 
           // Denormalized single-outcome fields for the offline queue + legacy consumers (the backend

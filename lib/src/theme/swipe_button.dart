@@ -158,8 +158,9 @@ class _SwipeButtonState extends State<SwipeButton>
                           setState(() {
                             _position += details.primaryDelta!;
                             if (_position < 0.0) _position = 0.0;
-                            if (_position > maxPosition)
+                            if (_position > maxPosition) {
                               _position = maxPosition;
+                            }
                           });
                           // Provide light tick haptic on movement
                           if (_position > 0 && _position % 30 < 2) {
