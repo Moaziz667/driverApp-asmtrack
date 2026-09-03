@@ -243,8 +243,11 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
     final m = _remaining.inMinutes;
     final s = _remaining.inSeconds % 60;
     final l10n = AppLocalizations.of(context);
+    // Sans date d'expiration renvoyée par le serveur, on ne connaît pas le temps restant. Afficher
+    // un compte à rebours inventé serait pire que de ne rien afficher : le chauffeur le lirait comme
+    // une garantie. La valeur en dur ici était « 5:00 », alors que le jeton vaut 120 minutes.
     final label = _info?.expiresAt == null
-        ? l10n.handoffExpiresIn('5:00')
+        ? l10n.handoffExpiresIn('--:--')
         : l10n.handoffExpiresIn('${m}:${s.toString().padLeft(2, '0')}');
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
