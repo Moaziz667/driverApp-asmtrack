@@ -30,7 +30,10 @@ class PdfService {
   /// no picking reference, or the ERP is unreachable — and each tells the driver something different.
   /// Collapsing them into one generic "download failed" left him with a button that simply did
   /// nothing, and no way to know whether to retry or to call the office.
-  Future<bool> downloadAndOpen(String path, {String fileName = 'document.pdf'}) async {
+  Future<bool> downloadAndOpen(
+    String path, {
+    String fileName = 'document.pdf',
+  }) async {
     try {
       final response = await _client.dio.get<Uint8List>(
         path,

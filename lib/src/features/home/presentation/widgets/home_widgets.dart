@@ -15,7 +15,8 @@ import '../../../deliveries/presentation/handoff_inbox_screen.dart';
 import 'sync_center.dart';
 
 class ModernBottomNav extends StatelessWidget {
-  const ModernBottomNav({super.key, 
+  const ModernBottomNav({
+    super.key,
     required this.selectedIndex,
     required this.onTabSelected,
   });
@@ -32,11 +33,19 @@ class ModernBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF0A0B10) : Colors.white,
         border: Border(
-          top: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1),
+          top: BorderSide(
+            color: cs.outlineVariant.withValues(alpha: 0.5),
+            width: 1,
+          ),
         ),
         boxShadow: AppTokens.shadowLg(brightness: theme.brightness),
       ),
-      padding: const EdgeInsets.fromLTRB(AppTokens.space8, AppTokens.space8, AppTokens.space8, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space8,
+        AppTokens.space8,
+        AppTokens.space8,
+        0,
+      ),
       child: SafeArea(
         top: false,
         child: Row(
@@ -112,7 +121,9 @@ class _NavTab extends StatelessWidget {
                 label,
                 style: TextStyle(
                   fontSize: 11,
-                  fontWeight: isSelected ? AppTokens.fwBold : AppTokens.fwMedium,
+                  fontWeight: isSelected
+                      ? AppTokens.fwBold
+                      : AppTokens.fwMedium,
                   color: isSelected ? cs.primary : cs.onSurfaceVariant,
                 ),
               ),
@@ -136,17 +147,21 @@ class HomeTopBar extends ConsumerWidget {
     final profile = ref.watch(driverProfileProvider).value;
     final statusColors = theme.extension<StatusColors>()!;
 
-    final driverName = profile?.name.isNotEmpty == true ? profile!.name : 'Driver';
+    final driverName = profile?.name.isNotEmpty == true
+        ? profile!.name
+        : 'Driver';
     final driverStatus = profile?.onlineStatus ?? 'OFFLINE';
     final initial = profile != null && profile.name.isNotEmpty
         ? profile.name[0].toUpperCase()
         : 'D';
     final statusColor = statusColors.forDriverStatus(driverStatus);
-    
+
     final l10n = AppLocalizations.of(context);
     final label = driverStatus == 'ONLINE'
         ? l10n.status_online_upper
-        : (driverStatus == 'ON_BREAK' ? l10n.status_on_break_upper : l10n.status_offline_upper);
+        : (driverStatus == 'ON_BREAK'
+              ? l10n.status_on_break_upper
+              : l10n.status_offline_upper);
 
     final surfaceLowest = isDark ? const Color(0xFF0A0B10) : Colors.white;
 
@@ -158,7 +173,10 @@ class HomeTopBar extends ConsumerWidget {
         decoration: BoxDecoration(
           color: surfaceLowest,
           border: Border(
-            bottom: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1),
+            bottom: BorderSide(
+              color: cs.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
         ),
         // Three-zone row: identity (left) · brand (centre) · actions (right).
@@ -187,7 +205,8 @@ class HomeTopBar extends ConsumerWidget {
                           ),
                           child: CircleAvatar(
                             backgroundColor: cs.surfaceContainerLow,
-                            backgroundImage: (profile?.photoUrl?.isNotEmpty == true)
+                            backgroundImage:
+                                (profile?.photoUrl?.isNotEmpty == true)
                                 ? NetworkImage(profile!.photoUrl!)
                                 : null,
                             onBackgroundImageError: (_, __) {},
@@ -340,7 +359,7 @@ class _NotifButton extends ConsumerWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final unread = ref.watch(unreadNotifCountProvider);
-    
+
     return Material(
       color: cs.primary.withValues(alpha: 0.1),
       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -390,7 +409,7 @@ class _HandoffButton extends ConsumerWidget {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
     final count = ref.watch(handoffsProvider).valueOrNull?.length ?? 0;
-    
+
     if (count == 0) return const SizedBox.shrink();
 
     return Material(
@@ -398,7 +417,8 @@ class _HandoffButton extends ConsumerWidget {
       borderRadius: BorderRadius.circular(AppTokens.radiusFull),
       child: InkWell(
         borderRadius: BorderRadius.circular(AppTokens.radiusFull),
-        onTap: () => Navigator.of(context).pushNamed(HandoffInboxScreen.routeName),
+        onTap: () =>
+            Navigator.of(context).pushNamed(HandoffInboxScreen.routeName),
         child: Container(
           width: 40,
           height: 40,
@@ -407,7 +427,11 @@ class _HandoffButton extends ConsumerWidget {
             clipBehavior: Clip.none,
             alignment: Alignment.center,
             children: [
-              Icon(PhosphorIconsRegular.arrowsLeftRight, size: 22, color: cs.onSurfaceVariant),
+              Icon(
+                PhosphorIconsRegular.arrowsLeftRight,
+                size: 22,
+                color: cs.onSurfaceVariant,
+              ),
               Positioned(
                 top: -2,
                 right: -2,
@@ -421,7 +445,10 @@ class _HandoffButton extends ConsumerWidget {
                       width: 2,
                     ),
                   ),
-                  constraints: const BoxConstraints(minWidth: 14, minHeight: 14),
+                  constraints: const BoxConstraints(
+                    minWidth: 14,
+                    minHeight: 14,
+                  ),
                   child: Text(
                     count > 9 ? '9+' : '$count',
                     style: const TextStyle(
@@ -502,16 +529,26 @@ class NotificationPanel extends ConsumerWidget {
                 : ListView.separated(
                     controller: controller,
                     itemCount: notifications.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
+                    separatorBuilder: (_, __) =>
+                        const Divider(height: 1, indent: 16),
                     itemBuilder: (_, i) {
                       final n = notifications[i];
                       final tColor = _typeColor(n.type, statusColors);
                       return ListTile(
                         leading: CircleAvatar(
                           backgroundColor: tColor.withValues(alpha: 0.15),
-                          child: Icon(_typeIcon(n.type), size: 18, color: tColor),
+                          child: Icon(
+                            _typeIcon(n.type),
+                            size: 18,
+                            color: tColor,
+                          ),
                         ),
-                        title: Text(n.title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                        title: Text(
+                          n.title,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -522,7 +559,10 @@ class NotificationPanel extends ConsumerWidget {
                                 maxLines: 4,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                            Text(_formatTime(n.receivedAt, context), style: theme.textTheme.labelSmall),
+                            Text(
+                              _formatTime(n.receivedAt, context),
+                              style: theme.textTheme.labelSmall,
+                            ),
                           ],
                         ),
                         isThreeLine: n.body.isNotEmpty,
@@ -537,21 +577,31 @@ class NotificationPanel extends ConsumerWidget {
 
   IconData _typeIcon(String type) {
     switch (type) {
-      case 'DELIVERY_ASSIGNED': return PhosphorIconsRegular.truck;
-      case 'ROUTE_VALIDATED':   return PhosphorIconsRegular.mapTrifold;
-      case 'ROUTE_UPDATED':     return PhosphorIconsRegular.path;
-      case 'HANDOFF_REQUIRED':  return PhosphorIconsRegular.arrowsLeftRight;
-      default:                  return PhosphorIconsRegular.bell;
+      case 'DELIVERY_ASSIGNED':
+        return PhosphorIconsRegular.truck;
+      case 'ROUTE_VALIDATED':
+        return PhosphorIconsRegular.mapTrifold;
+      case 'ROUTE_UPDATED':
+        return PhosphorIconsRegular.path;
+      case 'HANDOFF_REQUIRED':
+        return PhosphorIconsRegular.arrowsLeftRight;
+      default:
+        return PhosphorIconsRegular.bell;
     }
   }
 
   Color _typeColor(String type, StatusColors statusColors) {
     switch (type) {
-      case 'DELIVERY_ASSIGNED': return statusColors.pickedUp;
-      case 'ROUTE_VALIDATED':   return statusColors.delivered;
-      case 'ROUTE_UPDATED':     return statusColors.unscheduled;
-      case 'HANDOFF_REQUIRED':  return statusColors.partiallyDelivered;
-      default:                  return statusColors.cancelled;
+      case 'DELIVERY_ASSIGNED':
+        return statusColors.pickedUp;
+      case 'ROUTE_VALIDATED':
+        return statusColors.delivered;
+      case 'ROUTE_UPDATED':
+        return statusColors.unscheduled;
+      case 'HANDOFF_REQUIRED':
+        return statusColors.partiallyDelivered;
+      default:
+        return statusColors.cancelled;
     }
   }
 
@@ -617,7 +667,9 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
         topPadding,
         color: const Color(0xFFF59E0B),
         icon: PhosphorIconsRegular.cloudSlash,
-        text: sync.pending > 0 ? l10n.syncPendingBanner(sync.pending) : l10n.offlineBanner,
+        text: sync.pending > 0
+            ? l10n.syncPendingBanner(sync.pending)
+            : l10n.offlineBanner,
         tappable: sync.total > 0,
       );
     }
@@ -663,7 +715,12 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
     final bar = AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       width: double.infinity,
-      padding: EdgeInsets.only(top: topPadding + 6, bottom: 8, left: 16, right: 16),
+      padding: EdgeInsets.only(
+        top: topPadding + 6,
+        bottom: 8,
+        left: 16,
+        right: 16,
+      ),
       color: color,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -672,7 +729,10 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
             const SizedBox(
               width: 12,
               height: 12,
-              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
             )
           else
             Icon(icon, size: 14, color: Colors.white),
@@ -680,13 +740,21 @@ class _OfflineStatusBarState extends ConsumerState<OfflineStatusBar> {
           Flexible(
             child: Text(
               text,
-              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white),
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
               textAlign: TextAlign.center,
             ),
           ),
           if (tappable) ...[
             const SizedBox(width: 6),
-            const Icon(PhosphorIconsRegular.caretRight, size: 12, color: Colors.white),
+            const Icon(
+              PhosphorIconsRegular.caretRight,
+              size: 12,
+              color: Colors.white,
+            ),
           ],
         ],
       ),

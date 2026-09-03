@@ -30,8 +30,13 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Future<void> _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
     // Navigation on success is handled centrally by DriverApp's auth listener.
-    await ref.read(authControllerProvider.notifier)
-        .register(_nameCtrl.text.trim(), _phoneCtrl.text.trim(), _passwordCtrl.text);
+    await ref
+        .read(authControllerProvider.notifier)
+        .register(
+          _nameCtrl.text.trim(),
+          _phoneCtrl.text.trim(),
+          _passwordCtrl.text,
+        );
   }
 
   @override
@@ -60,7 +65,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           color: colorScheme.onSurface.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: colorScheme.onSurface),
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 15,
+                          color: colorScheme.onSurface,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -81,37 +90,77 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AppLocalizations.of(context).registerSubtitle, style: theme.textTheme.headlineSmall),
+                    Text(
+                      AppLocalizations.of(context).registerSubtitle,
+                      style: theme.textTheme.headlineSmall,
+                    ),
                     const SizedBox(height: 4),
-                    Text(AppLocalizations.of(context).registerDescription,
-                        style: theme.textTheme.bodyMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
-                    const SizedBox(height: 28),
-                    _Field(label: AppLocalizations.of(context).registerFullName, child: TextFormField(
-                      controller: _nameCtrl,
-                      decoration: const InputDecoration(hintText: 'John Doe', prefixIcon: Icon(Icons.person_outline_rounded, size: 18)),
-                      validator: (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context).registerRequired : null,
-                    )),
-                    const SizedBox(height: 18),
-                    _Field(label: AppLocalizations.of(context).registerPhone, child: TextFormField(
-                      controller: _phoneCtrl,
-                      keyboardType: TextInputType.phone,
-                      decoration: const InputDecoration(hintText: '+213 6xx xxx xxx', prefixIcon: Icon(Icons.phone_outlined, size: 18)),
-                      validator: (v) => (v == null || v.isEmpty) ? AppLocalizations.of(context).registerRequired : null,
-                    )),
-                    const SizedBox(height: 18),
-                    _Field(label: AppLocalizations.of(context).registerPasswordField, child: TextFormField(
-                      controller: _passwordCtrl,
-                      obscureText: _obscure,
-                      decoration: InputDecoration(
-                        hintText: '*******',
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, size: 18),
-                        suffixIcon: IconButton(
-                          icon: Icon(_obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 18),
-                          onPressed: () => setState(() => _obscure = !_obscure),
-                        ),
+                    Text(
+                      AppLocalizations.of(context).registerDescription,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      validator: (v) => (v == null || v.length < 6) ? AppLocalizations.of(context).registerMinChars : null,
-                    )),
+                    ),
+                    const SizedBox(height: 28),
+                    _Field(
+                      label: AppLocalizations.of(context).registerFullName,
+                      child: TextFormField(
+                        controller: _nameCtrl,
+                        decoration: const InputDecoration(
+                          hintText: 'John Doe',
+                          prefixIcon: Icon(
+                            Icons.person_outline_rounded,
+                            size: 18,
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? AppLocalizations.of(context).registerRequired
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    _Field(
+                      label: AppLocalizations.of(context).registerPhone,
+                      child: TextFormField(
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          hintText: '+213 6xx xxx xxx',
+                          prefixIcon: Icon(Icons.phone_outlined, size: 18),
+                        ),
+                        validator: (v) => (v == null || v.isEmpty)
+                            ? AppLocalizations.of(context).registerRequired
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    _Field(
+                      label: AppLocalizations.of(context).registerPasswordField,
+                      child: TextFormField(
+                        controller: _passwordCtrl,
+                        obscureText: _obscure,
+                        decoration: InputDecoration(
+                          hintText: '*******',
+                          prefixIcon: const Icon(
+                            Icons.lock_outline_rounded,
+                            size: 18,
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscure
+                                  ? Icons.visibility_outlined
+                                  : Icons.visibility_off_outlined,
+                              size: 18,
+                            ),
+                            onPressed: () =>
+                                setState(() => _obscure = !_obscure),
+                          ),
+                        ),
+                        validator: (v) => (v == null || v.length < 6)
+                            ? AppLocalizations.of(context).registerMinChars
+                            : null,
+                      ),
+                    ),
                     const SizedBox(height: 28),
                     SizedBox(
                       width: double.infinity,
@@ -119,9 +168,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       child: FilledButton.icon(
                         onPressed: auth.isLoading ? null : _onSubmit,
                         icon: auth.isLoading
-                            ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Icon(Icons.arrow_forward_rounded),
-                        label: Text(auth.isLoading ? AppLocalizations.of(context).registerLoading : AppLocalizations.of(context).registerButton),
+                        label: Text(
+                          auth.isLoading
+                              ? AppLocalizations.of(context).registerLoading
+                              : AppLocalizations.of(context).registerButton,
+                        ),
                       ),
                     ),
                     if (auth.error != null) ...[
@@ -133,21 +192,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           borderRadius: BorderRadius.circular(10),
                           border: Border.all(color: colorScheme.error),
                         ),
-                        child: Row(children: [
-                          Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
-                          const SizedBox(width: 8),
-                          Expanded(child: Text(auth.error!, style: TextStyle(color: colorScheme.error, fontSize: 13))),
-                        ]),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.error_outline_rounded,
+                              size: 16,
+                              color: colorScheme.error,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                auth.error!,
+                                style: TextStyle(
+                                  color: colorScheme.error,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(AppLocalizations.of(context).registerHasAccount, style: TextStyle(fontSize: 13, color: colorScheme.onSurfaceVariant)),
+                        Text(
+                          AppLocalizations.of(context).registerHasAccount,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                         TextButton(
                           onPressed: () => Navigator.of(context).pop(),
-                          child: Text(AppLocalizations.of(context).registerSignIn, style: TextStyle(fontWeight: FontWeight.w600, color: colorScheme.primary)),
+                          child: Text(
+                            AppLocalizations.of(context).registerSignIn,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.primary,
+                            ),
+                          ),
                         ),
                       ],
                     ),
@@ -173,7 +258,12 @@ class _Field extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 7),
         child,
       ],

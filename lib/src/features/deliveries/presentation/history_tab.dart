@@ -59,82 +59,92 @@ class _HistoryTabState extends ConsumerState<HistoryTab> {
       color: cs.primary,
       backgroundColor: cs.surfaceContainerLow,
       onRefresh: () => notifier.loadFirst(),
-      child: Builder(builder: (context) {
-        // First page in flight (nothing loaded yet).
-        if (state.loading && state.items.isEmpty) {
-          return LoadingState(message: AppLocalizations.of(context).historyLoading);
-        }
-        // Failed before any page loaded → offline/retry state.
-        if (state.error != null && state.items.isEmpty) {
-          return EmptyState(
-            icon: PhosphorIconsRegular.cloudSlash,
-            title: AppLocalizations.of(context).historyOffline,
-            action: () => notifier.loadFirst(),
-            actionLabel: AppLocalizations.of(context).routeRetry,
-          );
-        }
-
-        // Client-side narrowing over the loaded pages (status/date) — infinite scroll loads more.
-        final filtered = state.items.where((d) {
-          final matchesStatus = _filter.matches(d.status);
-          if (!matchesStatus) return false;
-          if (_dateRange != null) {
-            final timestamp = d.timestamps['completedAt'] ??
-                d.timestamps['failedAt'] ??
-                d.timestamps['cancelledAt'] ??
-                d.timestamps['createdAt'];
-            if (timestamp == null) return false;
-            return timestamp.isAfter(_dateRange!.start) &&
-                   timestamp.isBefore(_dateRange!.end.add(const Duration(days: 1)));
+      child: Builder(
+        builder: (context) {
+          // First page in flight (nothing loaded yet).
+          if (state.loading && state.items.isEmpty) {
+            return LoadingState(
+              message: AppLocalizations.of(context).historyLoading,
+            );
           }
-          return true;
-        }).toList();
+          // Failed before any page loaded → offline/retry state.
+          if (state.error != null && state.items.isEmpty) {
+            return EmptyState(
+              icon: PhosphorIconsRegular.cloudSlash,
+              title: AppLocalizations.of(context).historyOffline,
+              action: () => notifier.loadFirst(),
+              actionLabel: AppLocalizations.of(context).routeRetry,
+            );
+          }
 
-        return NotificationListener<ScrollNotification>(
-          onNotification: (n) {
-            if (n.metrics.pixels >= n.metrics.maxScrollExtent - 240 &&
-                state.hasNext && !state.loadingMore) {
-              notifier.loadMore();
+          // Client-side narrowing over the loaded pages (status/date) — infinite scroll loads more.
+          final filtered = state.items.where((d) {
+            final matchesStatus = _filter.matches(d.status);
+            if (!matchesStatus) return false;
+            if (_dateRange != null) {
+              final timestamp =
+                  d.timestamps['completedAt'] ??
+                  d.timestamps['failedAt'] ??
+                  d.timestamps['cancelledAt'] ??
+                  d.timestamps['createdAt'];
+              if (timestamp == null) return false;
+              return timestamp.isAfter(_dateRange!.start) &&
+                  timestamp.isBefore(
+                    _dateRange!.end.add(const Duration(days: 1)),
+                  );
             }
-            return false;
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-            itemCount: filtered.isEmpty ? 2 : (filtered.length + 1 + (state.loadingMore ? 1 : 0)),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return _ArchiveHeader(
-                  total: filtered.length,
-                  filter: _filter,
-                  dateRange: _dateRange,
-                  onFilterChanged: (v) => setState(() => _filter = v),
-                  onDateRangeTap: _selectDateRange,
-                  onClearDates: () => setState(() => _dateRange = null),
-                );
+            return true;
+          }).toList();
+
+          return NotificationListener<ScrollNotification>(
+            onNotification: (n) {
+              if (n.metrics.pixels >= n.metrics.maxScrollExtent - 240 &&
+                  state.hasNext &&
+                  !state.loadingMore) {
+                notifier.loadMore();
               }
-              if (filtered.isEmpty) {
-                return EmptyState(
-                    icon: PhosphorIconsRegular.package,
-                  title: AppLocalizations.of(context).historyEmpty,
-                  subtitle: AppLocalizations.of(context).historyEmptySubtitle,
-                );
-              }
-              // Trailing loader while the next page is being appended.
-              if (state.loadingMore && index == filtered.length + 1) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 20),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-              final delivery = filtered[index - 1];
-              return Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _HistoryTile(delivery: delivery),
-              );
+              return false;
             },
-          ),
-        );
-      }),
+            child: ListView.builder(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+              itemCount: filtered.isEmpty
+                  ? 2
+                  : (filtered.length + 1 + (state.loadingMore ? 1 : 0)),
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  return _ArchiveHeader(
+                    total: filtered.length,
+                    filter: _filter,
+                    dateRange: _dateRange,
+                    onFilterChanged: (v) => setState(() => _filter = v),
+                    onDateRangeTap: _selectDateRange,
+                    onClearDates: () => setState(() => _dateRange = null),
+                  );
+                }
+                if (filtered.isEmpty) {
+                  return EmptyState(
+                    icon: PhosphorIconsRegular.package,
+                    title: AppLocalizations.of(context).historyEmpty,
+                    subtitle: AppLocalizations.of(context).historyEmptySubtitle,
+                  );
+                }
+                // Trailing loader while the next page is being appended.
+                if (state.loadingMore && index == filtered.length + 1) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 20),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                final delivery = filtered[index - 1];
+                return Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _HistoryTile(delivery: delivery),
+                );
+              },
+            ),
+          );
+        },
+      ),
     );
   }
 }
@@ -179,15 +189,24 @@ class _ArchiveHeader extends StatelessWidget {
             children: [
               const Spacer(),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: cs.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Text(
-                  AppLocalizations.of(context).historyRecordCount(total.toString()),
-                  style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant, fontWeight: FontWeight.w500),
+                  AppLocalizations.of(
+                    context,
+                  ).historyRecordCount(total.toString()),
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: cs.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
             ],
@@ -199,24 +218,40 @@ class _ArchiveHeader extends StatelessWidget {
                 child: GestureDetector(
                   onTap: onDateRangeTap,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     decoration: BoxDecoration(
                       color: cs.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: dateRange != null ? cs.primary : cs.outlineVariant),
+                      border: Border.all(
+                        color: dateRange != null
+                            ? cs.primary
+                            : cs.outlineVariant,
+                      ),
                     ),
                     child: Row(
                       children: [
-                        Icon(LucideIcons.calendar, size: 14, color: dateRange != null ? cs.primary : cs.onSurfaceVariant),
+                        Icon(
+                          LucideIcons.calendar,
+                          size: 14,
+                          color: dateRange != null
+                              ? cs.primary
+                              : cs.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          dateRange == null 
+                          dateRange == null
                               ? AppLocalizations.of(context).historyFilterDate
                               : '${DateFormat('MMM d').format(dateRange!.start)} - ${DateFormat('MMM d').format(dateRange!.end)}',
-                          style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w600, 
-                            color: dateRange != null ? cs.onSurface : cs.onSurfaceVariant,
-                          ),
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: dateRange != null
+                                    ? cs.onSurface
+                                    : cs.onSurfaceVariant,
+                              ),
                         ),
                       ],
                     ),
@@ -234,7 +269,11 @@ class _ArchiveHeader extends StatelessWidget {
                       borderRadius: BorderRadius.circular(10),
                       border: Border.all(color: cs.outlineVariant),
                     ),
-                    child: Icon(LucideIcons.x, size: 14, color: cs.onSurfaceVariant),
+                    child: Icon(
+                      LucideIcons.x,
+                      size: 14,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -252,7 +291,10 @@ class _ArchiveHeader extends StatelessWidget {
                     onTap: () => onFilterChanged(f),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 150),
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: isSelected ? cs.primary : cs.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(10),
@@ -264,7 +306,9 @@ class _ArchiveHeader extends StatelessWidget {
                         f.label(context),
                         style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: isSelected ? Colors.white : cs.onSurfaceVariant,
+                          color: isSelected
+                              ? Colors.white
+                              : cs.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -290,17 +334,18 @@ class _HistoryTile extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final statusColors = Theme.of(context).extension<StatusColors>()!;
     final Color statusColor = switch (delivery.status) {
-      DeliveryStatus.unscheduled       => statusColors.unscheduled,
-      DeliveryStatus.scheduled         => statusColors.scheduled,
-      DeliveryStatus.pickedUp          => statusColors.pickedUp,
-      DeliveryStatus.inTransit         => statusColors.inTransit,
-      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
-      DeliveryStatus.delivered         => statusColors.delivered,
+      DeliveryStatus.unscheduled => statusColors.unscheduled,
+      DeliveryStatus.scheduled => statusColors.scheduled,
+      DeliveryStatus.pickedUp => statusColors.pickedUp,
+      DeliveryStatus.inTransit => statusColors.inTransit,
+      DeliveryStatus.awaitingHandoff => statusColors.pickedUp,
+      DeliveryStatus.delivered => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
-      DeliveryStatus.failed            => statusColors.failed,
-      DeliveryStatus.cancelled         => statusColors.cancelled,
+      DeliveryStatus.failed => statusColors.failed,
+      DeliveryStatus.cancelled => statusColors.cancelled,
     };
-    final timestamp = delivery.timestamps['completedAt'] ??
+    final timestamp =
+        delivery.timestamps['completedAt'] ??
         delivery.timestamps['failedAt'] ??
         delivery.timestamps['cancelledAt'] ??
         delivery.timestamps['createdAt'];
@@ -323,7 +368,10 @@ class _HistoryTile extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(6),
@@ -334,11 +382,18 @@ class _HistoryTile extends StatelessWidget {
                       Container(
                         width: 6,
                         height: 6,
-                        decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                        decoration: BoxDecoration(
+                          color: statusColor,
+                          shape: BoxShape.circle,
+                        ),
                       ),
                       const SizedBox(width: 5),
                       Text(
-                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup),
+                        deliveryStatusLabel(
+                          delivery.status,
+                          AppLocalizations.of(context),
+                          isReturn: delivery.isReturnPickup,
+                        ),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w700,
                           color: statusColor,
@@ -358,17 +413,30 @@ class _HistoryTile extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               delivery.address ?? AppLocalizations.of(context).historyNoAddress,
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: cs.onSurface),
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: cs.onSurface,
+              ),
             ),
             if (delivery.city != null) ...[
               const SizedBox(height: 2),
-              Text(delivery.city!, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+              Text(
+                delivery.city!,
+                style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+              ),
             ],
             const SizedBox(height: 12),
             Row(
               children: [
-                _HistoryStat(label: AppLocalizations.of(context).historyOrder, value: delivery.orderId ?? delivery.id.substring(0, 8)),
-                _HistoryStat(label: AppLocalizations.of(context).historyItems, value: '${delivery.items.length}'),
+                _HistoryStat(
+                  label: AppLocalizations.of(context).historyOrder,
+                  value: delivery.orderId ?? delivery.id.substring(0, 8),
+                ),
+                _HistoryStat(
+                  label: AppLocalizations.of(context).historyItems,
+                  value: '${delivery.items.length}',
+                ),
               ],
             ),
           ],
@@ -390,11 +458,22 @@ class _HistoryStat extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant, fontWeight: FontWeight.w500)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurface),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: cs.onSurface,
+            ),
             overflow: TextOverflow.ellipsis,
           ),
         ],

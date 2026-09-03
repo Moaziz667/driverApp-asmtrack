@@ -43,6 +43,7 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
   /// Null until the cash card reports; stays null for a delivery with no collection instruction.
   CashFormState? _cash;
+
   /// Mirrors the card's own validity so the submit button can stay honest about why it is disabled.
   bool _cashValid = true;
 
@@ -80,7 +81,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
 
   Future<void> _loadReasons() async {
     try {
-      final reasons = await ref.read(deliveryRepositoryProvider).fetchFailureReasons();
+      final reasons = await ref
+          .read(deliveryRepositoryProvider)
+          .fetchFailureReasons();
       if (mounted) setState(() => _adminReasons = reasons);
     } catch (_) {
       // Keep empty → cards fall back to the built-in reason list.
@@ -102,13 +105,17 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
   /// which field is wrong is stuck at a customer's door, and the card is the only thing that can
   /// point at the field.
   bool _cashCardValid(CashFormState s) {
-    if (s.method == CashMethod.cheque && (s.chequeNumber == null || s.chequeNumber!.isEmpty)) {
+    if (s.method == CashMethod.cheque &&
+        (s.chequeNumber == null || s.chequeNumber!.isEmpty)) {
       return false;
     }
     final expected = widget.args.delivery.codAmount ?? 0;
     final short = s.method == CashMethod.none || s.amount < expected;
     final reasonAvailable = _adminReasons.any((r) => r.coversDelivery);
-    if (short && reasonAvailable && (s.reasonCode == null || s.reasonCode!.isEmpty)) return false;
+    if (short &&
+        reasonAvailable &&
+        (s.reasonCode == null || s.reasonCode!.isEmpty))
+      return false;
     return true;
   }
 
@@ -134,7 +141,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     for (var i = 0; i < items.length; i++) {
       final qtys = _dispQty[i]!;
       for (final disp in _kShortfallDisps) {
-        if ((qtys[disp] ?? 0) > 0 && _requiresReason(disp) && _dispReason[i]![disp] == null) {
+        if ((qtys[disp] ?? 0) > 0 &&
+            _requiresReason(disp) &&
+            _dispReason[i]![disp] == null) {
           return items[i].name;
         }
       }
@@ -147,19 +156,25 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     setState(() => _openingBl = true);
     try {
       final deliveryId = widget.args.delivery.id;
-      final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
-        '/driver/deliveries/$deliveryId/bon-livraison',
-        fileName: 'bon-livraison-$deliveryId.pdf',
-      );
+      final ok = await ref
+          .read(pdfServiceProvider)
+          .downloadAndOpen(
+            '/driver/deliveries/$deliveryId/bon-livraison',
+            fileName: 'bon-livraison-$deliveryId.pdf',
+          );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_open_error)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).pod_pdf_open_error),
+          ),
         );
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_download_error)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).pod_pdf_download_error),
+          ),
         );
       }
     } finally {
@@ -173,7 +188,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       context: context,
       backgroundColor: cs.surfaceContainerLow,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTokens.radiusLg)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppTokens.radiusLg),
+        ),
       ),
       builder: (context) {
         return SafeArea(
@@ -183,16 +200,26 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               ListTile(
                 leading: Icon(LucideIcons.camera, color: cs.primary),
                 title: Text(
-                  locale == 'ar' ? 'التقاط صورة الكاميرا' : AppLocalizations.of(context).podTakePhoto,
-                  style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
+                  locale == 'ar'
+                      ? 'التقاط صورة الكاميرا'
+                      : AppLocalizations.of(context).podTakePhoto,
+                  style: TextStyle(
+                    fontWeight: AppTokens.fwMedium,
+                    color: cs.onSurface,
+                  ),
                 ),
                 onTap: () => Navigator.of(context).pop(ImageSource.camera),
               ),
               ListTile(
                 leading: Icon(LucideIcons.image, color: cs.primary),
                 title: Text(
-                  locale == 'ar' ? 'اختيار من معرض الصور' : AppLocalizations.of(context).podChooseGallery,
-                  style: TextStyle(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
+                  locale == 'ar'
+                      ? 'اختيار من معرض الصور'
+                      : AppLocalizations.of(context).podChooseGallery,
+                  style: TextStyle(
+                    fontWeight: AppTokens.fwMedium,
+                    color: cs.onSurface,
+                  ),
                 ),
                 onTap: () => Navigator.of(context).pop(ImageSource.gallery),
               ),
@@ -218,7 +245,9 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).pod_photo_access_error)),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).pod_photo_access_error),
+        ),
       );
     }
   }
@@ -244,7 +273,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
         qtys[disp] = clamped;
         if (clamped == 0) _dispReason[index]![disp] = null;
       }),
-      onDispReason: (disp, code) => setState(() => _dispReason[index]![disp] = code),
+      onDispReason: (disp, code) =>
+          setState(() => _dispReason[index]![disp] = code),
     );
   }
 
@@ -275,10 +305,20 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
           // Per-unit breakdown: the delivered slice + one slice per non-zero shortfall disposition,
           // each with its own motif. Summing to `planned` is guaranteed by construction.
           final segments = <ItemSegment>[];
-          if (delivered > 0) segments.add(ItemSegment(disposition: 'DELIVERED', quantity: delivered));
+          if (delivered > 0)
+            segments.add(
+              ItemSegment(disposition: 'DELIVERED', quantity: delivered),
+            );
           for (final disp in _kShortfallDisps) {
             final q = qtys[disp] ?? 0;
-            if (q > 0) segments.add(ItemSegment(disposition: disp, quantity: q, reasonCode: reasons[disp]));
+            if (q > 0)
+              segments.add(
+                ItemSegment(
+                  disposition: disp,
+                  quantity: q,
+                  reasonCode: reasons[disp],
+                ),
+              );
           }
 
           // Denormalized single-outcome fields for the offline queue + legacy consumers (the backend
@@ -311,11 +351,15 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       try {
         // POD via the base64 JSON endpoint (transactional end-to-end on the backend);
         // the repo handles the online POST and the offline-queue fallback.
-        await ref.read(deliveryRepositoryProvider).submitPodPhotos(
+        await ref
+            .read(deliveryRepositoryProvider)
+            .submitPodPhotos(
               widget.args.delivery.id,
               bonLivraisonBytes: _bonLivraisonBytes,
               packageBytes: _packageBytes!,
-              comment: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
+              comment: _notesController.text.trim().isEmpty
+                  ? null
+                  : _notesController.text.trim(),
               lat: lat,
               lng: lng,
               isPartial: _isPartial,
@@ -323,13 +367,21 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               cash: _cash?.toEntry(),
             );
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).pod_success_message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context).pod_success_message),
+          ),
+        );
         Navigator.of(context).pop(true);
       } catch (e) {
         if (e == 'OFFLINE_QUEUED') {
           if (!mounted) return;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).delivery_detail_offline_queue,
+              ),
+            ),
           );
           Navigator.of(context).pop(true);
         } else {
@@ -338,8 +390,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
       }
     } catch (error) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('${AppLocalizations.of(context).delivery_detail_error_prefix}: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            '${AppLocalizations.of(context).delivery_detail_error_prefix}: $error',
+          ),
+        ),
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -366,7 +423,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
             const SizedBox(height: AppTokens.space16),
             // ADR-033 — a return collection has no delivery note: skip the bon-de-livraison viewer + photo.
             if (!widget.args.delivery.isReturnPickup) ...[
-              PodViewBlButton(loading: _openingBl, onTap: _openBonLivraison, locale: locale),
+              PodViewBlButton(
+                loading: _openingBl,
+                onTap: _openBonLivraison,
+                locale: locale,
+              ),
               const SizedBox(height: AppTokens.space20),
               // The one instruction the app cannot enforce, so it is placed where it can still be
               // acted on: above the camera, not below it. The note is on the counter and the customer
@@ -380,7 +441,10 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 subtitle: AppLocalizations.of(context).pod_photo_bl_sub,
                 bytes: _bonLivraisonBytes,
                 isRequired: true,
-                onCapture: () => _pickPhoto((b) => setState(() => _bonLivraisonBytes = b), locale),
+                onCapture: () => _pickPhoto(
+                  (b) => setState(() => _bonLivraisonBytes = b),
+                  locale,
+                ),
                 onClear: () => setState(() => _bonLivraisonBytes = null),
                 locale: locale,
                 icon: LucideIcons.fileText,
@@ -392,7 +456,8 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
               subtitle: AppLocalizations.of(context).pod_photo_pkg_sub,
               bytes: _packageBytes,
               isRequired: true,
-              onCapture: () => _pickPhoto((b) => setState(() => _packageBytes = b), locale),
+              onCapture: () =>
+                  _pickPhoto((b) => setState(() => _packageBytes = b), locale),
               onClear: () => setState(() => _packageBytes = null),
               locale: locale,
               icon: LucideIcons.package,
@@ -449,17 +514,26 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                     if (v) _bonLivraisonBytes = null;
                   });
                   if (v && hadPhoto) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(AppLocalizations.of(context).pod_partial_bl_cleared),
-                    ));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context).pod_partial_bl_cleared,
+                        ),
+                      ),
+                    );
                   }
                 },
                 expanded: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(AppLocalizations.of(context).pod_item_outcome_header, style: Theme.of(context).textTheme.titleSmall),
+                    Text(
+                      AppLocalizations.of(context).pod_item_outcome_header,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
                     const SizedBox(height: AppTokens.space12),
-                    ...widget.args.delivery.items.asMap().entries.map((e) => _itemRow(e.key, e.value, locale)),
+                    ...widget.args.delivery.items.asMap().entries.map(
+                      (e) => _itemRow(e.key, e.value, locale),
+                    ),
                   ],
                 ),
               ),
@@ -478,7 +552,11 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.fromLTRB(
-            AppTokens.space20, AppTokens.space12, AppTokens.space20, AppTokens.space12),
+            AppTokens.space20,
+            AppTokens.space12,
+            AppTokens.space20,
+            AppTokens.space12,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -489,9 +567,13 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                     _missingReasonItem != null
                         ? '${AppLocalizations.of(context).pod_reason_mandatory} $_missingReasonItem'
                         : (locale == 'ar'
-                            ? 'الصورتان إلزاميتان'
-                            : AppLocalizations.of(context).podPhotosRequired),
-                    style: TextStyle(fontSize: 13, color: cs.error, fontWeight: FontWeight.bold),
+                              ? 'الصورتان إلزاميتان'
+                              : AppLocalizations.of(context).podPhotosRequired),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: cs.error,
+                      fontWeight: FontWeight.bold,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                 ),
@@ -501,11 +583,18 @@ class _PodFormScreenState extends ConsumerState<PodFormScreen> {
                 child: FilledButton.icon(
                   onPressed: (_submitting || !_canSubmit) ? null : _submit,
                   icon: _submitting
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
                       : const Icon(LucideIcons.checkCircle, size: 20),
                   label: Text(
                     AppLocalizations.of(context).pod_confirm_delivery,
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
                   ),
                   style: FilledButton.styleFrom(
                     shape: RoundedRectangleBorder(

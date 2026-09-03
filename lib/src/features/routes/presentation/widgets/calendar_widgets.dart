@@ -10,14 +10,28 @@ import '../../models/route_models.dart';
 import '../route_detail_sheet.dart';
 
 List<String> _kMonths(AppLocalizations l10n) => [
-  l10n.monthJanuary, l10n.monthFebruary, l10n.monthMarch, l10n.monthApril,
-  l10n.monthMay, l10n.monthJune, l10n.monthJuly, l10n.monthAugust,
-  l10n.monthSeptember, l10n.monthOctober, l10n.monthNovember, l10n.monthDecember,
+  l10n.monthJanuary,
+  l10n.monthFebruary,
+  l10n.monthMarch,
+  l10n.monthApril,
+  l10n.monthMay,
+  l10n.monthJune,
+  l10n.monthJuly,
+  l10n.monthAugust,
+  l10n.monthSeptember,
+  l10n.monthOctober,
+  l10n.monthNovember,
+  l10n.monthDecember,
 ];
 const _kDayLetters = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
 List<String> _kDayFull(AppLocalizations l10n) => [
-  l10n.dayMonday, l10n.dayTuesday, l10n.dayWednesday, l10n.dayThursday,
-  l10n.dayFriday, l10n.daySaturday, l10n.daySunday,
+  l10n.dayMonday,
+  l10n.dayTuesday,
+  l10n.dayWednesday,
+  l10n.dayThursday,
+  l10n.dayFriday,
+  l10n.daySaturday,
+  l10n.daySunday,
 ];
 
 bool _sameDay(DateTime a, DateTime b) =>
@@ -34,7 +48,8 @@ int _weekNumber(DateTime date) {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 class CalendarHeader extends StatelessWidget {
-  const CalendarHeader({super.key, 
+  const CalendarHeader({
+    super.key,
     required this.weekStart,
     required this.selectedDay,
     required this.onJumpToday,
@@ -55,7 +70,12 @@ class CalendarHeader extends StatelessWidget {
     final weekNum = _weekNumber(weekStart);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(AppTokens.space20, AppTokens.space20, AppTokens.space20, 0),
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space20,
+        AppTokens.space20,
+        AppTokens.space20,
+        0,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -90,7 +110,10 @@ class CalendarHeader extends StatelessWidget {
                 onTap: onJumpToday,
                 borderRadius: BorderRadius.circular(AppTokens.radiusFull),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: AppTokens.space14, vertical: AppTokens.space8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.space14,
+                    vertical: AppTokens.space8,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.primary.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -102,7 +125,11 @@ class CalendarHeader extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(PhosphorIconsBold.calendar, size: 13, color: cs.primary),
+                      Icon(
+                        PhosphorIconsBold.calendar,
+                        size: 13,
+                        color: cs.primary,
+                      ),
                       const SizedBox(width: AppTokens.space6),
                       Text(
                         l10n.calendarTodayButton,
@@ -125,7 +152,8 @@ class CalendarHeader extends StatelessWidget {
 
 // ─── Week strip ───────────────────────────────────────────────────────────────
 class WeekStrip extends StatelessWidget {
-  const WeekStrip({super.key, 
+  const WeekStrip({
+    super.key,
     required this.weekStart,
     required this.selectedDay,
     required this.routes,
@@ -171,18 +199,24 @@ class WeekStrip extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: AppTokens.space14, horizontal: AppTokens.space4),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppTokens.space14,
+            horizontal: AppTokens.space4,
+          ),
           decoration: BoxDecoration(
             color: cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(AppTokens.radiusXl),
             border: Border.all(color: cs.outlineVariant),
-            boxShadow: AppTokens.shadowMd(brightness: Theme.of(context).brightness),
+            boxShadow: AppTokens.shadowMd(
+              brightness: Theme.of(context).brightness,
+            ),
           ),
           child: Row(
             children: [
               _NavArrow(
                 icon: PhosphorIconsBold.caretLeft,
-                onTap: () => onWeekChanged(weekStart.subtract(const Duration(days: 7))),
+                onTap: () =>
+                    onWeekChanged(weekStart.subtract(const Duration(days: 7))),
               ),
               Expanded(
                 child: Row(
@@ -203,7 +237,8 @@ class WeekStrip extends StatelessWidget {
               ),
               _NavArrow(
                 icon: PhosphorIconsBold.caretRight,
-                onTap: () => onWeekChanged(weekStart.add(const Duration(days: 7))),
+                onTap: () =>
+                    onWeekChanged(weekStart.add(const Duration(days: 7))),
               ),
             ],
           ),
@@ -268,11 +303,16 @@ class _DayCell extends StatelessWidget {
   static Color _statusColor(BuildContext context, DriverRouteStatus s) {
     final cs = Theme.of(context).colorScheme;
     switch (s) {
-      case DriverRouteStatus.draft:      return cs.onSurfaceVariant;
-      case DriverRouteStatus.validated:  return cs.tertiary;
-      case DriverRouteStatus.inProgress: return cs.primary;
-      case DriverRouteStatus.closed:     return cs.tertiary;
-      case DriverRouteStatus.cancelled:  return cs.error;
+      case DriverRouteStatus.draft:
+        return cs.onSurfaceVariant;
+      case DriverRouteStatus.validated:
+        return cs.tertiary;
+      case DriverRouteStatus.inProgress:
+        return cs.primary;
+      case DriverRouteStatus.closed:
+        return cs.tertiary;
+      case DriverRouteStatus.cancelled:
+        return cs.error;
     }
   }
 
@@ -388,7 +428,11 @@ class _DayCell extends StatelessWidget {
 
 // ─── Day summary bar ──────────────────────────────────────────────────────────
 class DaySummaryBar extends StatelessWidget {
-  const DaySummaryBar({super.key, required this.routes, required this.selectedDay});
+  const DaySummaryBar({
+    super.key,
+    required this.routes,
+    required this.selectedDay,
+  });
   final List<DriverRoute> routes;
   final DateTime selectedDay;
 
@@ -404,8 +448,14 @@ class DaySummaryBar extends StatelessWidget {
     if (dayRoutes.isEmpty) return const SizedBox.shrink();
 
     final totalRoutes = dayRoutes.length;
-    final totalStops = dayRoutes.fold<int>(0, (s, r) => s + (r.totalStops ?? r.stops.length));
-    final completedStops = dayRoutes.fold<int>(0, (s, r) => s + (r.completedStops ?? 0));
+    final totalStops = dayRoutes.fold<int>(
+      0,
+      (s, r) => s + (r.totalStops ?? r.stops.length),
+    );
+    final completedStops = dayRoutes.fold<int>(
+      0,
+      (s, r) => s + (r.completedStops ?? 0),
+    );
     final progress = totalStops > 0 ? completedStops / totalStops : 0.0;
 
     double totalMontant = 0;
@@ -431,7 +481,9 @@ class DaySummaryBar extends StatelessWidget {
               children: [
                 _SummaryItem(
                   value: '$totalRoutes',
-                  label: totalRoutes > 1 ? l10n.calendarRoutes : l10n.calendarRoute,
+                  label: totalRoutes > 1
+                      ? l10n.calendarRoutes
+                      : l10n.calendarRoute,
                   icon: PhosphorIconsRegular.path,
                   color: cs.tertiary,
                 ),
@@ -485,7 +537,12 @@ class DaySummaryBar extends StatelessWidget {
 }
 
 class _SummaryItem extends StatelessWidget {
-  const _SummaryItem({required this.value, required this.label, required this.icon, required this.color});
+  const _SummaryItem({
+    required this.value,
+    required this.label,
+    required this.icon,
+    required this.color,
+  });
   final String value;
   final String label;
   final IconData icon;
@@ -524,7 +581,8 @@ class _SummaryItem extends StatelessWidget {
 
 // ─── Stop list view ───────────────────────────────────────────────────────────
 class StopListView extends StatelessWidget {
-  const StopListView({super.key, 
+  const StopListView({
+    super.key,
     required this.routes,
     required this.selectedDay,
     required this.onNavigateToRoute,
@@ -560,7 +618,12 @@ class StopListView extends StatelessWidget {
     allStops.sort((a, b) => a.stop.stopOrder.compareTo(b.stop.stopOrder));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(AppTokens.space16, 0, AppTokens.space16, AppTokens.space32),
+      padding: const EdgeInsets.fromLTRB(
+        AppTokens.space16,
+        0,
+        AppTokens.space16,
+        AppTokens.space32,
+      ),
       children: [
         Padding(
           padding: const EdgeInsets.only(bottom: AppTokens.space14),
@@ -577,7 +640,10 @@ class StopListView extends StatelessWidget {
               Expanded(child: Container(height: 1, color: cs.outlineVariant)),
               const SizedBox(width: AppTokens.space10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: 3),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppTokens.space8,
+                  vertical: 3,
+                ),
                 decoration: BoxDecoration(
                   color: cs.primary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -593,19 +659,21 @@ class StopListView extends StatelessWidget {
             ],
           ),
         ),
-        ...allStops.map((info) => Padding(
-              padding: const EdgeInsets.only(bottom: AppTokens.space10),
-              child: _StopCard(
-                info: info,
-                // Tap shows the command details + items (lazy-loaded) in a sheet — the
-                // "Ouvrir la tournée" action inside preserves the old navigate-to-route behaviour.
-                onTap: () => _showStopItemsSheet(
-                  context,
-                  info,
-                  () => _handleTap(context, info.route, onNavigateToRoute),
-                ),
+        ...allStops.map(
+          (info) => Padding(
+            padding: const EdgeInsets.only(bottom: AppTokens.space10),
+            child: _StopCard(
+              info: info,
+              // Tap shows the command details + items (lazy-loaded) in a sheet — the
+              // "Ouvrir la tournée" action inside preserves the old navigate-to-route behaviour.
+              onTap: () => _showStopItemsSheet(
+                context,
+                info,
+                () => _handleTap(context, info.route, onNavigateToRoute),
               ),
-            )),
+            ),
+          ),
+        ),
       ],
     );
   }
@@ -637,9 +705,16 @@ class StopListView extends StatelessWidget {
       builder: (_) => Container(
         decoration: BoxDecoration(
           color: cs.surfaceContainerLow,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTokens.radiusXl)),
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppTokens.radiusXl),
+          ),
         ),
-        padding: const EdgeInsets.fromLTRB(AppTokens.space24, 0, AppTokens.space24, AppTokens.space40),
+        padding: const EdgeInsets.fromLTRB(
+          AppTokens.space24,
+          0,
+          AppTokens.space24,
+          AppTokens.space40,
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -674,7 +749,11 @@ class StopListView extends StatelessWidget {
             const SizedBox(height: AppTokens.space6),
             Text(
               l10n.calendarRouteCancelledBody(route.name),
-              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant, height: 1.5),
+              style: TextStyle(
+                fontSize: 14,
+                color: cs.onSurfaceVariant,
+                height: 1.5,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppTokens.space24),
@@ -684,7 +763,9 @@ class StopListView extends StatelessWidget {
                 onPressed: () => Navigator.of(context).pop(),
                 style: TextButton.styleFrom(
                   foregroundColor: cs.onSurfaceVariant,
-                  padding: const EdgeInsets.symmetric(vertical: AppTokens.space14),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: AppTokens.space14,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                     side: BorderSide(color: cs.outlineVariant),
@@ -712,7 +793,11 @@ class _StopInfo {
   final DriverRouteStop stop;
 }
 
-void _showStopItemsSheet(BuildContext context, _StopInfo info, VoidCallback onOpenRoute) {
+void _showStopItemsSheet(
+  BuildContext context,
+  _StopInfo info,
+  VoidCallback onOpenRoute,
+) {
   showModalBottomSheet<void>(
     context: context,
     isScrollControlled: true,
@@ -759,22 +844,39 @@ class _StopItemsSheet extends ConsumerWidget {
             const SizedBox(height: 16),
             Text(
               stop.clientName ?? l10n.calendarClient,
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: AppTokens.fwBold,
+                color: cs.onSurface,
+              ),
             ),
             if (stop.orderRef != null && stop.orderRef!.isNotEmpty) ...[
               const SizedBox(height: 2),
-              Text(stop.orderRef!, style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+              Text(
+                stop.orderRef!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
             ],
             if (stop.address != null && stop.address!.isNotEmpty) ...[
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(PhosphorIconsRegular.mapPin, size: 14, color: cs.onSurfaceVariant),
+                  Icon(
+                    PhosphorIconsRegular.mapPin,
+                    size: 14,
+                    color: cs.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
-                      [stop.address, stop.city].where((e) => e != null && e.isNotEmpty).join(', '),
-                      style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                      [
+                        stop.address,
+                        stop.city,
+                      ].where((e) => e != null && e.isNotEmpty).join(', '),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],
@@ -783,13 +885,22 @@ class _StopItemsSheet extends ConsumerWidget {
             const SizedBox(height: 18),
             Text(
               l10n.calendarItems,
-              style: theme.textTheme.labelLarge?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface),
+              style: theme.textTheme.labelLarge?.copyWith(
+                fontWeight: AppTokens.fwBold,
+                color: cs.onSurface,
+              ),
             ),
             const SizedBox(height: 8),
             detail.when(
               loading: () => const Padding(
                 padding: EdgeInsets.symmetric(vertical: 22),
-                child: Center(child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2))),
+                child: Center(
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                ),
               ),
               error: (_, __) => Padding(
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -804,49 +915,66 @@ class _StopItemsSheet extends ConsumerWidget {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Text(
                       l10n.calendarNoItems,
-                      style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   );
                 }
                 final amount = d.totalAmount ?? stop.totalAmount ?? 0;
                 return Column(
                   children: [
-                    ...d.items.map((it) => Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 6),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 28,
-                                height: 28,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: cs.primary.withValues(alpha: 0.10),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Text(
-                                  '${it.quantity}',
-                                  style: TextStyle(fontWeight: AppTokens.fwBold, color: cs.primary, fontSize: 12),
+                    ...d.items.map(
+                      (it) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 28,
+                              height: 28,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: cs.primary.withValues(alpha: 0.10),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${it.quantity}',
+                                style: TextStyle(
+                                  fontWeight: AppTokens.fwBold,
+                                  color: cs.primary,
+                                  fontSize: 12,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      it.name,
-                                      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwMedium, color: cs.onSurface),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    it.name,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: AppTokens.fwMedium,
+                                      color: cs.onSurface,
                                     ),
-                                    if (it.sku != null && it.sku!.isNotEmpty)
-                                      Text(it.sku!, style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
-                                  ],
-                                ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  if (it.sku != null && it.sku!.isNotEmpty)
+                                    Text(
+                                      it.sku!,
+                                      style: theme.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: cs.onSurfaceVariant,
+                                          ),
+                                    ),
+                                ],
                               ),
-                            ],
-                          ),
-                        )),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                     if (amount > 0) ...[
                       const SizedBox(height: 10),
                       Divider(color: cs.outlineVariant, height: 1),
@@ -854,10 +982,19 @@ class _StopItemsSheet extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(l10n.calendarAmount,
-                              style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant)),
-                          Text('${amount.toStringAsFixed(3)} ${d.currency ?? 'TND'}',
-                              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface)),
+                          Text(
+                            l10n.calendarAmount,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                          ),
+                          Text(
+                            '${amount.toStringAsFixed(3)} ${d.currency ?? 'TND'}',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: AppTokens.fwBold,
+                              color: cs.onSurface,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -878,7 +1015,9 @@ class _StopItemsSheet extends ConsumerWidget {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.primary,
                   side: BorderSide(color: cs.outlineVariant),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                  ),
                 ),
               ),
             ),
@@ -929,7 +1068,12 @@ class _StopCard extends StatelessWidget {
           children: [
             // Top bar: stop order + status
             Container(
-              padding: const EdgeInsets.fromLTRB(AppTokens.space14, AppTokens.space12, AppTokens.space14, 0),
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space14,
+                AppTokens.space12,
+                AppTokens.space14,
+                0,
+              ),
               child: Row(
                 children: [
                   Container(
@@ -952,11 +1096,17 @@ class _StopCard extends StatelessWidget {
                   ),
                   const SizedBox(width: AppTokens.space8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTokens.space8,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: statusColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-                      border: Border.all(color: statusColor.withValues(alpha: 0.25), width: 0.5),
+                      border: Border.all(
+                        color: statusColor.withValues(alpha: 0.25),
+                        width: 0.5,
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -964,7 +1114,10 @@ class _StopCard extends StatelessWidget {
                         Container(
                           width: 5,
                           height: 5,
-                          decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                          decoration: BoxDecoration(
+                            color: statusColor,
+                            shape: BoxShape.circle,
+                          ),
                         ),
                         const SizedBox(width: 4),
                         Text(
@@ -994,12 +1147,14 @@ class _StopCard extends StatelessWidget {
 
             // Client info
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space14),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space14,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-              stop.clientName ?? l10n.calendarClient,
+                    stop.clientName ?? l10n.calendarClient,
                     style: theme.textTheme.titleSmall?.copyWith(
                       fontWeight: AppTokens.fwBold,
                       color: cs.onSurface,
@@ -1009,7 +1164,11 @@ class _StopCard extends StatelessWidget {
                     const SizedBox(height: AppTokens.space4),
                     Row(
                       children: [
-                        Icon(PhosphorIconsRegular.mapPin, size: 12, color: cs.onSurfaceVariant),
+                        Icon(
+                          PhosphorIconsRegular.mapPin,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
                         const SizedBox(width: AppTokens.space4),
                         Expanded(
                           child: Text(
@@ -1029,7 +1188,11 @@ class _StopCard extends StatelessWidget {
                     const SizedBox(height: AppTokens.space2),
                     Row(
                       children: [
-                        Icon(PhosphorIconsRegular.building, size: 12, color: cs.onSurfaceVariant),
+                        Icon(
+                          PhosphorIconsRegular.building,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
                         const SizedBox(width: AppTokens.space4),
                         Text(
                           stop.city!,
@@ -1044,9 +1207,14 @@ class _StopCard extends StatelessWidget {
                   if (stop.formattedTimeWindow != null) ...[
                     const SizedBox(height: AppTokens.space4),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
+                        color: cs.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
                       ),
                       child: Text(
@@ -1065,22 +1233,40 @@ class _StopCard extends StatelessWidget {
 
             const SizedBox(height: AppTokens.space10),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTokens.space14),
-              child: Container(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTokens.space14,
+              ),
+              child: Container(
+                height: 1,
+                color: cs.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
             const SizedBox(height: AppTokens.space10),
 
             // Bottom: items + montant
             Padding(
-              padding: const EdgeInsets.fromLTRB(AppTokens.space14, 0, AppTokens.space14, AppTokens.space12),
+              padding: const EdgeInsets.fromLTRB(
+                AppTokens.space14,
+                0,
+                AppTokens.space14,
+                AppTokens.space12,
+              ),
               child: Row(
                 children: [
                   Row(
                     children: [
-                      Icon(PhosphorIconsRegular.package, size: 13, color: cs.onSurfaceVariant),
+                      Icon(
+                        PhosphorIconsRegular.package,
+                        size: 13,
+                        color: cs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppTokens.space4),
                       Text(
-                        route.stops.length > 1 ? l10n.routeStopCount(route.stops.length.toString()) : l10n.routeStopCountSingular(route.stops.length.toString()),
+                        route.stops.length > 1
+                            ? l10n.routeStopCount(route.stops.length.toString())
+                            : l10n.routeStopCountSingular(
+                                route.stops.length.toString(),
+                              ),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: AppTokens.fwMedium,
@@ -1093,7 +1279,11 @@ class _StopCard extends StatelessWidget {
                   if (montant > 0)
                     Row(
                       children: [
-                        Icon(PhosphorIconsRegular.currencyCircleDollar, size: 13, color: const Color(0xFFC4881A)),
+                        Icon(
+                          PhosphorIconsRegular.currencyCircleDollar,
+                          size: 13,
+                          color: const Color(0xFFC4881A),
+                        ),
                         const SizedBox(width: AppTokens.space4),
                         Text(
                           '${montant.toStringAsFixed(3)} TND',
@@ -1116,15 +1306,26 @@ class _StopCard extends StatelessWidget {
 
   String _deliveryStatusLabel(String status, AppLocalizations l10n) {
     switch (status) {
-      case 'UNSCHEDULED': return l10n.statusUnscheduled;
-      case 'SCHEDULED': return l10n.statusScheduled;
-      case 'PICKED_UP': return l10n.statusPickedUp;
-      case 'IN_TRANSIT': return l10n.statusInTransit;
-      case 'DELIVERED': return l10n.statusDelivered;
-      case 'PARTIALLY_DELIVERED': case 'PARTIAL': return l10n.statusPartial;
-      case 'FAILED': case 'FAILED_ATTEMPT': return l10n.statusFailed;
-      case 'CANCELLED': return l10n.statusCancelled;
-      default: return l10n.statusPending;
+      case 'UNSCHEDULED':
+        return l10n.statusUnscheduled;
+      case 'SCHEDULED':
+        return l10n.statusScheduled;
+      case 'PICKED_UP':
+        return l10n.statusPickedUp;
+      case 'IN_TRANSIT':
+        return l10n.statusInTransit;
+      case 'DELIVERED':
+        return l10n.statusDelivered;
+      case 'PARTIALLY_DELIVERED':
+      case 'PARTIAL':
+        return l10n.statusPartial;
+      case 'FAILED':
+      case 'FAILED_ATTEMPT':
+        return l10n.statusFailed;
+      case 'CANCELLED':
+        return l10n.statusCancelled;
+      default:
+        return l10n.statusPending;
     }
   }
 }
@@ -1188,7 +1389,11 @@ class CalendarErrorState extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(PhosphorIconsRegular.cloudSlash, size: 34, color: cs.onSurfaceVariant),
+          Icon(
+            PhosphorIconsRegular.cloudSlash,
+            size: 34,
+            color: cs.onSurfaceVariant,
+          ),
           const SizedBox(height: AppTokens.space12),
           Text(
             l10n.calendarLoadRoutesError,

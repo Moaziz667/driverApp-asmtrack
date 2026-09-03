@@ -22,16 +22,17 @@ class FakeTokenStorage extends TokenStorage {
   Future<AuthTokens?> readTokens() async => null;
 
   @override
-  Future<List<int>> getOrCreateDbKey() async => List<int>.generate(32, (i) => i);
+  Future<List<int>> getOrCreateDbKey() async =>
+      List<int>.generate(32, (i) => i);
 }
 
 void main() {
-  testWidgets('Driver shell renders without crashing', (WidgetTester tester) async {
+  testWidgets('Driver shell renders without crashing', (
+    WidgetTester tester,
+  ) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          tokenStorageProvider.overrideWithValue(FakeTokenStorage()),
-        ],
+        overrides: [tokenStorageProvider.overrideWithValue(FakeTokenStorage())],
         child: const DriverApp(),
       ),
     );

@@ -16,7 +16,8 @@ import '../../../app_providers.dart';
 import '../../../config/app_config.dart';
 
 class AuthController extends StateNotifier<AuthState> {
-  AuthController(this._repository, this._tokenStorage, this._fcm, this._ref) : super(AuthState.unknown());
+  AuthController(this._repository, this._tokenStorage, this._fcm, this._ref)
+    : super(AuthState.unknown());
 
   final AuthRepository _repository;
   final TokenStorage _tokenStorage;
@@ -31,22 +32,33 @@ class AuthController extends StateNotifier<AuthState> {
       if (!mounted) return;
 
       final resolvedUrl = (apiUrl == null || apiUrl.isEmpty)
-          ? const String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.86.194.125')
+          ? const String.fromEnvironment(
+              'API_BASE_URL',
+              defaultValue: 'http://10.86.194.125',
+            )
           : apiUrl;
 
       // Set the state provider synchronously so ApiClient is updated before tokens are validated
-      _ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(resolvedUrl);
+      _ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(
+        resolvedUrl,
+      );
       debugPrint('[BOOT] config set -> $resolvedUrl');
 
       final tokens = await _tokenStorage.readTokens();
-      debugPrint('[BOOT] tokens read: hasToken=${tokens != null} (mounted=$mounted)');
+      debugPrint(
+        '[BOOT] tokens read: hasToken=${tokens != null} (mounted=$mounted)',
+      );
       if (!mounted) return;
       if (tokens == null) {
         state = const AuthState(status: AuthStatus.unauthenticated);
         debugPrint('[BOOT] -> unauthenticated');
         return;
       }
-      state = state.copyWith(status: AuthStatus.authenticated, isLoading: false, error: null);
+      state = state.copyWith(
+        status: AuthStatus.authenticated,
+        isLoading: false,
+        error: null,
+      );
       debugPrint('[BOOT] -> authenticated');
       // Defer FCM init so any overlay-driven navigation (FCM notification tap)
       // doesn't race against the Navigator's overlay being laid out.
@@ -69,14 +81,21 @@ class AuthController extends StateNotifier<AuthState> {
       await _tokenStorage.saveTokens(payload.tokens);
       // Re-arm session handling so a future suspension/expiry is acted upon.
       _ref.read(apiClientProvider).resetSession();
-      state = AuthState(status: AuthStatus.authenticated, driver: payload.driver);
+      state = AuthState(
+        status: AuthStatus.authenticated,
+        driver: payload.driver,
+      );
       // P1-a: a driver who queued writes, was signed out (token fully expired),
       // and just signed back in should have those writes flushed now — a fresh
       // token is available and connectivity may not change again.
       _ref.read(offlineQueueProvider.notifier).processQueue();
       // Tag crash reports with the driver id only (no name/phone — PII-free).
-      await Sentry.configureScope((s) => s.setUser(SentryUser(id: payload.driver.id)));
-      Sentry.addBreadcrumb(Breadcrumb(category: 'auth', message: 'login success'));
+      await Sentry.configureScope(
+        (s) => s.setUser(SentryUser(id: payload.driver.id)),
+      );
+      Sentry.addBreadcrumb(
+        Breadcrumb(category: 'auth', message: 'login success'),
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) => _fcm.init().ignore());
     } on DioException catch (error) {
       state = state.copyWith(
@@ -87,8 +106,10 @@ class AuthController extends StateNotifier<AuthState> {
       rethrow;
     } catch (e) {
       final errorStr = e.toString();
-      final isCancelled = errorStr.contains('user_cancelled') || errorStr.contains('User cancelled flow');
-      
+      final isCancelled =
+          errorStr.contains('user_cancelled') ||
+          errorStr.contains('User cancelled flow');
+
       state = state.copyWith(
         isLoading: false,
         status: AuthStatus.unauthenticated,

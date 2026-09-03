@@ -40,10 +40,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(AppLocalizations.of(context).profileError(e.toString())),
+            content: Text(
+              AppLocalizations.of(context).profileError(e.toString()),
+            ),
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+            ),
           ),
         );
       }
@@ -57,14 +61,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     try {
       final point = await LocationService().currentPosition();
       if (point != null) {
-        await ref.read(profileRepositoryProvider).updateLocation(point.lat, point.lng);
+        await ref
+            .read(profileRepositoryProvider)
+            .updateLocation(point.lat, point.lng);
         if (mounted) {
           final loc = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(loc.position_sent),
               behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+              ),
             ),
           );
         }
@@ -83,9 +91,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     } catch (_) {
       if (mounted) {
         final loc = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(loc.profileUploadFailed)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.profileUploadFailed)));
       }
     } finally {
       if (mounted) setState(() => _photoUploading = false);
@@ -110,7 +118,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       context: context,
       builder: (_) => AlertDialog(
         title: Text(loc.logout_confirm_title),
-        content: Text(loc.logout_confirm_body, style: TextStyle(color: cs.onSurfaceVariant)),
+        content: Text(
+          loc.logout_confirm_body,
+          style: TextStyle(color: cs.onSurfaceVariant),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -146,17 +157,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       data: (profile) {
         final driverColor = statusColors.forDriverStatus(profile.onlineStatus);
-        final initials = profile.name.isNotEmpty ? profile.name[0].toUpperCase() : 'D';
+        final initials = profile.name.isNotEmpty
+            ? profile.name[0].toUpperCase()
+            : 'D';
         return ListView(
           padding: const EdgeInsets.fromLTRB(
-            AppTokens.space16, AppTokens.space16, AppTokens.space16, AppTokens.space32),
+            AppTokens.space16,
+            AppTokens.space16,
+            AppTokens.space16,
+            AppTokens.space32,
+          ),
           children: [
             // ── Hero avatar (centered, tappable) ──
             Center(
               child: ProfilePicker(
                 radius: 48,
                 fallbackInitials: initials,
-                initialImageUrl: (profile.photoUrl?.isNotEmpty == true) ? profile.photoUrl : null,
+                initialImageUrl: (profile.photoUrl?.isNotEmpty == true)
+                    ? profile.photoUrl
+                    : null,
                 onImageSelected: _onPhotoSelected,
                 allowRemove: false,
                 badgePosition: BadgePosition.bottomRight,
@@ -190,7 +209,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(LucideIcons.phone, size: 12, color: cs.onSurfaceVariant),
+                      Icon(
+                        LucideIcons.phone,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
                       const SizedBox(width: AppTokens.space6),
                       Flexible(
                         child: Text(
@@ -208,12 +231,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(LucideIcons.mapPin, size: 12, color: cs.onSurfaceVariant),
+                        Icon(
+                          LucideIcons.mapPin,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
                         const SizedBox(width: AppTokens.space6),
                         Flexible(
                           child: Text(
                             profile.city!,
-                            style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
@@ -255,8 +284,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             _QuickActionCard(
               icon: LucideIcons.banknote,
               iconColor: AppTokens.successGreen,
-              label: ref.watch(localeProvider) == 'ar' ? 'تسليم الصندوق' : 'Remise de caisse',
-              onTap: () => Navigator.of(context).pushNamed(CashHandoverScreen.routeName),
+              label: ref.watch(localeProvider) == 'ar'
+                  ? 'تسليم الصندوق'
+                  : 'Remise de caisse',
+              onTap: () =>
+                  Navigator.of(context).pushNamed(CashHandoverScreen.routeName),
             ),
             const SizedBox(height: AppTokens.space24),
 
@@ -280,7 +312,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 total: stats.totalDeliveries,
                 statusColors: statusColors,
               ),
-              loading: () => const SizedBox(height: 80, child: Center(child: CircularProgressIndicator())),
+              loading: () => const SizedBox(
+                height: 80,
+                child: Center(child: CircularProgressIndicator()),
+              ),
               error: (_, __) => const SizedBox.shrink(),
             ),
             const SizedBox(height: AppTokens.space24),
@@ -300,15 +335,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   _InfoTile(
                     icon: LucideIcons.clock,
                     label: loc.last_ping,
-                    value: DateFormat('MMM d · HH:mm').format(profile.lastLocationAt!.toLocal()),
+                    value: DateFormat(
+                      'MMM d · HH:mm',
+                    ).format(profile.lastLocationAt!.toLocal()),
                   ),
                 ],
-                if (profile.currentLat != null && profile.currentLng != null) ...[
+                if (profile.currentLat != null &&
+                    profile.currentLng != null) ...[
                   const _GroupDivider(),
                   _InfoTile(
                     icon: LucideIcons.globe,
                     label: loc.gps,
-                    value: '${profile.currentLat!.toStringAsFixed(4)}, ${profile.currentLng!.toStringAsFixed(4)}',
+                    value:
+                        '${profile.currentLat!.toStringAsFixed(4)}, ${profile.currentLng!.toStringAsFixed(4)}',
                     valueColor: cs.primary,
                   ),
                 ],
@@ -332,9 +371,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.error,
                   side: BorderSide(color: cs.error.withValues(alpha: 0.4)),
-                  padding: const EdgeInsets.symmetric(horizontal: AppTokens.space20, vertical: AppTokens.space12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
-                  textStyle: const TextStyle(fontWeight: AppTokens.fwSemiBold, fontSize: 13),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppTokens.space20,
+                    vertical: AppTokens.space12,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                  ),
+                  textStyle: const TextStyle(
+                    fontWeight: AppTokens.fwSemiBold,
+                    fontSize: 13,
+                  ),
                 ),
               ),
             ),
@@ -376,16 +423,29 @@ class _QuickActionCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
         child: Container(
-          padding: const EdgeInsets.symmetric(vertical: AppTokens.space16, horizontal: AppTokens.space12),
+          padding: const EdgeInsets.symmetric(
+            vertical: AppTokens.space16,
+            horizontal: AppTokens.space12,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-            border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1),
+            border: Border.all(
+              color: cs.outlineVariant.withValues(alpha: 0.5),
+              width: 1,
+            ),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               loading
-                  ? SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: iconColor))
+                  ? SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: iconColor,
+                      ),
+                    )
                   : Icon(icon, size: 22, color: iconColor),
               const SizedBox(height: AppTokens.space8),
               Text(
@@ -418,10 +478,15 @@ class _StatusPill extends StatelessWidget {
     final loc = AppLocalizations.of(context);
     final label = status == 'ONLINE'
         ? loc.status_online_upper
-        : (status == 'ON_BREAK' ? loc.status_on_break_upper : loc.status_offline_upper);
+        : (status == 'ON_BREAK'
+              ? loc.status_on_break_upper
+              : loc.status_offline_upper);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space10, vertical: AppTokens.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space10,
+        vertical: AppTokens.space4,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTokens.radiusFull),
@@ -430,11 +495,20 @@ class _StatusPill extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 6, height: 6, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
           const SizedBox(width: AppTokens.space6),
           Text(
             label,
-            style: TextStyle(fontSize: 10, fontWeight: AppTokens.fwBold, color: color, letterSpacing: 0.5),
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: AppTokens.fwBold,
+              color: color,
+              letterSpacing: 0.5,
+            ),
           ),
         ],
       ),
@@ -474,7 +548,10 @@ class _GroupCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.6),
+          width: 1,
+        ),
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(children: children),
@@ -499,7 +576,12 @@ class _GroupDivider extends StatelessWidget {
 }
 
 class _InfoTile extends StatelessWidget {
-  const _InfoTile({required this.icon, required this.label, required this.value, this.valueColor});
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.valueColor,
+  });
   final IconData icon;
   final String label;
   final String value;
@@ -510,7 +592,10 @@ class _InfoTile extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space16, vertical: AppTokens.space14),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space16,
+        vertical: AppTokens.space14,
+      ),
       child: Row(
         children: [
           Container(
@@ -570,7 +655,11 @@ class _ShiftControls extends StatelessWidget {
       return Container(
         height: 56,
         alignment: Alignment.center,
-        child: const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5)),
+        child: const SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(strokeWidth: 2.5),
+        ),
       );
     }
 
@@ -579,7 +668,10 @@ class _ShiftControls extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.6),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
@@ -669,13 +761,28 @@ class _LanguageSelector extends ConsumerWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.6),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
-          _LangButton(label: 'FR', active: currentLocale == 'fr', onTap: () => ref.read(localeProvider.notifier).setLocale('fr')),
-          _LangButton(label: 'EN', active: currentLocale == 'en', onTap: () => ref.read(localeProvider.notifier).setLocale('en')),
-          _LangButton(label: 'AR', active: currentLocale == 'ar', onTap: () => ref.read(localeProvider.notifier).setLocale('ar')),
+          _LangButton(
+            label: 'FR',
+            active: currentLocale == 'fr',
+            onTap: () => ref.read(localeProvider.notifier).setLocale('fr'),
+          ),
+          _LangButton(
+            label: 'EN',
+            active: currentLocale == 'en',
+            onTap: () => ref.read(localeProvider.notifier).setLocale('en'),
+          ),
+          _LangButton(
+            label: 'AR',
+            active: currentLocale == 'ar',
+            onTap: () => ref.read(localeProvider.notifier).setLocale('ar'),
+          ),
         ],
       ),
     );
@@ -683,7 +790,11 @@ class _LanguageSelector extends ConsumerWidget {
 }
 
 class _LangButton extends StatelessWidget {
-  const _LangButton({required this.label, required this.active, required this.onTap});
+  const _LangButton({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
   final String label;
   final bool active;
   final VoidCallback onTap;
@@ -748,7 +859,10 @@ class _StatsCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-        border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6), width: 1),
+        border: Border.all(
+          color: cs.outlineVariant.withValues(alpha: 0.6),
+          width: 1,
+        ),
       ),
       padding: const EdgeInsets.all(AppTokens.space20),
       child: Column(
@@ -782,7 +896,14 @@ class _StatsCard extends StatelessWidget {
                             color: accent,
                           ),
                         ),
-                        Text('%', style: TextStyle(fontSize: 18, fontWeight: AppTokens.fwBold, color: accent)),
+                        Text(
+                          '%',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: AppTokens.fwBold,
+                            color: accent,
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -815,11 +936,32 @@ class _StatsCard extends StatelessWidget {
           const SizedBox(height: AppTokens.space14),
           Row(
             children: [
-              Expanded(child: _StatSegment(value: '$delivered', label: loc.metric_delivered, color: accent, icon: LucideIcons.checkCircle2)),
+              Expanded(
+                child: _StatSegment(
+                  value: '$delivered',
+                  label: loc.metric_delivered,
+                  color: accent,
+                  icon: LucideIcons.checkCircle2,
+                ),
+              ),
               _SegDivider(),
-              Expanded(child: _StatSegment(value: '$failed', label: loc.metric_failed, color: cs.error, icon: LucideIcons.xCircle)),
+              Expanded(
+                child: _StatSegment(
+                  value: '$failed',
+                  label: loc.metric_failed,
+                  color: cs.error,
+                  icon: LucideIcons.xCircle,
+                ),
+              ),
               _SegDivider(),
-              Expanded(child: _StatSegment(value: '$total', label: loc.metric_total, color: cs.primary, icon: LucideIcons.package)),
+              Expanded(
+                child: _StatSegment(
+                  value: '$total',
+                  label: loc.metric_total,
+                  color: cs.primary,
+                  icon: LucideIcons.package,
+                ),
+              ),
             ],
           ),
         ],
@@ -832,12 +974,21 @@ class _SegDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return Container(width: 1, height: 34, color: cs.outlineVariant.withValues(alpha: 0.5));
+    return Container(
+      width: 1,
+      height: 34,
+      color: cs.outlineVariant.withValues(alpha: 0.5),
+    );
   }
 }
 
 class _StatSegment extends StatelessWidget {
-  const _StatSegment({required this.value, required this.label, required this.color, required this.icon});
+  const _StatSegment({
+    required this.value,
+    required this.label,
+    required this.color,
+    required this.icon,
+  });
   final String value;
   final String label;
   final Color color;

@@ -36,7 +36,10 @@ class DeliveryNoteCache {
   /// Drop every note that is not in [keep] — yesterday's round is dead weight on the handset.
   Future<void> retainOnly(Set<String> keep) async {
     try {
-      final stale = _box.keys.map((k) => k.toString()).where((k) => !keep.contains(k)).toList();
+      final stale = _box.keys
+          .map((k) => k.toString())
+          .where((k) => !keep.contains(k))
+          .toList();
       if (stale.isEmpty) return;
       await _box.deleteAll(stale);
       debugPrint('[BL cache] pruned ${stale.length} stale note(s)');

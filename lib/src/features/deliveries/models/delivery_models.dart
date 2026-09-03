@@ -54,7 +54,6 @@ extension FailureReasonX on FailureReason {
         return FailureCode('OTHER');
     }
   }
-
 }
 
 class FailureCode {
@@ -65,7 +64,12 @@ class FailureCode {
 /// Configurable failure reason fetched from the backend referential.
 /// Falls back to the static [FailureReason] enum when offline.
 class FailureReasonOption {
-  const FailureReasonOption({required this.code, required this.label, this.category, this.scope = 'DELIVERY'});
+  const FailureReasonOption({
+    required this.code,
+    required this.label,
+    this.category,
+    this.scope = 'DELIVERY',
+  });
   final String code;
   final String label;
 
@@ -82,7 +86,8 @@ class FailureReasonOption {
   bool get coversDelivery => scope == 'DELIVERY' || scope == 'BOTH';
   bool get coversPayment => scope == 'PAYMENT';
 
-  factory FailureReasonOption.fromJson(Map<String, dynamic> json) => FailureReasonOption(
+  factory FailureReasonOption.fromJson(Map<String, dynamic> json) =>
+      FailureReasonOption(
         code: json['code'] as String? ?? 'OTHER',
         label: json['label'] as String? ?? (json['code'] as String? ?? 'Autre'),
         category: json['category'] as String?,
@@ -91,13 +96,26 @@ class FailureReasonOption {
 
   /// Static fallback derived from the legacy enum (used when the API is unreachable).
   static List<FailureReasonOption> get fallback => FailureReason.values
-      .map((r) => FailureReasonOption(code: r.apiCode.value, label: r.apiCode.value, category: r.apiCode.value, scope: 'DELIVERY'))
+      .map(
+        (r) => FailureReasonOption(
+          code: r.apiCode.value,
+          label: r.apiCode.value,
+          category: r.apiCode.value,
+          scope: 'DELIVERY',
+        ),
+      )
       .toList();
 }
 
 /// One disposition of a per-unit line breakdown (WMS): DELIVERED / REFUSED / DAMAGED / MISSING.
 class ItemSegment {
-  const ItemSegment({required this.disposition, required this.quantity, this.reasonCode, this.reasonLabel, this.comment});
+  const ItemSegment({
+    required this.disposition,
+    required this.quantity,
+    this.reasonCode,
+    this.reasonLabel,
+    this.comment,
+  });
   final String disposition;
   final int quantity;
   final String? reasonCode;
@@ -105,19 +123,19 @@ class ItemSegment {
   final String? comment;
 
   factory ItemSegment.fromJson(Map<String, dynamic> json) => ItemSegment(
-        disposition: (json['disposition'] as String? ?? 'DELIVERED').toUpperCase(),
-        quantity: (json['quantity'] as num?)?.toInt() ?? 0,
-        reasonCode: json['reasonCode'] as String?,
-        reasonLabel: json['reasonLabel'] as String?,
-        comment: json['comment'] as String?,
-      );
+    disposition: (json['disposition'] as String? ?? 'DELIVERED').toUpperCase(),
+    quantity: (json['quantity'] as num?)?.toInt() ?? 0,
+    reasonCode: json['reasonCode'] as String?,
+    reasonLabel: json['reasonLabel'] as String?,
+    comment: json['comment'] as String?,
+  );
 
   Map<String, dynamic> toJson() => {
-        'disposition': disposition,
-        'quantity': quantity,
-        if (reasonCode != null) 'reasonCode': reasonCode,
-        if (comment != null) 'comment': comment,
-      };
+    'disposition': disposition,
+    'quantity': quantity,
+    if (reasonCode != null) 'reasonCode': reasonCode,
+    if (comment != null) 'comment': comment,
+  };
 }
 
 class OrderItemModel {
@@ -162,8 +180,9 @@ class OrderItemModel {
   final List<ItemSegment>? segments;
 
   /// The non-delivered segments (refused / damaged / missing), for display.
-  List<ItemSegment> get shortSegments =>
-      (segments ?? const []).where((s) => s.disposition != 'DELIVERED' && s.quantity > 0).toList();
+  List<ItemSegment> get shortSegments => (segments ?? const [])
+      .where((s) => s.disposition != 'DELIVERED' && s.quantity > 0)
+      .toList();
 
   bool get hasOutcome => outcome != null && outcome!.isNotEmpty;
   bool get isFullyDelivered => quantityDone != null && quantityDone == quantity;
@@ -220,7 +239,9 @@ class DriverDelivery {
       'cancelledAt',
       'createdAt',
     ]) {
-      timestamps[key] = json[key] != null ? DateTime.tryParse(json[key] as String) : null;
+      timestamps[key] = json[key] != null
+          ? DateTime.tryParse(json[key] as String)
+          : null;
     }
     return DriverDelivery(
       id: (json['deliveryId'] ?? json['id']).toString(),
@@ -242,34 +263,51 @@ class DriverDelivery {
           .map((item) => OrderItemModel.fromJson(item as Map<String, dynamic>))
           .toList(),
       priority: json['priority'] as String?,
-      scheduledAt: json['scheduledAt'] != null ? DateTime.tryParse(json['scheduledAt'] as String) : null,
+      scheduledAt: json['scheduledAt'] != null
+          ? DateTime.tryParse(json['scheduledAt'] as String)
+          : null,
       routeGeometry: json['routeGeometry'] as String?,
       routeDistanceKm: (json['routeDistanceKm'] as num?)?.toDouble(),
       routeDurationMinutes: (json['routeDurationMinutes'] as num?)?.toInt(),
-      transitSlaMinutesComputed: (json['transitSlaMinutesComputed'] as num?)?.toInt(),
-      routeEtaAt: json['routeEtaAt'] != null ? DateTime.tryParse(json['routeEtaAt'] as String) : null,
+      transitSlaMinutesComputed: (json['transitSlaMinutesComputed'] as num?)
+          ?.toInt(),
+      routeEtaAt: json['routeEtaAt'] != null
+          ? DateTime.tryParse(json['routeEtaAt'] as String)
+          : null,
       routeProvider: json['routeProvider'] as String?,
-      lat: (json['dropoffLat'] as num?)?.toDouble() ?? (json['lat'] as num?)?.toDouble(),
-      lng: (json['dropoffLng'] as num?)?.toDouble() ?? (json['lng'] as num?)?.toDouble(),
+      lat:
+          (json['dropoffLat'] as num?)?.toDouble() ??
+          (json['lat'] as num?)?.toDouble(),
+      lng:
+          (json['dropoffLng'] as num?)?.toDouble() ??
+          (json['lng'] as num?)?.toDouble(),
       requiresHandoff: json['requiresHandoff'] as bool? ?? false,
-      handoffConfirmedAt: json['handoffConfirmedAt'] != null ? DateTime.tryParse(json['handoffConfirmedAt'] as String) : null,
+      handoffConfirmedAt: json['handoffConfirmedAt'] != null
+          ? DateTime.tryParse(json['handoffConfirmedAt'] as String)
+          : null,
       handoffToDriverId: json['handoffToDriverId'] as String?,
       handoffFromDriverId: json['handoffFromDriverId'] as String?,
       failReason: json['failReason'] as String?,
       cancelReason: json['cancelReason'] as String?,
       proofOfDelivery: json['proofOfDelivery'] != null
-          ? ProofOfDeliveryModel.fromJson(json['proofOfDelivery'] as Map<String, dynamic>)
+          ? ProofOfDeliveryModel.fromJson(
+              json['proofOfDelivery'] as Map<String, dynamic>,
+            )
           : null,
       statusHistory: (json['statusHistory'] as List<dynamic>? ?? [])
-          .map((h) => StatusHistoryItemModel.fromJson(h as Map<String, dynamic>))
+          .map(
+            (h) => StatusHistoryItemModel.fromJson(h as Map<String, dynamic>),
+          )
           .toList(),
       timestamps: timestamps,
     );
   }
 
   final String id;
+
   /// FORWARD (delivery) or RETURN_PICKUP (return collection, client→depot). ADR-033.
   final String? kind;
+
   /// The return's own reference (RET-00001) for a RETURN_PICKUP.
   final String? rmaNumber;
   final String? orderId;
@@ -313,7 +351,10 @@ class DriverDelivery {
   final List<StatusHistoryItemModel> statusHistory;
   final Map<String, DateTime?> timestamps;
 
-  bool get isTerminal => status == DeliveryStatus.delivered || status == DeliveryStatus.failed || status == DeliveryStatus.cancelled;
+  bool get isTerminal =>
+      status == DeliveryStatus.delivered ||
+      status == DeliveryStatus.failed ||
+      status == DeliveryStatus.cancelled;
 
   /// ADR-033 — this leg is a return collection (client→depot): "récupérer" the parcel, all-or-nothing,
   /// no partial. Drives the reverse-sense UI in the card + detail screens.
@@ -337,7 +378,9 @@ class ProofOfDeliveryModel {
       signatureUrl: json['signatureUrl'] as String?,
       bonLivraisonPhotoUrl: json['bonLivraisonPhotoUrl'] as String?,
       comment: json['comment'] as String?,
-      collectedAt: json['collectedAt'] != null ? DateTime.tryParse(json['collectedAt'] as String) : null,
+      collectedAt: json['collectedAt'] != null
+          ? DateTime.tryParse(json['collectedAt'] as String)
+          : null,
       lat: (json['lat'] as num?)?.toDouble(),
       lng: (json['lng'] as num?)?.toDouble(),
     );
@@ -354,8 +397,10 @@ class ProofOfDeliveryModel {
   List<String> get imageUrls {
     final urls = <String>[];
     if (photoUrl != null && photoUrl!.isNotEmpty) urls.add(photoUrl!);
-    if (bonLivraisonPhotoUrl != null && bonLivraisonPhotoUrl!.isNotEmpty) urls.add(bonLivraisonPhotoUrl!);
-    if (signatureUrl != null && signatureUrl!.isNotEmpty) urls.add(signatureUrl!);
+    if (bonLivraisonPhotoUrl != null && bonLivraisonPhotoUrl!.isNotEmpty)
+      urls.add(bonLivraisonPhotoUrl!);
+    if (signatureUrl != null && signatureUrl!.isNotEmpty)
+      urls.add(signatureUrl!);
     return urls;
   }
 }
@@ -374,7 +419,9 @@ class StatusHistoryItemModel {
       status: json['status'] as String?,
       eventKey: json['eventKey'] as String?,
       eventParams: json['eventParams'] as Map<String, dynamic>?,
-      changedAt: json['changedAt'] != null ? DateTime.tryParse(json['changedAt'] as String) : null,
+      changedAt: json['changedAt'] != null
+          ? DateTime.tryParse(json['changedAt'] as String)
+          : null,
       changedBy: json['changedBy'] as String?,
     );
   }
@@ -462,7 +509,9 @@ class PodPayload {
       'isPartial': isPartial,
       'itemsDone': itemsDone?.map((e) => e.toJson()).toList(),
       'cash': cash?.toJson(),
-    }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
+    }..removeWhere(
+      (key, value) => value == null || (value is String && value.isEmpty),
+    );
   }
 }
 
@@ -494,14 +543,17 @@ class CashEntry {
   /// Failure-reason catalogue code; required by the server when the amount falls short.
   final String? reason;
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() =>
+      {
         'amountCollected': amountCollected,
         'method': method,
         'chequeNumber': chequeNumber,
         'chequeBank': chequeBank,
         'chequeDate': chequeDate,
         'reason': reason,
-      }..removeWhere((key, value) => value == null || (value is String && value.isEmpty));
+      }..removeWhere(
+        (key, value) => value == null || (value is String && value.isEmpty),
+      );
 }
 
 /// A freshly generated one-time handoff code plus its server-authoritative expiry,
@@ -512,4 +564,3 @@ class HandoffTokenInfo {
   final String token;
   final DateTime? expiresAt;
 }
-

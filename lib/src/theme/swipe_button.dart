@@ -22,7 +22,8 @@ class SwipeButton extends StatefulWidget {
   State<SwipeButton> createState() => _SwipeButtonState();
 }
 
-class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStateMixin {
+class _SwipeButtonState extends State<SwipeButton>
+    with SingleTickerProviderStateMixin {
   double _position = 0.0;
   bool _completed = false;
 
@@ -86,19 +87,21 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
           height: buttonHeight,
           width: trackWidth,
           decoration: BoxDecoration(
-            color: isDisabled 
-                ? cs.surfaceContainerLow.withValues(alpha: 0.5) 
+            color: isDisabled
+                ? cs.surfaceContainerLow.withValues(alpha: 0.5)
                 : primaryColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(30),
             border: Border.all(
-              color: isDisabled 
-                  ? cs.outlineVariant.withValues(alpha: 0.5) 
+              color: isDisabled
+                  ? cs.outlineVariant.withValues(alpha: 0.5)
                   : primaryColor.withValues(alpha: 0.2),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.2 : 0.03),
+                color: Colors.black.withValues(
+                  alpha: theme.brightness == Brightness.dark ? 0.2 : 0.03,
+                ),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -114,12 +117,14 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                 child: Container(
                   width: _position + thumbSize + padding * 2,
                   decoration: BoxDecoration(
-                    color: isDisabled 
-                        ? Colors.transparent 
+                    color: isDisabled
+                        ? Colors.transparent
                         : primaryColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.horizontal(
                       left: const Radius.circular(30),
-                      right: Radius.circular(_position > maxPosition * 0.95 ? 30 : 15),
+                      right: Radius.circular(
+                        _position > maxPosition * 0.95 ? 30 : 15,
+                      ),
                     ),
                   ),
                 ),
@@ -133,8 +138,8 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w800,
-                      color: isDisabled 
-                          ? cs.onSurfaceVariant.withValues(alpha: 0.4) 
+                      color: isDisabled
+                          ? cs.onSurfaceVariant.withValues(alpha: 0.4)
                           : primaryColor.withValues(alpha: 0.85),
                       letterSpacing: 0.5,
                     ),
@@ -153,7 +158,8 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                           setState(() {
                             _position += details.primaryDelta!;
                             if (_position < 0.0) _position = 0.0;
-                            if (_position > maxPosition) _position = maxPosition;
+                            if (_position > maxPosition)
+                              _position = maxPosition;
                           });
                           // Provide light tick haptic on movement
                           if (_position > 0 && _position % 30 < 2) {
@@ -173,9 +179,16 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                               widget.onSwipe!();
                             }
                           } else {
-                            _animation = Tween<double>(begin: _position, end: 0.0).animate(
-                              CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
-                            );
+                            _animation =
+                                Tween<double>(
+                                  begin: _position,
+                                  end: 0.0,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: _controller,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                );
                             _controller.value = 1.0;
                             _controller.reverse();
                           }
@@ -187,8 +200,14 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: isDisabled
-                            ? [cs.surfaceContainerHighest, cs.surfaceContainerHighest]
-                            : [primaryColor, primaryColor.withValues(alpha: 0.85)],
+                            ? [
+                                cs.surfaceContainerHighest,
+                                cs.surfaceContainerHighest,
+                              ]
+                            : [
+                                primaryColor,
+                                primaryColor.withValues(alpha: 0.85),
+                              ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
@@ -215,7 +234,9 @@ class _SwipeButtonState extends State<SwipeButton> with SingleTickerProviderStat
                             )
                           : Icon(
                               widget.icon,
-                              color: isDisabled ? cs.onSurfaceVariant : cs.onPrimary,
+                              color: isDisabled
+                                  ? cs.onSurfaceVariant
+                                  : cs.onPrimary,
                               size: 20,
                             ),
                     ),
@@ -239,7 +260,8 @@ class _ShimmeringText extends StatefulWidget {
   State<_ShimmeringText> createState() => _ShimmeringTextState();
 }
 
-class _ShimmeringTextState extends State<_ShimmeringText> with SingleTickerProviderStateMixin {
+class _ShimmeringTextState extends State<_ShimmeringText>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override

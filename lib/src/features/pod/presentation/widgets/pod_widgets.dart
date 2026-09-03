@@ -17,20 +17,25 @@ class PodOutcome {
 
   Color resolve(ColorScheme cs) {
     switch (colorKey) {
-      case 'success': return cs.primary;
-      case 'danger':  return cs.error;
-      case 'warning': return cs.secondary;
-      case 'info':    return cs.tertiary;
-      default:        return cs.onSurface;
+      case 'success':
+        return cs.primary;
+      case 'danger':
+        return cs.error;
+      case 'warning':
+        return cs.secondary;
+      case 'info':
+        return cs.tertiary;
+      default:
+        return cs.onSurface;
     }
   }
 }
 
 const kPodOutcomes = [
   PodOutcome('DELIVERED', LucideIcons.checkCircle2, 'success'),
-  PodOutcome('REFUSED',   LucideIcons.xCircle,      'danger'),
-  PodOutcome('DAMAGED',   LucideIcons.alertTriangle, 'warning'),
-  PodOutcome('MISSING',   LucideIcons.search,       'info'),
+  PodOutcome('REFUSED', LucideIcons.xCircle, 'danger'),
+  PodOutcome('DAMAGED', LucideIcons.alertTriangle, 'warning'),
+  PodOutcome('MISSING', LucideIcons.search, 'info'),
 ];
 
 const kPodRequiresReason = {'REFUSED', 'DAMAGED', 'MISSING'};
@@ -42,24 +47,36 @@ const kPodItemDispositions = {'REFUSED', 'DAMAGED', 'MISSING'};
 String podOutcomeLabel(String outcome, String locale) {
   if (locale == 'ar') {
     switch (outcome) {
-      case 'DELIVERED': return 'تم التوصيل';
-      case 'REFUSED': return 'مرفوض';
-      case 'DAMAGED': return 'تالف';
-      case 'MISSING': return 'مفقود';
+      case 'DELIVERED':
+        return 'تم التوصيل';
+      case 'REFUSED':
+        return 'مرفوض';
+      case 'DAMAGED':
+        return 'تالف';
+      case 'MISSING':
+        return 'مفقود';
     }
   } else if (locale == 'en') {
     switch (outcome) {
-      case 'DELIVERED': return 'Delivered';
-      case 'REFUSED': return 'Refused';
-      case 'DAMAGED': return 'Damaged';
-      case 'MISSING': return 'Missing';
+      case 'DELIVERED':
+        return 'Delivered';
+      case 'REFUSED':
+        return 'Refused';
+      case 'DAMAGED':
+        return 'Damaged';
+      case 'MISSING':
+        return 'Missing';
     }
   }
   switch (outcome) {
-    case 'DELIVERED': return 'Delivered';
-    case 'REFUSED': return 'Refused';
-    case 'DAMAGED': return 'Damaged';
-    case 'MISSING': return 'Missing';
+    case 'DELIVERED':
+      return 'Delivered';
+    case 'REFUSED':
+      return 'Refused';
+    case 'DAMAGED':
+      return 'Damaged';
+    case 'MISSING':
+      return 'Missing';
   }
   return outcome;
 }
@@ -79,7 +96,10 @@ class _Card extends StatelessWidget {
         border: Border.all(color: cs.outlineVariant.withValues(alpha: 0.6)),
         boxShadow: AppTokens.shadowSm(brightness: Theme.of(context).brightness),
       ),
-      child: Padding(padding: const EdgeInsets.all(AppTokens.space16), child: child),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTokens.space16),
+        child: child,
+      ),
     );
   }
 }
@@ -104,10 +124,12 @@ class DashedRectPainter extends CustomPainter {
       ..style = PaintingStyle.stroke;
 
     final path = Path()
-      ..addRRect(RRect.fromRectAndRadius(
-        Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(8),
-      ));
+      ..addRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(0, 0, size.width, size.height),
+          const Radius.circular(8),
+        ),
+      );
 
     final dashPath = _buildDashPath(path, gap);
     canvas.drawPath(dashPath, paint);
@@ -243,7 +265,12 @@ class PodAmendNoteWarning extends StatelessWidget {
 
 // ─── "View bon de livraison" button ──────────────────────────────────────────
 class PodViewBlButton extends StatelessWidget {
-  const PodViewBlButton({super.key, required this.loading, required this.onTap, required this.locale});
+  const PodViewBlButton({
+    super.key,
+    required this.loading,
+    required this.onTap,
+    required this.locale,
+  });
   final bool loading;
   final VoidCallback onTap;
   final String locale;
@@ -254,9 +281,17 @@ class PodViewBlButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: loading ? null : onTap,
       icon: loading
-          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          ? const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
           : const Icon(LucideIcons.fileText, size: 18),
-      label: Text(loading ? AppLocalizations.of(context).pod_downloading : AppLocalizations.of(context).pod_view_print_bl),
+      label: Text(
+        loading
+            ? AppLocalizations.of(context).pod_downloading
+            : AppLocalizations.of(context).pod_view_print_bl,
+      ),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(48),
         side: BorderSide(color: cs.outlineVariant),
@@ -310,12 +345,29 @@ class PodPhotoSection extends StatelessWidget {
                       children: [
                         Icon(icon, size: 20, color: cs.primary),
                         const SizedBox(width: 8),
-                        Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: AppTokens.fwBold)),
-                        if (isRequired) Text(' *', style: TextStyle(color: cs.error, fontWeight: AppTokens.fwBold)),
+                        Text(
+                          title,
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: AppTokens.fwBold),
+                        ),
+                        if (isRequired)
+                          Text(
+                            ' *',
+                            style: TextStyle(
+                              color: cs.error,
+                              fontWeight: AppTokens.fwBold,
+                            ),
+                          ),
                       ],
                     ),
                     const SizedBox(height: AppTokens.space6),
-                    Text(subtitle, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -323,8 +375,15 @@ class PodPhotoSection extends StatelessWidget {
                 Container(
                   width: 24,
                   height: 24,
-                  decoration: BoxDecoration(color: cs.primary, shape: BoxShape.circle),
-                  child: const Icon(LucideIcons.check, size: 14, color: Colors.white),
+                  decoration: BoxDecoration(
+                    color: cs.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.check,
+                    size: 14,
+                    color: Colors.white,
+                  ),
                 ),
             ],
           ),
@@ -332,7 +391,12 @@ class PodPhotoSection extends StatelessWidget {
           if (captured)
             ClipRRect(
               borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-              child: Image.memory(bytes!, height: 200, width: double.infinity, fit: BoxFit.cover),
+              child: Image.memory(
+                bytes!,
+                height: 200,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
             )
           else
             GestureDetector(
@@ -360,12 +424,20 @@ class PodPhotoSection extends StatelessWidget {
                             color: cs.primary.withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(LucideIcons.camera, size: 24, color: cs.primary),
+                          child: Icon(
+                            LucideIcons.camera,
+                            size: 24,
+                            color: cs.primary,
+                          ),
                         ),
                         const SizedBox(height: AppTokens.space12),
                         Text(
                           AppLocalizations.of(context).pod_photo_tap_hint,
-                          style: TextStyle(fontSize: 14, color: cs.primary, fontWeight: AppTokens.fwBold),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: cs.primary,
+                            fontWeight: AppTokens.fwBold,
+                          ),
                         ),
                       ],
                     ),
@@ -379,9 +451,16 @@ class PodPhotoSection extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onCapture,
                 icon: const Icon(LucideIcons.camera, size: 16),
-                label: Text(captured ? AppLocalizations.of(context).pod_photo_retake : AppLocalizations.of(context).pod_photo_take),
+                label: Text(
+                  captured
+                      ? AppLocalizations.of(context).pod_photo_retake
+                      : AppLocalizations.of(context).pod_photo_take,
+                ),
                 style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -409,7 +488,11 @@ class PodPhotoSection extends StatelessWidget {
 
 // ─── Notes field ─────────────────────────────────────────────────────────────
 class PodNotesField extends StatelessWidget {
-  const PodNotesField({super.key, required this.controller, required this.locale});
+  const PodNotesField({
+    super.key,
+    required this.controller,
+    required this.locale,
+  });
   final TextEditingController controller;
   final String locale;
 
@@ -422,11 +505,19 @@ class PodNotesField extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(LucideIcons.stickyNote, size: 16, color: cs.onSurfaceVariant),
+              Icon(
+                LucideIcons.stickyNote,
+                size: 16,
+                color: cs.onSurfaceVariant,
+              ),
               const SizedBox(width: AppTokens.space8),
               Text(
                 AppLocalizations.of(context).podNotesTitle,
-                style: TextStyle(fontWeight: AppTokens.fwSemiBold, color: cs.onSurfaceVariant, fontSize: 12),
+                style: TextStyle(
+                  fontWeight: AppTokens.fwSemiBold,
+                  color: cs.onSurfaceVariant,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -493,8 +584,19 @@ class PodToggleCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontWeight: AppTokens.fwSemiBold, color: cs.onSurface)),
-                    Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontWeight: AppTokens.fwSemiBold,
+                        color: cs.onSurface,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -548,15 +650,19 @@ class PodItemOutcomeRow extends StatelessWidget {
 
   static const _shortfallDisps = ['MISSING', 'REFUSED', 'DAMAGED'];
 
-  PodOutcome _descriptor(String value) =>
-      kPodOutcomes.firstWhere((o) => o.value == value, orElse: () => kPodOutcomes.first);
+  PodOutcome _descriptor(String value) => kPodOutcomes.firstWhere(
+    (o) => o.value == value,
+    orElse: () => kPodOutcomes.first,
+  );
 
   /// Motif chips for a disposition, from the admin referential — matched by `category` and restricted
   /// to item-scoped reasons. Empty offline / when nothing is configured (the parent then treats the
   /// motif as optional so the driver isn't blocked).
   List<({String code, String label})> _reasonChips(String disposition) {
     if (adminReasons.isNotEmpty) {
-      final filtered = adminReasons.where((r) => r.coversItem && r.category == disposition).toList();
+      final filtered = adminReasons
+          .where((r) => r.coversItem && r.category == disposition)
+          .toList();
       if (filtered.isNotEmpty) {
         return filtered.map((r) => (code: r.code, label: r.label)).toList();
       }
@@ -588,7 +694,8 @@ class PodItemOutcomeRow extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: accent.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -600,15 +707,30 @@ class PodItemOutcomeRow extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.name as String,
-                          style: TextStyle(fontWeight: AppTokens.fwBold, fontSize: 14, color: cs.onSurface)),
+                      Text(
+                        item.name as String,
+                        style: TextStyle(
+                          fontWeight: AppTokens.fwBold,
+                          fontSize: 14,
+                          color: cs.onSurface,
+                        ),
+                      ),
                       if (item.sku != null && item.sku != item.name)
-                        Text(item.sku as String, style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant)),
+                        Text(
+                          item.sku as String,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: cs.onSurfaceVariant,
+                          ),
+                        ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -617,7 +739,9 @@ class PodItemOutcomeRow extends StatelessWidget {
                   child: Text(
                     '$delivered / $plannedQty',
                     style: TextStyle(
-                      fontSize: 12, fontWeight: AppTokens.fwBold, fontFamily: 'monospace',
+                      fontSize: 12,
+                      fontWeight: AppTokens.fwBold,
+                      fontFamily: 'monospace',
                       color: hasShortfall ? cs.secondary : cs.primary,
                     ),
                   ),
@@ -635,12 +759,27 @@ class PodItemOutcomeRow extends StatelessWidget {
               children: [
                 Icon(LucideIcons.checkCircle2, size: 16, color: cs.primary),
                 const SizedBox(width: 8),
-                Text(AppLocalizations.of(context).pod_delivered_qty,
-                    style: TextStyle(fontSize: 13, fontWeight: AppTokens.fwSemiBold, color: cs.onSurface)),
+                Text(
+                  AppLocalizations.of(context).pod_delivered_qty,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: AppTokens.fwSemiBold,
+                    color: cs.onSurface,
+                  ),
+                ),
                 const Spacer(),
-                Text('$delivered',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18, color: hasShortfall ? cs.secondary : cs.primary)),
-                Text(' / $plannedQty', style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant)),
+                Text(
+                  '$delivered',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 18,
+                    color: hasShortfall ? cs.secondary : cs.primary,
+                  ),
+                ),
+                Text(
+                  ' / $plannedQty',
+                  style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+                ),
               ],
             ),
           ),
@@ -679,7 +818,9 @@ class PodItemOutcomeRow extends StatelessWidget {
                 podOutcomeLabel(disposition, locale),
                 style: TextStyle(
                   fontSize: 13,
-                  fontWeight: active ? AppTokens.fwSemiBold : AppTokens.fwMedium,
+                  fontWeight: active
+                      ? AppTokens.fwSemiBold
+                      : AppTokens.fwMedium,
                   color: active ? color : cs.onSurfaceVariant,
                 ),
               ),
@@ -692,8 +833,14 @@ class PodItemOutcomeRow extends StatelessWidget {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text('$qty',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: active ? color : cs.onSurfaceVariant)),
+                child: Text(
+                  '$qty',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                    color: active ? color : cs.onSurfaceVariant,
+                  ),
+                ),
               ),
               _QtyButton(
                 icon: LucideIcons.plus,
@@ -716,15 +863,27 @@ class PodItemOutcomeRow extends StatelessWidget {
                   onTap: () => onDispReason(disposition, r.code),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 120),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
-                      color: selected ? color.withValues(alpha: 0.15) : cs.surfaceContainerHighest,
+                      color: selected
+                          ? color.withValues(alpha: 0.15)
+                          : cs.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(AppTokens.radiusSm),
-                      border: Border.all(color: selected ? color : cs.outlineVariant, width: selected ? 1.5 : 1),
+                      border: Border.all(
+                        color: selected ? color : cs.outlineVariant,
+                        width: selected ? 1.5 : 1,
+                      ),
                     ),
                     child: Text(
                       r.label,
-                      style: TextStyle(fontSize: 12, fontWeight: AppTokens.fwMedium, color: selected ? color : cs.onSurfaceVariant),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: AppTokens.fwMedium,
+                        color: selected ? color : cs.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 );
@@ -737,7 +896,12 @@ class PodItemOutcomeRow extends StatelessWidget {
 }
 
 class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.enabled, required this.color, required this.onTap});
+  const _QtyButton({
+    required this.icon,
+    required this.enabled,
+    required this.color,
+    required this.onTap,
+  });
   final IconData icon;
   final bool enabled;
   final Color color;
@@ -749,13 +913,20 @@ class _QtyButton extends StatelessWidget {
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        width: 32, height: 32,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: enabled ? color.withValues(alpha: 0.12) : cs.surfaceContainerHighest,
+          color: enabled
+              ? color.withValues(alpha: 0.12)
+              : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppTokens.radiusSm),
           border: Border.all(color: enabled ? color : cs.outlineVariant),
         ),
-        child: Icon(icon, size: 16, color: enabled ? color : cs.onSurfaceVariant),
+        child: Icon(
+          icon,
+          size: 16,
+          color: enabled ? color : cs.onSurfaceVariant,
+        ),
       ),
     );
   }

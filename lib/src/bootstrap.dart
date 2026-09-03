@@ -15,8 +15,14 @@ import 'services/token_storage.dart';
 //                      --dart-define=SENTRY_ENVIRONMENT=production
 // An empty DSN disables Sentry entirely, so the app runs normally in dev.
 const _sentryDsn = String.fromEnvironment('SENTRY_DSN', defaultValue: '');
-const _sentryEnv = String.fromEnvironment('SENTRY_ENVIRONMENT', defaultValue: 'development');
-const _sentryRelease = String.fromEnvironment('SENTRY_RELEASE', defaultValue: '');
+const _sentryEnv = String.fromEnvironment(
+  'SENTRY_ENVIRONMENT',
+  defaultValue: 'development',
+);
+const _sentryRelease = String.fromEnvironment(
+  'SENTRY_RELEASE',
+  defaultValue: '',
+);
 
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -67,17 +73,14 @@ Future<void> bootstrap() async {
 
   // SentryFlutter.init owns the error zone (FlutterError.onError +
   // PlatformDispatcher.onError) and runs the app inside it.
-  await SentryFlutter.init(
-    (options) {
-      options.dsn = _sentryDsn;
-      options.environment = _sentryEnv;
-      if (_sentryRelease.isNotEmpty) options.release = _sentryRelease;
-      options.tracesSampleRate = 0.2;
-      options.attachStacktrace = true;
-      options.sendDefaultPii = false; // never attach tokens / phone / IP
-    },
-    appRunner: () => runApp(const ProviderScope(child: DriverApp())),
-  );
+  await SentryFlutter.init((options) {
+    options.dsn = _sentryDsn;
+    options.environment = _sentryEnv;
+    if (_sentryRelease.isNotEmpty) options.release = _sentryRelease;
+    options.tracesSampleRate = 0.2;
+    options.attachStacktrace = true;
+    options.sendDefaultPii = false; // never attach tokens / phone / IP
+  }, appRunner: () => runApp(const ProviderScope(child: DriverApp())));
 }
 
 Future<Box<T>> _openSafeBox<T>(String name, HiveCipher? cipher) async {
@@ -89,7 +92,9 @@ Future<Box<T>> _openSafeBox<T>(String name, HiveCipher? cipher) async {
       await Hive.deleteBoxFromDisk(name);
       return await Hive.openBox<T>(name, encryptionCipher: cipher);
     } catch (retryError, retryStack) {
-      debugPrint('[Hive openBox error] Critical: retry failed for box $name: $retryError\n$retryStack');
+      debugPrint(
+        '[Hive openBox error] Critical: retry failed for box $name: $retryError\n$retryStack',
+      );
       try {
         return await Hive.openBox<T>(name);
       } catch (_) {
@@ -98,4 +103,3 @@ Future<Box<T>> _openSafeBox<T>(String name, HiveCipher? cipher) async {
     }
   }
 }
-

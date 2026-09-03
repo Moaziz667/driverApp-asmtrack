@@ -30,15 +30,15 @@ class DeliveryCard extends ConsumerWidget {
     final statusColors = Theme.of(context).extension<StatusColors>()!;
 
     final Color statusColor = switch (delivery.status) {
-      DeliveryStatus.unscheduled       => statusColors.unscheduled,
-      DeliveryStatus.scheduled         => statusColors.scheduled,
-      DeliveryStatus.pickedUp          => statusColors.pickedUp,
-      DeliveryStatus.inTransit         => statusColors.inTransit,
-      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
-      DeliveryStatus.delivered         => statusColors.delivered,
+      DeliveryStatus.unscheduled => statusColors.unscheduled,
+      DeliveryStatus.scheduled => statusColors.scheduled,
+      DeliveryStatus.pickedUp => statusColors.pickedUp,
+      DeliveryStatus.inTransit => statusColors.inTransit,
+      DeliveryStatus.awaitingHandoff => statusColors.pickedUp,
+      DeliveryStatus.delivered => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
-      DeliveryStatus.failed            => statusColors.failed,
-      DeliveryStatus.cancelled         => statusColors.cancelled,
+      DeliveryStatus.failed => statusColors.failed,
+      DeliveryStatus.cancelled => statusColors.cancelled,
     };
 
     return Card(
@@ -49,10 +49,7 @@ class DeliveryCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Color strip
-            Container(
-              height: 3,
-              color: statusColor,
-            ),
+            Container(height: 3, color: statusColor),
             Padding(
               padding: const EdgeInsets.all(18),
               child: Column(
@@ -62,11 +59,16 @@ class DeliveryCard extends ConsumerWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.09),
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: statusColor.withValues(alpha: 0.15)),
+                          border: Border.all(
+                            color: statusColor.withValues(alpha: 0.15),
+                          ),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -74,12 +76,20 @@ class DeliveryCard extends ConsumerWidget {
                             Container(
                               width: 5,
                               height: 5,
-                              decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                              decoration: BoxDecoration(
+                                color: statusColor,
+                                shape: BoxShape.circle,
+                              ),
                             ),
                             const SizedBox(width: 5),
                             Text(
-                              deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup),
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              deliveryStatusLabel(
+                                delivery.status,
+                                AppLocalizations.of(context),
+                                isReturn: delivery.isReturnPickup,
+                              ),
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: statusColor,
                                   ),
@@ -91,20 +101,33 @@ class DeliveryCard extends ConsumerWidget {
                       // ADR-033 — flag a return collection so the driver spots it in the route list.
                       if (delivery.isReturnPickup) ...[
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: cs.tertiary.withValues(alpha: 0.09),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: cs.tertiary.withValues(alpha: 0.15)),
+                            border: Border.all(
+                              color: cs.tertiary.withValues(alpha: 0.15),
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(PhosphorIconsRegular.arrowUUpLeft, size: 11, color: cs.tertiary),
+                              Icon(
+                                PhosphorIconsRegular.arrowUUpLeft,
+                                size: 11,
+                                color: cs.tertiary,
+                              ),
                               const SizedBox(width: 4),
                               Text(
-                                delivery.rmaNumber ?? AppLocalizations.of(context).return_pickup_badge,
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                delivery.rmaNumber ??
+                                    AppLocalizations.of(
+                                      context,
+                                    ).return_pickup_badge,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       color: cs.tertiary,
                                     ),
@@ -116,15 +139,21 @@ class DeliveryCard extends ConsumerWidget {
                       ],
                       if (delivery.priority != null)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: cs.secondary.withValues(alpha: 0.09),
                             borderRadius: BorderRadius.circular(6),
-                            border: Border.all(color: cs.secondary.withValues(alpha: 0.15)),
+                            border: Border.all(
+                              color: cs.secondary.withValues(alpha: 0.15),
+                            ),
                           ),
                           child: Text(
                             _titleCase(delivery.priority!),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: cs.secondary,
                                 ),
@@ -135,23 +164,27 @@ class DeliveryCard extends ConsumerWidget {
                   const SizedBox(height: 12),
                   // Address
                   Text(
-                    delivery.address ?? AppLocalizations.of(context).deliveryNoAddressProvided,
+                    delivery.address ??
+                        AppLocalizations.of(context).deliveryNoAddressProvided,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w600,
+                      color: cs.onSurface,
+                    ),
                   ),
                   if (delivery.city != null) ...[
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(PhosphorIconsRegular.mapPin, size: 12, color: cs.onSurfaceVariant),
+                        Icon(
+                          PhosphorIconsRegular.mapPin,
+                          size: 12,
+                          color: cs.onSurfaceVariant,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           delivery.city!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: cs.onSurfaceVariant,
-                              ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: cs.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -172,7 +205,11 @@ class DeliveryCard extends ConsumerWidget {
                         value: '${delivery.items.length}',
                       ),
                       const Spacer(),
-                      Icon(PhosphorIconsBold.caretRight, size: 12, color: cs.onSurfaceVariant),
+                      Icon(
+                        PhosphorIconsBold.caretRight,
+                        size: 12,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ],
                   ),
                 ],
@@ -204,10 +241,10 @@ class _Meta extends StatelessWidget {
         Text(
           label,
           style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                fontSize: 9,
-                fontWeight: FontWeight.w800,
-                color: cs.onSurfaceVariant,
-              ),
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: cs.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: 2),
         Text(

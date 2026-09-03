@@ -22,7 +22,11 @@ enum SessionEndReason {
 }
 
 class ApiClient {
-  ApiClient({required this.config, required this.tokenStorage, this.onSessionExpired}) {
+  ApiClient({
+    required this.config,
+    required this.tokenStorage,
+    this.onSessionExpired,
+  }) {
     dio = Dio(
       BaseOptions(
         baseUrl: config.apiBaseUrlV1,
@@ -107,15 +111,17 @@ class ApiClient {
     // DEV-ONLY: print request bodies + responses/errors to the console so API bugs
     // (wrong payload, 4xx) are visible in `flutter run`. Compiled out of release builds.
     if (kDebugMode) {
-      dio.interceptors.add(LogInterceptor(
-        request: true,
-        requestHeader: false,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: false,
-        error: true,
-        logPrint: (o) => debugPrint(o.toString()),
-      ));
+      dio.interceptors.add(
+        LogInterceptor(
+          request: true,
+          requestHeader: false,
+          requestBody: true,
+          responseBody: true,
+          responseHeader: false,
+          error: true,
+          logPrint: (o) => debugPrint(o.toString()),
+        ),
+      );
     }
 
     // Capture failed HTTP calls + leave request breadcrumbs (path/status only —
@@ -148,11 +154,13 @@ class ApiClient {
   void _endSession(SessionEndReason reason) {
     if (_endingSession) return;
     _endingSession = true;
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'auth',
-      message: 'session ended: ${reason.name}',
-      level: SentryLevel.warning,
-    ));
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        category: 'auth',
+        message: 'session ended: ${reason.name}',
+        level: SentryLevel.warning,
+      ),
+    );
     onSessionExpired?.call(reason);
   }
 
@@ -179,7 +187,9 @@ class ApiClient {
     // Never refresh twice for the same request — a 401 on the retried request
     // means refreshing did not help, so stop instead of looping.
     if (error.requestOptions.extra['__retried'] == true) return false;
-    if (path.contains('/login') || path.contains('/register') || path.contains('/refresh-token')) {
+    if (path.contains('/login') ||
+        path.contains('/register') ||
+        path.contains('/refresh-token')) {
       return false;
     }
     return true;
@@ -237,11 +247,13 @@ class ApiClient {
         if (accessToken == null) {
           throw Exception('Token refresh returned no access token');
         }
-        await tokenStorage.saveTokens(AuthTokens(
-          accessToken: accessToken,
-          refreshToken: data['refresh_token'] as String? ?? refreshToken,
-          idToken: data['id_token'] as String?,
-        ));
+        await tokenStorage.saveTokens(
+          AuthTokens(
+            accessToken: accessToken,
+            refreshToken: data['refresh_token'] as String? ?? refreshToken,
+            idToken: data['id_token'] as String?,
+          ),
+        );
         completer.complete();
         return;
       }

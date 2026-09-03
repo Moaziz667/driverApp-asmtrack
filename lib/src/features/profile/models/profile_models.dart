@@ -20,7 +20,9 @@ class DriverProfile {
       city: json['city'] as String?,
       currentLat: (json['currentLat'] as num?)?.toDouble(),
       currentLng: (json['currentLng'] as num?)?.toDouble(),
-      lastLocationAt: json['lastLocationAt'] != null ? DateTime.tryParse(json['lastLocationAt'] as String) : null,
+      lastLocationAt: json['lastLocationAt'] != null
+          ? DateTime.tryParse(json['lastLocationAt'] as String)
+          : null,
       onlineStatus: json['onlineStatus'] as String? ?? 'OFFLINE',
       photoUrl: json['photoUrl'] as String?,
       onboardingStatus: json['onboardingStatus'] as String?,
@@ -37,7 +39,6 @@ class DriverProfile {
   final String onlineStatus;
   final String? photoUrl;
   final String? onboardingStatus;
-
 }
 
 class DriverStats {

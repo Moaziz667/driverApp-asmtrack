@@ -28,18 +28,25 @@ void main() {
       if (re.hasMatch(entity.readAsStringSync())) offenders.add(path);
     }
 
-    final unexpected = offenders.where((p) => !baseline.contains(p)).toList()..sort();
+    final unexpected = offenders.where((p) => !baseline.contains(p)).toList()
+      ..sort();
     expect(
       unexpected,
       isEmpty,
-      reason: 'Hardcoded colors found in new files — use ColorScheme/AppTokens '
+      reason:
+          'Hardcoded colors found in new files — use ColorScheme/AppTokens '
           'instead of Color(0x…). Offenders: $unexpected',
     );
 
     // Keep the baseline honest: flag entries that no longer have hex so they can
     // be removed from the allowlist as cleanup happens.
-    final stale = baseline.where((p) => !offenders.contains(p)).toList()..sort();
-    expect(stale, isEmpty,
-        reason: 'These baseline files no longer contain Color(0x…) — remove from allowlist: $stale');
+    final stale = baseline.where((p) => !offenders.contains(p)).toList()
+      ..sort();
+    expect(
+      stale,
+      isEmpty,
+      reason:
+          'These baseline files no longer contain Color(0x…) — remove from allowlist: $stale',
+    );
   });
 }

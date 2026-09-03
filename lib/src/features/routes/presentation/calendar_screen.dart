@@ -26,7 +26,7 @@ class CalendarScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final weekStart  = ref.watch(calendarWeekProvider);
+    final weekStart = ref.watch(calendarWeekProvider);
     final selectedDay = ref.watch(selectedCalendarDayProvider);
     final routesAsync = ref.watch(weekRoutesProvider(weekStart));
 
@@ -34,10 +34,12 @@ class CalendarScreen extends ConsumerWidget {
       ref.read(calendarWeekProvider.notifier).state = newStart;
       final today = DateTime.now();
       final todayNorm = DateTime(today.year, today.month, today.day);
-      final inNewWeek = !todayNorm.isBefore(newStart) &&
+      final inNewWeek =
+          !todayNorm.isBefore(newStart) &&
           todayNorm.isBefore(newStart.add(const Duration(days: 7)));
-      ref.read(selectedCalendarDayProvider.notifier).state =
-          inNewWeek ? todayNorm : newStart;
+      ref.read(selectedCalendarDayProvider.notifier).state = inNewWeek
+          ? todayNorm
+          : newStart;
     }
 
     void jumpToToday() {
@@ -93,19 +95,26 @@ class CalendarScreen extends ConsumerWidget {
             Expanded(
               child: routesAsync.when(
                 data: (allRoutes) {
-                  final dayRoutes = allRoutes
-                      .where((r) => r.date != null && _sameDay(r.date!, selectedDay))
-                      .toList()
-                    ..sort((a, b) {
-                      const order = [
-                        DriverRouteStatus.inProgress,
-                        DriverRouteStatus.validated,
-                        DriverRouteStatus.closed,
-                        DriverRouteStatus.draft,
-                        DriverRouteStatus.cancelled,
-                      ];
-                      return order.indexOf(a.status).compareTo(order.indexOf(b.status));
-                    });
+                  final dayRoutes =
+                      allRoutes
+                          .where(
+                            (r) =>
+                                r.date != null &&
+                                _sameDay(r.date!, selectedDay),
+                          )
+                          .toList()
+                        ..sort((a, b) {
+                          const order = [
+                            DriverRouteStatus.inProgress,
+                            DriverRouteStatus.validated,
+                            DriverRouteStatus.closed,
+                            DriverRouteStatus.draft,
+                            DriverRouteStatus.cancelled,
+                          ];
+                          return order
+                              .indexOf(a.status)
+                              .compareTo(order.indexOf(b.status));
+                        });
                   return StopListView(
                     routes: dayRoutes,
                     selectedDay: selectedDay,
@@ -127,4 +136,3 @@ class CalendarScreen extends ConsumerWidget {
     );
   }
 }
-

@@ -61,24 +61,29 @@ class EmptyState extends StatelessWidget {
                 color: theme.colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, size: 28, color: theme.colorScheme.onSurfaceVariant),
+              child: Icon(
+                icon,
+                size: 28,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 18),
-            Text(title,
-                style: theme.textTheme.titleMedium,
-                textAlign: TextAlign.center),
+            Text(
+              title,
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
             if (subtitle != null) ...[
               const SizedBox(height: 6),
-              Text(subtitle!,
-                  style: theme.textTheme.bodySmall,
-                  textAlign: TextAlign.center),
+              Text(
+                subtitle!,
+                style: theme.textTheme.bodySmall,
+                textAlign: TextAlign.center,
+              ),
             ],
             if (action != null && actionLabel != null) ...[
               const SizedBox(height: 20),
-              FilledButton(
-                onPressed: action,
-                child: Text(actionLabel!),
-              ),
+              FilledButton(onPressed: action, child: Text(actionLabel!)),
             ],
           ],
         ),
@@ -125,4 +130,3 @@ class AppLogo extends StatelessWidget {
     );
   }
 }
-

@@ -1,12 +1,6 @@
 import '../../../features/deliveries/models/delivery_models.dart';
 
-enum DriverRouteStatus {
-  draft,
-  validated,
-  inProgress,
-  closed,
-  cancelled,
-}
+enum DriverRouteStatus { draft, validated, inProgress, closed, cancelled }
 
 extension DriverRouteStatusX on DriverRouteStatus {
   static DriverRouteStatus fromApi(String? value) {
@@ -26,13 +20,7 @@ extension DriverRouteStatusX on DriverRouteStatus {
   }
 }
 
-enum DriverRouteStopStatus {
-  pending,
-  arrived,
-  completed,
-  failed,
-  partial,
-}
+enum DriverRouteStopStatus { pending, arrived, completed, failed, partial }
 
 extension DriverRouteStopStatusX on DriverRouteStopStatus {
   static DriverRouteStopStatus fromApi(String? value) {
@@ -54,15 +42,21 @@ extension DriverRouteStopStatusX on DriverRouteStopStatus {
 
 /// One line to carry out of a depot at a pickup stop.
 class PickupLoadLine {
-  const PickupLoadLine({this.orderRef, this.clientName, this.sku, this.name, this.quantity});
+  const PickupLoadLine({
+    this.orderRef,
+    this.clientName,
+    this.sku,
+    this.name,
+    this.quantity,
+  });
 
   factory PickupLoadLine.fromJson(Map<String, dynamic> json) => PickupLoadLine(
-        orderRef: json['orderRef'] as String?,
-        clientName: json['clientName'] as String?,
-        sku: json['sku'] as String?,
-        name: json['name'] as String?,
-        quantity: (json['quantity'] as num?)?.toInt(),
-      );
+    orderRef: json['orderRef'] as String?,
+    clientName: json['clientName'] as String?,
+    sku: json['sku'] as String?,
+    name: json['name'] as String?,
+    quantity: (json['quantity'] as num?)?.toInt(),
+  );
 
   final String? orderRef;
   final String? clientName;
@@ -121,11 +115,13 @@ class DriverRouteStop {
       slaDeadline: json['slaDeadline'] as String?,
       stopType: (json['stopType'] as String?) ?? 'DELIVERY',
       sourceDepotId: json['sourceDepotId'] as String?,
-      sourceDepotIds: (json['sourceDepotIds'] as List<dynamic>?)
+      sourceDepotIds:
+          (json['sourceDepotIds'] as List<dynamic>?)
               ?.map((e) => e.toString())
               .toList() ??
           const [],
-      pickupLoad: (json['pickupLoad'] as List<dynamic>?)
+      pickupLoad:
+          (json['pickupLoad'] as List<dynamic>?)
               ?.map((e) => PickupLoadLine.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -172,8 +168,9 @@ class DriverRouteStop {
   final List<PickupLoadLine> pickupLoad;
 
   /// The depots to match on — falls back to the single field for an older payload.
-  List<String> get loadedFrom =>
-      sourceDepotIds.isNotEmpty ? sourceDepotIds : (sourceDepotId != null ? [sourceDepotId!] : const []);
+  List<String> get loadedFrom => sourceDepotIds.isNotEmpty
+      ? sourceDepotIds
+      : (sourceDepotId != null ? [sourceDepotId!] : const []);
 
   final String? sourceDepotName;
   final double? sourceDepotLat;
@@ -242,10 +239,11 @@ class DriverRoute {
   });
 
   factory DriverRoute.fromJson(Map<String, dynamic> json) {
-    final stops = (json['stops'] as List<dynamic>? ?? [])
-        .map((e) => DriverRouteStop.fromJson(e as Map<String, dynamic>))
-        .toList()
-      ..sort((a, b) => a.stopOrder.compareTo(b.stopOrder));
+    final stops =
+        (json['stops'] as List<dynamic>? ?? [])
+            .map((e) => DriverRouteStop.fromJson(e as Map<String, dynamic>))
+            .toList()
+          ..sort((a, b) => a.stopOrder.compareTo(b.stopOrder));
     return DriverRoute(
       id: (json['id'] ?? '').toString(),
       name: (json['name'] as String?)?.trim().isNotEmpty == true
@@ -256,7 +254,9 @@ class DriverRoute {
       startedAt: json['startedAt'] != null
           ? DateTime.tryParse(json['startedAt'] as String)
           : null,
-      date: json['date'] != null ? DateTime.tryParse(json['date'] as String) : null,
+      date: json['date'] != null
+          ? DateTime.tryParse(json['date'] as String)
+          : null,
       city: json['city'] as String?,
       totalStops: (json['totalStops'] as num?)?.toInt() ?? stops.length,
       completedStops: (json['completedStops'] as num?)?.toInt() ?? 0,
@@ -302,7 +302,9 @@ class DriverRoute {
   bool get isToday {
     if (date == null) return false;
     final now = DateTime.now();
-    return date!.year == now.year && date!.month == now.month && date!.day == now.day;
+    return date!.year == now.year &&
+        date!.month == now.month &&
+        date!.day == now.day;
   }
 
   // ── Multi-depot helpers (slice 6) ──────────────────────────────────────────
@@ -313,10 +315,13 @@ class DriverRoute {
   /// [DriverRouteStop.loadedFrom] rather than comparing the single depot field.
   List<DriverRouteStop> deliveriesForDepot(String? depotId) => depotId == null
       ? const []
-      : stops.where((s) => !s.isPickup && s.loadedFrom.contains(depotId)).toList();
+      : stops
+            .where((s) => !s.isPickup && s.loadedFrom.contains(depotId))
+            .toList();
 
   /// Number of parcels (delivery stops) a pickup stop loads.
-  int pickupParcelCount(DriverRouteStop pickup) => deliveriesForDepot(pickup.sourceDepotId).length;
+  int pickupParcelCount(DriverRouteStop pickup) =>
+      deliveriesForDepot(pickup.sourceDepotId).length;
 
   /// True when every depot this delivery draws from has been collected (or none needs collecting —
   /// a home-depot delivery has no PICKUP stop, it was loaded before departure).
@@ -327,7 +332,10 @@ class DriverRoute {
   /// precedence rule the backend enforces, silently bypassed on the phone.
   bool isDepotPicked(DriverRouteStop deliveryStop) {
     final pickups = stops
-        .where((s) => s.isPickup && deliveryStop.loadedFrom.contains(s.sourceDepotId))
+        .where(
+          (s) =>
+              s.isPickup && deliveryStop.loadedFrom.contains(s.sourceDepotId),
+        )
         .toList();
     if (pickups.isEmpty) return true; // home depot — loaded at start
     return pickups.every((p) => p.status == DriverRouteStopStatus.completed);

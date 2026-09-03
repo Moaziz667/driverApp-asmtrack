@@ -10,16 +10,28 @@ class AppConfig {
     // Build-time default, e.g. flutter build apk --dart-define=API_BASE_URL=https://api.yourdomain.com
     // At runtime the in-app "Server URL" setting (TokenStorage.apiBaseUrl) overrides this — so the same
     // installed build can be pointed at local or the dev server without rebuilding.
-    const baseUrl = String.fromEnvironment('API_BASE_URL', defaultValue: 'http://10.86.194.125');
+    const baseUrl = String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'http://10.86.194.125',
+    );
     return AppConfig.fromStorage(baseUrl);
   }
 
   factory AppConfig.fromStorage(String apiBaseUrl) {
     return AppConfig(
       apiBaseUrl: apiBaseUrl,
-      keycloakBaseUrl: const String.fromEnvironment('KEYCLOAK_BASE_URL', defaultValue: ''),
-      realm: const String.fromEnvironment('KEYCLOAK_REALM', defaultValue: 'asm'),
-      clientId: const String.fromEnvironment('KEYCLOAK_CLIENT_ID', defaultValue: 'driver-app'),
+      keycloakBaseUrl: const String.fromEnvironment(
+        'KEYCLOAK_BASE_URL',
+        defaultValue: '',
+      ),
+      realm: const String.fromEnvironment(
+        'KEYCLOAK_REALM',
+        defaultValue: 'asm',
+      ),
+      clientId: const String.fromEnvironment(
+        'KEYCLOAK_CLIENT_ID',
+        defaultValue: 'driver-app',
+      ),
     );
   }
 

@@ -95,7 +95,11 @@ class StatusColors extends ThemeExtension<StatusColors> {
       pickedUp: Color.lerp(pickedUp, other.pickedUp, t)!,
       inTransit: Color.lerp(inTransit, other.inTransit, t)!,
       delivered: Color.lerp(delivered, other.delivered, t)!,
-      partiallyDelivered: Color.lerp(partiallyDelivered, other.partiallyDelivered, t)!,
+      partiallyDelivered: Color.lerp(
+        partiallyDelivered,
+        other.partiallyDelivered,
+        t,
+      )!,
       cancelled: Color.lerp(cancelled, other.cancelled, t)!,
       failed: Color.lerp(failed, other.failed, t)!,
       online: Color.lerp(online, other.online, t)!,

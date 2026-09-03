@@ -88,7 +88,9 @@ class WebSocketService {
                 if (body == null || body.isEmpty) return;
                 try {
                   final map = jsonDecode(body) as Map<String, dynamic>;
-                  final data = map.containsKey('data') ? map['data'] as Map<String, dynamic> : map;
+                  final data = map.containsKey('data')
+                      ? map['data'] as Map<String, dynamic>
+                      : map;
                   data['event'] = map['type'] ?? data['event'];
                   _onEvent?.call(RouteWsEvent.fromJson(data));
                 } catch (_) {}

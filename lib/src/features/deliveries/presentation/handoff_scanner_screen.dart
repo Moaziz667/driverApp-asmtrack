@@ -18,7 +18,8 @@ class HandoffScannerScreen extends ConsumerStatefulWidget {
   const HandoffScannerScreen({super.key});
 
   @override
-  ConsumerState<HandoffScannerScreen> createState() => _HandoffScannerScreenState();
+  ConsumerState<HandoffScannerScreen> createState() =>
+      _HandoffScannerScreenState();
 }
 
 class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
@@ -34,13 +35,16 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
   );
 
   // Smooth vertical sweep of the scan line.
-  late final AnimationController _sweep =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 2200))
-        ..repeat(reverse: true);
+  late final AnimationController _sweep = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 2200),
+  )..repeat(reverse: true);
 
   // One-shot pop animation for the success checkmark.
-  late final AnimationController _successPop =
-      AnimationController(vsync: this, duration: const Duration(milliseconds: 520));
+  late final AnimationController _successPop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 520),
+  );
 
   // Drives the 5s capture countdown; on completion the token is validated.
   late final AnimationController _capture =
@@ -116,7 +120,11 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 IconButton(
-                  icon: const Icon(LucideIcons.x, color: Colors.white, size: 28),
+                  icon: const Icon(
+                    LucideIcons.x,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                   onPressed: () => Navigator.pop(context),
                 ),
                 IconButton(
@@ -145,12 +153,20 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                 const SizedBox(height: 14),
                 Text(
                   AppLocalizations.of(context).handoffScanGuidance,
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    fontFamily: 'Inter',
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   AppLocalizations.of(context).handoffScanDescription,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 13,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -168,15 +184,23 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
   // ── Frame + scan line ──────────────────────────────────────────────────────
 
   Widget _buildFrame(ColorScheme cs) {
-    final bool locked = _phase == _ScanPhase.locked || _phase == _ScanPhase.capturing || _phase == _ScanPhase.validating;
-    final Color accent = _phase == _ScanPhase.success ? Colors.green.shade400 : cs.primary;
+    final bool locked =
+        _phase == _ScanPhase.locked ||
+        _phase == _ScanPhase.capturing ||
+        _phase == _ScanPhase.validating;
+    final Color accent = _phase == _ScanPhase.success
+        ? Colors.green.shade400
+        : cs.primary;
     return Stack(
       children: [
         // Outline.
         AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           decoration: BoxDecoration(
-            border: Border.all(color: accent.withValues(alpha: locked ? 0.9 : 0.3), width: 1),
+            border: Border.all(
+              color: accent.withValues(alpha: locked ? 0.9 : 0.3),
+              width: 1,
+            ),
             borderRadius: BorderRadius.circular(4),
           ),
         ),
@@ -207,7 +231,11 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                       ],
                     ),
                     boxShadow: [
-                      BoxShadow(color: cs.primary.withValues(alpha: 0.6), blurRadius: 10, spreadRadius: 1),
+                      BoxShadow(
+                        color: cs.primary.withValues(alpha: 0.6),
+                        blurRadius: 10,
+                        spreadRadius: 1,
+                      ),
                     ],
                   ),
                 ),
@@ -241,7 +269,9 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
     return AnimatedBuilder(
       animation: _capture,
       builder: (context, _) {
-        final remaining = (_captureDuration.inSeconds * (1 - _capture.value)).ceil().clamp(1, _captureDuration.inSeconds);
+        final remaining = (_captureDuration.inSeconds * (1 - _capture.value))
+            .ceil()
+            .clamp(1, _captureDuration.inSeconds);
         return Container(
           color: Colors.black.withValues(alpha: 0.55),
           child: Center(
@@ -266,7 +296,12 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                       ),
                       Text(
                         '$remaining',
-                        style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w900,
+                          fontFamily: 'Inter',
+                        ),
                       ),
                     ],
                   ),
@@ -274,12 +309,20 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                 const SizedBox(height: 22),
                 Text(
                   AppLocalizations.of(context).handoffKeepAligned,
-                  style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w900, fontFamily: 'Inter'),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    fontFamily: 'Inter',
+                  ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   AppLocalizations.of(context).handoffReading,
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -292,7 +335,9 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
   Widget _buildValidating() {
     return Container(
       color: Colors.black.withValues(alpha: 0.82),
-      child: LoadingState(message: AppLocalizations.of(context).handoffValidating),
+      child: LoadingState(
+        message: AppLocalizations.of(context).handoffValidating,
+      ),
     );
   }
 
@@ -304,7 +349,10 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
           mainAxisSize: MainAxisSize.min,
           children: [
             ScaleTransition(
-              scale: CurvedAnimation(parent: _successPop, curve: Curves.elasticOut),
+              scale: CurvedAnimation(
+                parent: _successPop,
+                curve: Curves.elasticOut,
+              ),
               child: Container(
                 width: 96,
                 height: 96,
@@ -313,18 +361,30 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.green.shade400, width: 2),
                 ),
-                child: Icon(LucideIcons.check, color: Colors.green.shade400, size: 52),
+                child: Icon(
+                  LucideIcons.check,
+                  color: Colors.green.shade400,
+                  size: 52,
+                ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
               AppLocalizations.of(context).handoffTransferConfirmed,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: Colors.white, fontFamily: 'Inter'),
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w900,
+                color: Colors.white,
+                fontFamily: 'Inter',
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               AppLocalizations.of(context).handoffTransferComplete,
-              style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.7),
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -360,7 +420,12 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
       final pos = await LocationService().currentPosition();
       await ref
           .read(deliveryRepositoryProvider)
-          .confirmHandoff(_pendingDeliveryId!, _pendingToken!, lat: pos?.lat, lng: pos?.lng);
+          .confirmHandoff(
+            _pendingDeliveryId!,
+            _pendingToken!,
+            lat: pos?.lat,
+            lng: pos?.lng,
+          );
       await _controller.stop();
 
       // 3) Deliberate success beat, then return.
@@ -405,13 +470,20 @@ class _HandoffScannerScreenState extends ConsumerState<HandoffScannerScreen>
     if (s.contains('not found') || s.contains('404') || s.contains('invalid')) {
       return l10n.handoffTokenUsed;
     }
-    if (s.contains('403') || s.contains('forbidden') || s.contains('not authorized')) {
+    if (s.contains('403') ||
+        s.contains('forbidden') ||
+        s.contains('not authorized')) {
       return l10n.handoffNotForYou;
     }
-    if (s.contains('concurrent') || s.contains('409') || s.contains('conflict')) {
+    if (s.contains('concurrent') ||
+        s.contains('409') ||
+        s.contains('conflict')) {
       return l10n.handoffTransferUpdated;
     }
-    if (s.contains('socket') || s.contains('timeout') || s.contains('connection') || s.contains('network')) {
+    if (s.contains('socket') ||
+        s.contains('timeout') ||
+        s.contains('connection') ||
+        s.contains('network')) {
       return l10n.handoffConnectionError;
     }
     return l10n.handoffGenerateFailed;
@@ -427,17 +499,26 @@ class _ScrimOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: ColorFiltered(
-        colorFilter: ColorFilter.mode(Colors.black.withValues(alpha: 0.55), BlendMode.srcOut),
+        colorFilter: ColorFilter.mode(
+          Colors.black.withValues(alpha: 0.55),
+          BlendMode.srcOut,
+        ),
         child: Stack(
           children: [
             Container(
-              decoration: const BoxDecoration(color: Colors.black, backgroundBlendMode: BlendMode.dstOut),
+              decoration: const BoxDecoration(
+                color: Colors.black,
+                backgroundBlendMode: BlendMode.dstOut,
+              ),
             ),
             Center(
               child: Container(
                 width: frameSize,
                 height: frameSize,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(4), color: Colors.black),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(4),
+                  color: Colors.black,
+                ),
               ),
             ),
           ],
@@ -465,8 +546,14 @@ class _CameraError extends StatelessWidget {
             const Icon(LucideIcons.cameraOff, color: Colors.white70, size: 48),
             const SizedBox(height: 16),
             Text(
-              denied ? AppLocalizations.of(context).cameraAccessDenied : AppLocalizations.of(context).cameraUnavailable,
-              style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w800),
+              denied
+                  ? AppLocalizations.of(context).cameraAccessDenied
+                  : AppLocalizations.of(context).cameraUnavailable,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),

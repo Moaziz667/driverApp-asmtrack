@@ -60,7 +60,8 @@ class RouteCacheService {
   /// Rewrite the cached route through [mutate] and return the result, so a queued action is visible
   /// immediately. Returns null when there is nothing cached to project onto.
   Future<DriverRoute?> applyLocal(
-      void Function(Map<String, dynamic> route) mutate) async {
+    void Function(Map<String, dynamic> route) mutate,
+  ) async {
     final json = loadRaw();
     if (json == null) return null;
     try {

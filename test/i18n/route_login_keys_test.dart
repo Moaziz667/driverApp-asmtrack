@@ -74,10 +74,16 @@ void main() {
       test('$key is translated in $locale', () {
         final loc = _loc(locale);
         final value = _translate(key, loc);
-        expect(value, isNotEmpty,
-            reason: 'Empty translation for "$key" in $locale');
-        expect(value, isNot(key),
-            reason: 'Missing $locale translation for "$key" (got the key back)');
+        expect(
+          value,
+          isNotEmpty,
+          reason: 'Empty translation for "$key" in $locale',
+        );
+        expect(
+          value,
+          isNot(key),
+          reason: 'Missing $locale translation for "$key" (got the key back)',
+        );
       });
     }
   }

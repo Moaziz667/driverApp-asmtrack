@@ -48,7 +48,9 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       _info = null;
     });
     try {
-      final info = await ref.read(deliveryRepositoryProvider).getHandoffToken(widget.deliveryId);
+      final info = await ref
+          .read(deliveryRepositoryProvider)
+          .getHandoffToken(widget.deliveryId);
       if (!mounted) return;
       setState(() => _info = info);
       _startCountdown();
@@ -77,13 +79,20 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
   String _friendlyError(BuildContext context, Object e) {
     final l10n = AppLocalizations.of(context);
     final s = e.toString().toLowerCase();
-    if (s.contains('403') || s.contains('forbidden') || s.contains('not authorized')) {
+    if (s.contains('403') ||
+        s.contains('forbidden') ||
+        s.contains('not authorized')) {
       return l10n.handoffUnauthorized;
     }
-    if (s.contains('not found') || s.contains('404') || s.contains('not awaiting')) {
+    if (s.contains('not found') ||
+        s.contains('404') ||
+        s.contains('not awaiting')) {
       return l10n.handoffNoTransfer;
     }
-    if (s.contains('socket') || s.contains('timeout') || s.contains('connection') || s.contains('network')) {
+    if (s.contains('socket') ||
+        s.contains('timeout') ||
+        s.contains('connection') ||
+        s.contains('network')) {
       return l10n.handoffConnectionError;
     }
     return l10n.handoffGenerateFailed;
@@ -96,7 +105,9 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       padding: const EdgeInsets.fromLTRB(24, 12, 24, 40),
       decoration: BoxDecoration(
         color: cs.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)), // Tactical 4px
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(4),
+        ), // Tactical 4px
         border: Border(top: BorderSide(color: cs.outlineVariant, width: 2)),
       ),
       child: Column(
@@ -105,7 +116,10 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           Container(
             width: 40,
             height: 4,
-            decoration: BoxDecoration(color: cs.outlineVariant, borderRadius: BorderRadius.circular(2)),
+            decoration: BoxDecoration(
+              color: cs.outlineVariant,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
           const SizedBox(height: 24),
           Icon(LucideIcons.arrowLeftRight, color: cs.primary, size: 32),
@@ -126,7 +140,12 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
           const SizedBox(height: 32),
 
           if (_isLoading)
-            SizedBox(height: 200, child: LoadingState(message: AppLocalizations.of(context).handoffGeneratingToken))
+            SizedBox(
+              height: 200,
+              child: LoadingState(
+                message: AppLocalizations.of(context).handoffGeneratingToken,
+              ),
+            )
           else if (_error != null)
             _buildError()
           else if (_info != null)
@@ -173,8 +192,7 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
                 ),
               ),
             ),
-            if (expired)
-              Icon(LucideIcons.lock, color: cs.error, size: 44),
+            if (expired) Icon(LucideIcons.lock, color: cs.error, size: 44),
           ],
         ),
         const SizedBox(height: 24),
@@ -192,11 +210,19 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
               children: [
                 Text(
                   AppLocalizations.of(context).handoffTokenLabel,
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant),
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: cs.onSurfaceVariant,
+                  ),
                 ),
                 Text(
                   info.token,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontSize: 22, fontWeight: FontWeight.w900, color: cs.primary),
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    color: cs.primary,
+                  ),
                 ),
               ],
             ),
@@ -225,7 +251,14 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       children: [
         Icon(LucideIcons.clock, size: 14, color: color),
         const SizedBox(width: 6),
-        Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: urgent ? FontWeight.w700 : FontWeight.w400)),
+        Text(
+          label,
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: urgent ? FontWeight.w700 : FontWeight.w400,
+          ),
+        ),
       ],
     );
   }
@@ -236,7 +269,11 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       children: [
         Text(
           AppLocalizations.of(context).handoffCodeExpired,
-          style: TextStyle(color: cs.error, fontSize: 13, fontWeight: FontWeight.w700),
+          style: TextStyle(
+            color: cs.error,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -258,7 +295,11 @@ class _HandoffTokenSheetState extends ConsumerState<HandoffTokenSheet> {
       children: [
         Icon(LucideIcons.alertCircle, color: cs.error, size: 48),
         const SizedBox(height: 16),
-        Text(_error!, style: TextStyle(color: cs.onSurfaceVariant), textAlign: TextAlign.center),
+        Text(
+          _error!,
+          style: TextStyle(color: cs.onSurfaceVariant),
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,

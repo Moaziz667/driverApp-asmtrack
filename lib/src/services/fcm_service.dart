@@ -16,7 +16,12 @@ import 'api_client.dart';
 
 const Set<String> notificationLocales = {'fr', 'en', 'ar'};
 
-String _pick(String locale, {required String fr, required String en, required String ar}) {
+String _pick(
+  String locale, {
+  required String fr,
+  required String en,
+  required String ar,
+}) {
   switch (locale) {
     case 'en':
       return en;
@@ -66,7 +71,10 @@ String _stopsLabel(int n, String locale) {
 
 /// Builds the localized title/body for an event from its data payload.
 Map<String, String> _buildNotification(
-    String eventType, Map<String, dynamic> d, String locale) {
+  String eventType,
+  Map<String, dynamic> d,
+  String locale,
+) {
   final ref = _orderRef(d);
   final client = (d['clientName'] ?? '').toString().trim();
   final address = (d['dropoffAddress'] ?? '').toString().trim();
@@ -75,9 +83,12 @@ Map<String, String> _buildNotification(
   final eta = _fmtTime(d['etaAt']);
   final startClock = _fmtClock(d['plannedStartTime']);
   final endClock = _fmtClock(d['plannedEndTime']);
-  final stopCount =
-      (d['stopCount'] is num) ? (d['stopCount'] as num).toInt() : int.tryParse('${d['stopCount']}');
-  final count = (d['count'] is num) ? (d['count'] as num).toInt() : int.tryParse('${d['count']}');
+  final stopCount = (d['stopCount'] is num)
+      ? (d['stopCount'] as num).toInt()
+      : int.tryParse('${d['stopCount']}');
+  final count = (d['count'] is num)
+      ? (d['count'] as num).toInt()
+      : int.tryParse('${d['count']}');
   final fromDriverName = (d['fromDriverName'] ?? '').toString().trim();
   final toDriverName = (d['toDriverName'] ?? '').toString().trim();
 
@@ -93,24 +104,38 @@ Map<String, String> _buildNotification(
       ? routeName
       : _pick(locale, fr: 'votre tournée', en: 'your route', ar: 'رحلتك');
 
-  String joinLines(List<String?> lines) =>
-      lines.where((l) => l != null && l.trim().isNotEmpty).cast<String>().join('\n');
+  String joinLines(List<String?> lines) => lines
+      .where((l) => l != null && l.trim().isNotEmpty)
+      .cast<String>()
+      .join('\n');
 
   switch (eventType) {
     case 'DELIVERY_ASSIGNED':
       final id = identity();
       return {
-        'title': _pick(locale, fr: '📦 Nouvelle livraison', en: '📦 New delivery', ar: '📦 شحنة جديدة'),
+        'title': _pick(
+          locale,
+          fr: '📦 Nouvelle livraison',
+          en: '📦 New delivery',
+          ar: '📦 شحنة جديدة',
+        ),
         'body': joinLines([
           id.isNotEmpty
               ? id
-              : _pick(locale,
+              : _pick(
+                  locale,
                   fr: 'Nouvelle livraison à récupérer.',
                   en: 'A new delivery to pick up.',
-                  ar: 'شحنة جديدة للاستلام.'),
+                  ar: 'شحنة جديدة للاستلام.',
+                ),
           address.isNotEmpty ? '📍 $address' : null,
           eta != null
-              ? _pick(locale, fr: '🕒 ETA $eta', en: '🕒 ETA $eta', ar: '🕒 الوصول المتوقع $eta')
+              ? _pick(
+                  locale,
+                  fr: '🕒 ETA $eta',
+                  en: '🕒 ETA $eta',
+                  ar: '🕒 الوصول المتوقع $eta',
+                )
               : null,
         ]),
       };
@@ -118,16 +143,25 @@ Map<String, String> _buildNotification(
     case 'DELIVERY_REMOVED':
       final id = identity();
       return {
-        'title': _pick(locale, fr: '🚫 Livraison retirée', en: '🚫 Delivery removed', ar: '🚫 إزالة شحنة'),
+        'title': _pick(
+          locale,
+          fr: '🚫 Livraison retirée',
+          en: '🚫 Delivery removed',
+          ar: '🚫 إزالة شحنة',
+        ),
         'body': id.isNotEmpty
-            ? _pick(locale,
+            ? _pick(
+                locale,
                 fr: '$id — retirée de votre tournée.',
                 en: '$id — removed from your route.',
-                ar: '$id — أُزيلت من رحلتك.')
-            : _pick(locale,
+                ar: '$id — أُزيلت من رحلتك.',
+              )
+            : _pick(
+                locale,
                 fr: 'Une livraison a été retirée de votre tournée.',
                 en: 'A delivery was removed from your route.',
-                ar: 'أُزيلت إحدى الشحنات من رحلتك.'),
+                ar: 'أُزيلت إحدى الشحنات من رحلتك.',
+              ),
       };
 
     case 'HANDOFF_REQUIRED':
@@ -136,99 +170,164 @@ Map<String, String> _buildNotification(
       if (ref.isNotEmpty) desc.write(' #$ref');
       if (client.isNotEmpty) desc.write(' ($client)');
       return {
-        'title': _pick(locale, fr: '🔄 Passation requise', en: '🔄 Handover required', ar: '🔄 تسليم مطلوب'),
+        'title': _pick(
+          locale,
+          fr: '🔄 Passation requise',
+          en: '🔄 Handover required',
+          ar: '🔄 تسليم مطلوب',
+        ),
         'body': hasInfo
-            ? _pick(locale,
+            ? _pick(
+                locale,
                 fr: 'Remettez le colis$desc au nouveau livreur.',
                 en: 'Hand over package$desc to the new driver.',
-                ar: 'سلّم الطرد$desc إلى السائق الجديد.')
-            : _pick(locale,
+                ar: 'سلّم الطرد$desc إلى السائق الجديد.',
+              )
+            : _pick(
+                locale,
                 fr: 'Un colis doit être remis au nouveau livreur.',
                 en: 'A package must be handed over to the new driver.',
-                ar: 'يجب تسليم طرد إلى السائق الجديد.'),
+                ar: 'يجب تسليم طرد إلى السائق الجديد.',
+              ),
       };
 
     case 'ROUTE_VALIDATED':
       return {
-        'title': _pick(locale, fr: '✅ Tournée validée', en: '✅ Route validated', ar: '✅ تم تأكيد الرحلة'),
+        'title': _pick(
+          locale,
+          fr: '✅ Tournée validée',
+          en: '✅ Route validated',
+          ar: '✅ تم تأكيد الرحلة',
+        ),
         'body': joinLines([
-          _pick(locale,
-              fr: 'Tournée ${routeLabel()} validée.',
-              en: 'Route ${routeLabel()} validated.',
-              ar: 'تم تأكيد الرحلة ${routeLabel()}.'),
+          _pick(
+            locale,
+            fr: 'Tournée ${routeLabel()} validée.',
+            en: 'Route ${routeLabel()} validated.',
+            ar: 'تم تأكيد الرحلة ${routeLabel()}.',
+          ),
           (stopCount != null && stopCount > 0)
-              ? _pick(locale,
+              ? _pick(
+                  locale,
                   fr: '${_stopsLabel(stopCount, locale)} à livrer',
                   en: '${_stopsLabel(stopCount, locale)} to deliver',
-                  ar: '${_stopsLabel(stopCount, locale)} للتسليم')
+                  ar: '${_stopsLabel(stopCount, locale)} للتسليم',
+                )
               : null,
           startClock != null
-              ? _pick(locale,
+              ? _pick(
+                  locale,
                   fr: '🕒 Départ prévu $startClock',
                   en: '🕒 Planned start $startClock',
-                  ar: '🕒 الانطلاق المقرر $startClock')
+                  ar: '🕒 الانطلاق المقرر $startClock',
+                )
               : null,
         ]),
       };
 
     case 'ROUTE_SCHEDULE_CHANGED':
-      final window = (startClock != null && endClock != null) ? '$startClock–$endClock' : null;
+      final window = (startClock != null && endClock != null)
+          ? '$startClock–$endClock'
+          : null;
       return {
-        'title': _pick(locale, fr: '📅 Horaire mis à jour', en: '📅 Schedule updated', ar: '📅 تحديث الموعد'),
+        'title': _pick(
+          locale,
+          fr: '📅 Horaire mis à jour',
+          en: '📅 Schedule updated',
+          ar: '📅 تحديث الموعد',
+        ),
         'body': window != null
-            ? _pick(locale,
+            ? _pick(
+                locale,
                 fr: 'Nouveaux horaires pour ${routeLabel()} : $window.',
                 en: 'New schedule for ${routeLabel()}: $window.',
-                ar: 'مواعيد جديدة لـ ${routeLabel()}: $window.')
-            : _pick(locale,
+                ar: 'مواعيد جديدة لـ ${routeLabel()}: $window.',
+              )
+            : _pick(
+                locale,
                 fr: 'Les horaires de ${routeLabel()} ont changé.',
                 en: 'The schedule for ${routeLabel()} has changed.',
-                ar: 'تغيّرت مواعيد ${routeLabel()}.'),
+                ar: 'تغيّرت مواعيد ${routeLabel()}.',
+              ),
       };
 
     case 'PICKUP_OVERDUE':
       return {
-        'title': _pick(locale, fr: '⏰ Chargement en retard', en: '⏰ Pickup overdue', ar: '⏰ تأخر التحميل'),
+        'title': _pick(
+          locale,
+          fr: '⏰ Chargement en retard',
+          en: '⏰ Pickup overdue',
+          ar: '⏰ تأخر التحميل',
+        ),
         'body': joinLines([
-          _pick(locale,
-              fr: 'Dépôt ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}',
-              en: 'Depot ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}',
-              ar: 'مستودع ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}'),
-          _pick(locale,
-              fr: 'Confirmez le chargement pour continuer.',
-              en: 'Confirm the pickup to continue.',
-              ar: 'أكّد التحميل للمتابعة.'),
+          _pick(
+            locale,
+            fr: 'Dépôt ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}',
+            en: 'Depot ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}',
+            ar: 'مستودع ${client.isNotEmpty ? client : routeLabel()}${reason.isNotEmpty ? ' ($reason)' : ''}',
+          ),
+          _pick(
+            locale,
+            fr: 'Confirmez le chargement pour continuer.',
+            en: 'Confirm the pickup to continue.',
+            ar: 'أكّد التحميل للمتابعة.',
+          ),
         ]),
       };
     case 'ROUTE_STOP_ADDED':
-      final who = client.isNotEmpty ? client : _pick(locale, fr: 'Un arrêt', en: 'A stop', ar: 'محطة');
+      final who = client.isNotEmpty
+          ? client
+          : _pick(locale, fr: 'Un arrêt', en: 'A stop', ar: 'محطة');
       return {
-        'title': _pick(locale, fr: '📍 Arrêt ajouté', en: '📍 Stop added', ar: '📍 إضافة محطة'),
+        'title': _pick(
+          locale,
+          fr: '📍 Arrêt ajouté',
+          en: '📍 Stop added',
+          ar: '📍 إضافة محطة',
+        ),
         'body': joinLines([
-          _pick(locale,
-              fr: '$who ajouté à ${routeLabel()}.',
-              en: '$who added to ${routeLabel()}.',
-              ar: 'تمت إضافة $who إلى ${routeLabel()}.'),
+          _pick(
+            locale,
+            fr: '$who ajouté à ${routeLabel()}.',
+            en: '$who added to ${routeLabel()}.',
+            ar: 'تمت إضافة $who إلى ${routeLabel()}.',
+          ),
           (stopCount != null && stopCount > 0)
-              ? _pick(locale,
+              ? _pick(
+                  locale,
                   fr: 'Total : ${_stopsLabel(stopCount, locale)}',
                   en: 'Total: ${_stopsLabel(stopCount, locale)}',
-                  ar: 'الإجمالي: ${_stopsLabel(stopCount, locale)}')
+                  ar: 'الإجمالي: ${_stopsLabel(stopCount, locale)}',
+                )
               : null,
         ]),
       };
 
     case 'ROUTE_STOP_REMOVED':
-      final who = client.isNotEmpty ? client : _pick(locale, fr: 'Un arrêt', en: 'A stop', ar: 'محطة');
+      final who = client.isNotEmpty
+          ? client
+          : _pick(locale, fr: 'Un arrêt', en: 'A stop', ar: 'محطة');
       return {
-        'title': _pick(locale, fr: '❌ Arrêt retiré', en: '❌ Stop removed', ar: '❌ إزالة محطة'),
+        'title': _pick(
+          locale,
+          fr: '❌ Arrêt retiré',
+          en: '❌ Stop removed',
+          ar: '❌ إزالة محطة',
+        ),
         'body': joinLines([
-          _pick(locale,
-              fr: '$who retiré de ${routeLabel()}.',
-              en: '$who removed from ${routeLabel()}.',
-              ar: 'أُزيل $who من ${routeLabel()}.'),
+          _pick(
+            locale,
+            fr: '$who retiré de ${routeLabel()}.',
+            en: '$who removed from ${routeLabel()}.',
+            ar: 'أُزيل $who من ${routeLabel()}.',
+          ),
           reason.isNotEmpty
-              ? _pick(locale, fr: 'Motif : $reason', en: 'Reason: $reason', ar: 'السبب: $reason')
+              ? _pick(
+                  locale,
+                  fr: 'Motif : $reason',
+                  en: 'Reason: $reason',
+                  ar: 'السبب: $reason',
+                )
               : null,
         ]),
       };
@@ -236,46 +335,76 @@ Map<String, String> _buildNotification(
     case 'STOPS_TRANSFERRED_OUT':
       final n = count ?? 0;
       return {
-        'title': _pick(locale, fr: '🔄 Transfert sortant', en: '🔄 Stops transferred out', ar: '🔄 نقل محطات'),
-        'body': _pick(locale,
-            fr: '${_stopsLabel(n, locale)} retiré${n > 1 ? 's' : ''} de votre tournée.',
-            en: '${_stopsLabel(n, locale)} removed from your route.',
-            ar: 'تمت إزالة ${_stopsLabel(n, locale)} من رحلتك.'),
+        'title': _pick(
+          locale,
+          fr: '🔄 Transfert sortant',
+          en: '🔄 Stops transferred out',
+          ar: '🔄 نقل محطات',
+        ),
+        'body': _pick(
+          locale,
+          fr: '${_stopsLabel(n, locale)} retiré${n > 1 ? 's' : ''} de votre tournée.',
+          en: '${_stopsLabel(n, locale)} removed from your route.',
+          ar: 'تمت إزالة ${_stopsLabel(n, locale)} من رحلتك.',
+        ),
       };
 
     case 'STOPS_TRANSFERRED_IN':
       final n = count ?? 0;
       return {
-        'title': _pick(locale, fr: '🔄 Transfert entrant', en: '🔄 Stops transferred in', ar: '🔄 استلام محطات'),
-        'body': _pick(locale,
-            fr: '${_stopsLabel(n, locale)} ajouté${n > 1 ? 's' : ''} à votre tournée.',
-            en: '${_stopsLabel(n, locale)} added to your route.',
-            ar: 'تمت إضافة ${_stopsLabel(n, locale)} إلى رحلتك.'),
+        'title': _pick(
+          locale,
+          fr: '🔄 Transfert entrant',
+          en: '🔄 Stops transferred in',
+          ar: '🔄 استلام محطات',
+        ),
+        'body': _pick(
+          locale,
+          fr: '${_stopsLabel(n, locale)} ajouté${n > 1 ? 's' : ''} à votre tournée.',
+          en: '${_stopsLabel(n, locale)} added to your route.',
+          ar: 'تمت إضافة ${_stopsLabel(n, locale)} إلى رحلتك.',
+        ),
       };
 
     case 'HANDOFF_INCOMING':
       {
         final id = identity();
         final fromPart = fromDriverName.isNotEmpty
-            ? _pick(locale, fr: ' de $fromDriverName', en: ' from $fromDriverName', ar: ' من $fromDriverName')
+            ? _pick(
+                locale,
+                fr: ' de $fromDriverName',
+                en: ' from $fromDriverName',
+                ar: ' من $fromDriverName',
+              )
             : '';
         return {
-          'title': _pick(locale, fr: '🤝 Réception de colis', en: '🤝 Incoming handover', ar: '🤝 استلام طرد'),
+          'title': _pick(
+            locale,
+            fr: '🤝 Réception de colis',
+            en: '🤝 Incoming handover',
+            ar: '🤝 استلام طرد',
+          ),
           'body': joinLines([
             id.isNotEmpty
-                ? _pick(locale,
+                ? _pick(
+                    locale,
                     fr: 'Recevez le colis $id$fromPart.',
                     en: 'Receive parcel $id$fromPart.',
-                    ar: 'استلم الطرد $id$fromPart.')
-                : _pick(locale,
+                    ar: 'استلم الطرد $id$fromPart.',
+                  )
+                : _pick(
+                    locale,
                     fr: 'Un colis doit vous être remis$fromPart.',
                     en: 'A parcel is being handed to you$fromPart.',
-                    ar: 'سيتم تسليمك طردًا$fromPart.'),
+                    ar: 'سيتم تسليمك طردًا$fromPart.',
+                  ),
             address.isNotEmpty ? '📍 $address' : null,
-            _pick(locale,
-                fr: 'Scannez le code du chauffeur pour confirmer.',
-                en: "Scan the sender's code to confirm.",
-                ar: 'امسح رمز السائق للتأكيد.'),
+            _pick(
+              locale,
+              fr: 'Scannez le code du chauffeur pour confirmer.',
+              en: "Scan the sender's code to confirm.",
+              ar: 'امسح رمز السائق للتأكيد.',
+            ),
           ]),
         };
       }
@@ -284,24 +413,45 @@ Map<String, String> _buildNotification(
       {
         final id = identity();
         final toPart = toDriverName.isNotEmpty
-            ? _pick(locale, fr: ' à $toDriverName', en: ' to $toDriverName', ar: ' إلى $toDriverName')
-            : _pick(locale, fr: ' au nouveau livreur', en: ' to the new driver', ar: ' إلى السائق الجديد');
+            ? _pick(
+                locale,
+                fr: ' à $toDriverName',
+                en: ' to $toDriverName',
+                ar: ' إلى $toDriverName',
+              )
+            : _pick(
+                locale,
+                fr: ' au nouveau livreur',
+                en: ' to the new driver',
+                ar: ' إلى السائق الجديد',
+              );
         return {
-          'title': _pick(locale, fr: '🤝 Remise de colis', en: '🤝 Hand over parcel', ar: '🤝 تسليم طرد'),
+          'title': _pick(
+            locale,
+            fr: '🤝 Remise de colis',
+            en: '🤝 Hand over parcel',
+            ar: '🤝 تسليم طرد',
+          ),
           'body': joinLines([
             id.isNotEmpty
-                ? _pick(locale,
+                ? _pick(
+                    locale,
                     fr: 'Remettez le colis $id$toPart.',
                     en: 'Hand over parcel $id$toPart.',
-                    ar: 'سلّم الطرد $id$toPart.')
-                : _pick(locale,
+                    ar: 'سلّم الطرد $id$toPart.',
+                  )
+                : _pick(
+                    locale,
                     fr: 'Remettez le colis$toPart.',
                     en: 'Hand over the parcel$toPart.',
-                    ar: 'سلّم الطرد$toPart.'),
-            _pick(locale,
-                fr: 'Affichez votre code de transfert.',
-                en: 'Show your handover code.',
-                ar: 'اعرض رمز التسليم الخاص بك.'),
+                    ar: 'سلّم الطرد$toPart.',
+                  ),
+            _pick(
+              locale,
+              fr: 'Affichez votre code de transfert.',
+              en: 'Show your handover code.',
+              ar: 'اعرض رمز التسليم الخاص بك.',
+            ),
           ]),
         };
       }
@@ -310,16 +460,25 @@ Map<String, String> _buildNotification(
       {
         final id = identity();
         return {
-          'title': _pick(locale, fr: '✅ Transfert confirmé', en: '✅ Handover confirmed', ar: '✅ تم تأكيد التسليم'),
+          'title': _pick(
+            locale,
+            fr: '✅ Transfert confirmé',
+            en: '✅ Handover confirmed',
+            ar: '✅ تم تأكيد التسليم',
+          ),
           'body': id.isNotEmpty
-              ? _pick(locale,
+              ? _pick(
+                  locale,
                   fr: 'Colis $id — transfert confirmé.',
                   en: 'Parcel $id — handover confirmed.',
-                  ar: 'الطرد $id — تم تأكيد التسليم.')
-              : _pick(locale,
+                  ar: 'الطرد $id — تم تأكيد التسليم.',
+                )
+              : _pick(
+                  locale,
                   fr: 'Le transfert du colis a été confirmé.',
                   en: 'The parcel handover was confirmed.',
-                  ar: 'تم تأكيد تسليم الطرد.'),
+                  ar: 'تم تأكيد تسليم الطرد.',
+                ),
         };
       }
 
@@ -327,29 +486,50 @@ Map<String, String> _buildNotification(
       {
         final id = identity();
         return {
-          'title': _pick(locale, fr: '⚠️ Transfert annulé', en: '⚠️ Handover cancelled', ar: '⚠️ أُلغي التسليم'),
+          'title': _pick(
+            locale,
+            fr: '⚠️ Transfert annulé',
+            en: '⚠️ Handover cancelled',
+            ar: '⚠️ أُلغي التسليم',
+          ),
           'body': id.isNotEmpty
-              ? _pick(locale,
+              ? _pick(
+                  locale,
                   fr: 'Le transfert du colis $id a été annulé.',
                   en: 'The handover of parcel $id was cancelled.',
-                  ar: 'أُلغي تسليم الطرد $id.')
-              : _pick(locale,
+                  ar: 'أُلغي تسليم الطرد $id.',
+                )
+              : _pick(
+                  locale,
                   fr: 'Le transfert du colis a été annulé.',
                   en: 'The parcel handover was cancelled.',
-                  ar: 'أُلغي تسليم الطرد.'),
+                  ar: 'أُلغي تسليم الطرد.',
+                ),
         };
       }
 
     case 'ROUTE_CANCELLED':
       return {
-        'title': _pick(locale, fr: '🚫 Tournée annulée', en: '🚫 Route cancelled', ar: '🚫 أُلغيت الرحلة'),
+        'title': _pick(
+          locale,
+          fr: '🚫 Tournée annulée',
+          en: '🚫 Route cancelled',
+          ar: '🚫 أُلغيت الرحلة',
+        ),
         'body': joinLines([
-          _pick(locale,
-              fr: 'La tournée ${routeLabel()} a été annulée.',
-              en: 'Route ${routeLabel()} has been cancelled.',
-              ar: 'تم إلغاء الرحلة ${routeLabel()}.'),
+          _pick(
+            locale,
+            fr: 'La tournée ${routeLabel()} a été annulée.',
+            en: 'Route ${routeLabel()} has been cancelled.',
+            ar: 'تم إلغاء الرحلة ${routeLabel()}.',
+          ),
           reason.isNotEmpty
-              ? _pick(locale, fr: 'Motif : $reason', en: 'Reason: $reason', ar: 'السبب: $reason')
+              ? _pick(
+                  locale,
+                  fr: 'Motif : $reason',
+                  en: 'Reason: $reason',
+                  ar: 'السبب: $reason',
+                )
               : null,
         ]),
       };
@@ -357,16 +537,26 @@ Map<String, String> _buildNotification(
     case 'ROUTE_UPDATED':
     default:
       return {
-        'title': _pick(locale, fr: '🔄 Tournée modifiée', en: '🔄 Route updated', ar: '🔄 تحديث الرحلة'),
-        'body': _pick(locale,
-            fr: 'Votre tournée a été mise à jour.',
-            en: 'Your route has been updated.',
-            ar: 'تم تحديث رحلتك.'),
+        'title': _pick(
+          locale,
+          fr: '🔄 Tournée modifiée',
+          en: '🔄 Route updated',
+          ar: '🔄 تحديث الرحلة',
+        ),
+        'body': _pick(
+          locale,
+          fr: 'Votre tournée a été mise à jour.',
+          en: 'Your route has been updated.',
+          ar: 'تم تحديث رحلتك.',
+        ),
       };
   }
 }
 
-Map<String, String> getLocalizedNotificationPayload(Map<String, dynamic> rawData, String locale) {
+Map<String, String> getLocalizedNotificationPayload(
+  Map<String, dynamic> rawData,
+  String locale,
+) {
   Map<String, dynamic> data = {};
   if (rawData.containsKey('payload')) {
     try {
@@ -375,7 +565,10 @@ Map<String, String> getLocalizedNotificationPayload(Map<String, dynamic> rawData
     } catch (_) {}
   }
 
-  final eventType = rawData['event_type'] as String? ?? data['event'] as String? ?? 'ROUTE_UPDATED';
+  final eventType =
+      rawData['event_type'] as String? ??
+      data['event'] as String? ??
+      'ROUTE_UPDATED';
   // Merge root-level fields (some events send flat data, not a nested payload).
   // Nested payload fields take precedence over root-level ones.
   final merged = <String, dynamic>{...rawData, ...data};
@@ -445,7 +638,8 @@ class FcmService {
 
   final ApiClient _client;
 
-  void Function(String title, String body, String type)? _onNotificationReceived;
+  void Function(String title, String body, String type)?
+  _onNotificationReceived;
   void Function(String type, String? deliveryId)? _onNotificationTap;
 
   void setHandlers({
@@ -461,11 +655,16 @@ class FcmService {
     Map<String, dynamic> data = {};
     if (rawData.containsKey('payload')) {
       try {
-        data = (jsonDecode(rawData['payload']) as Map<String, dynamic>)['data'] as Map<String, dynamic>? ?? {};
+        data =
+            (jsonDecode(rawData['payload']) as Map<String, dynamic>)['data']
+                as Map<String, dynamic>? ??
+            {};
       } catch (_) {}
     }
-    final type = rawData['event_type'] as String? ?? data['event'] as String? ?? '';
-    final deliveryId = (data['deliveryId'] ?? rawData['deliveryId'])?.toString();
+    final type =
+        rawData['event_type'] as String? ?? data['event'] as String? ?? '';
+    final deliveryId = (data['deliveryId'] ?? rawData['deliveryId'])
+        ?.toString();
     _onNotificationTap?.call(type, deliveryId);
   }
 
@@ -482,11 +681,12 @@ class FcmService {
     debugPrint('[FCM] Permission: ${settings.authorizationStatus}');
 
     // 3. iOS: show notification banner even when app is in foreground
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+    await FirebaseMessaging.instance
+        .setForegroundNotificationPresentationOptions(
+          alert: true,
+          badge: true,
+          sound: true,
+        );
 
     // 4. Android: create high-priority notification channel + init local notifications
     await _initLocalNotifications();
@@ -508,7 +708,10 @@ class FcmService {
     final initial = await FirebaseMessaging.instance.getInitialMessage();
     if (initial != null) {
       await _storeMessage(initial);
-      Future.delayed(const Duration(milliseconds: 600), () => _notifyTap(initial.data));
+      Future.delayed(
+        const Duration(milliseconds: 600),
+        () => _notifyTap(initial.data),
+      );
     }
   }
 
@@ -521,7 +724,9 @@ class FcmService {
 
     // Create the channel on Android (no-op on iOS)
     final androidPlugin = _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >();
     await androidPlugin?.createNotificationChannel(_channel);
   }
 

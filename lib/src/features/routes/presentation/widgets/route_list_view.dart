@@ -30,6 +30,7 @@ class RouteListView extends StatelessWidget {
   final DriverRoute? route;
   final bool isWorking;
   final String locale;
+
   /// Delivery ids the driver must receive by handoff — badged "À recevoir" in the list.
   final Set<String> handoffIncomingIds;
   final VoidCallback? onStart;
@@ -53,7 +54,10 @@ class RouteListView extends StatelessWidget {
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 40.0,
+            ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -109,7 +113,7 @@ class RouteListView extends StatelessWidget {
 
     final currentRoute = route!;
     final total = currentRoute.stops.length;
-    
+
     // Find next pending stop for swipe CTAs
     final nextPending = currentRoute.stops
         .where((s) => s.status == DriverRouteStopStatus.pending)
@@ -150,7 +154,9 @@ class RouteListView extends StatelessWidget {
             else if (nextPending.isPickup)
               SwipeButton(
                 label: AppLocalizations.of(context).routeSwipeLoadHint,
-                onSwipe: isWorking ? null : () => onConfirmPickup?.call(nextPending.id),
+                onSwipe: isWorking
+                    ? null
+                    : () => onConfirmPickup?.call(nextPending.id),
                 isWorking: isWorking,
                 icon: LucideIcons.package,
                 activeColor: statusColors.pickedUp,
@@ -176,9 +182,12 @@ class RouteListView extends StatelessWidget {
                     onTap: onNavigate!,
                   ),
                 ),
-              if (onNavigate != null && onDownloadPdf != null && currentRoute.status == DriverRouteStatus.validated)
+              if (onNavigate != null &&
+                  onDownloadPdf != null &&
+                  currentRoute.status == DriverRouteStatus.validated)
                 const SizedBox(width: 12),
-              if (onDownloadPdf != null && currentRoute.status == DriverRouteStatus.validated)
+              if (onDownloadPdf != null &&
+                  currentRoute.status == DriverRouteStatus.validated)
                 Expanded(
                   child: _ActionButton(
                     label: AppLocalizations.of(context).route_download_pdf,
@@ -213,7 +222,9 @@ class RouteListView extends StatelessWidget {
           // Stop Cards List
           ...currentRoute.stops.map((stop) {
             if (stop.isPickup) {
-              final pickList = currentRoute.deliveriesForDepot(stop.sourceDepotId);
+              final pickList = currentRoute.deliveriesForDepot(
+                stop.sourceDepotId,
+              );
               final parcelCount = currentRoute.pickupParcelCount(stop);
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12.0),
@@ -232,7 +243,9 @@ class RouteListView extends StatelessWidget {
                   stop: stop,
                   depotPicked: depotPicked,
                   locale: locale,
-                  isHandoffIncoming: handoffIncomingIds.contains(stop.deliveryId),
+                  isHandoffIncoming: handoffIncomingIds.contains(
+                    stop.deliveryId,
+                  ),
                   onStartTransit: onStartTransit,
                   onOpenPod: onOpenPod,
                   onOpenDetails: onOpenDetails,
@@ -256,7 +269,9 @@ class _RouteHeaderCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final total = route.stops.length;
-    final done = route.stops.where((s) => s.status != DriverRouteStopStatus.pending).length;
+    final done = route.stops
+        .where((s) => s.status != DriverRouteStopStatus.pending)
+        .length;
     final progress = total == 0 ? 0.0 : done / total;
 
     final statusColors = theme.extension<StatusColors>()!;
@@ -272,15 +287,15 @@ class _RouteHeaderCard extends StatelessWidget {
       elevation: theme.brightness == Brightness.dark ? 8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5), width: 1.5),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 4,
-            color: accentColor,
-          ),
+          Container(height: 4, color: accentColor),
           Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -291,17 +306,25 @@ class _RouteHeaderCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         route.name,
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: AppTokens.fwBold),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: AppTokens.fwBold,
+                        ),
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: accentColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
-                        routeStatusLabel(route.status, AppLocalizations.of(context)).toUpperCase(),
+                        routeStatusLabel(
+                          route.status,
+                          AppLocalizations.of(context),
+                        ).toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w800,
@@ -317,22 +340,41 @@ class _RouteHeaderCard extends StatelessWidget {
                   runSpacing: AppTokens.space6,
                   children: [
                     if (route.plannedStart != null || route.plannedEnd != null)
-                    _HeaderMetaPill(
-                      icon: LucideIcons.clock,
-                      label: _fmtTimeWindow(route.plannedStart, route.plannedEnd, l10n: AppLocalizations.of(context)),
-                    ),
+                      _HeaderMetaPill(
+                        icon: LucideIcons.clock,
+                        label: _fmtTimeWindow(
+                          route.plannedStart,
+                          route.plannedEnd,
+                          l10n: AppLocalizations.of(context),
+                        ),
+                      ),
                     if (route.zone != null && route.zone!.isNotEmpty)
-                      _HeaderMetaPill(icon: LucideIcons.mapPin, label: route.zone!)
+                      _HeaderMetaPill(
+                        icon: LucideIcons.mapPin,
+                        label: route.zone!,
+                      )
                     else if (route.city != null && route.city!.isNotEmpty)
-                      _HeaderMetaPill(icon: LucideIcons.mapPin, label: route.city!),
+                      _HeaderMetaPill(
+                        icon: LucideIcons.mapPin,
+                        label: route.city!,
+                      ),
                     _HeaderMetaPill(
                       icon: LucideIcons.package,
-                      label: total > 1 ? AppLocalizations.of(context).routeStopCount(total.toString()) : AppLocalizations.of(context).routeStopCountSingular(total.toString()),
+                      label: total > 1
+                          ? AppLocalizations.of(
+                              context,
+                            ).routeStopCount(total.toString())
+                          : AppLocalizations.of(
+                              context,
+                            ).routeStopCountSingular(total.toString()),
                     ),
-                    if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty)
+                    if (route.vehiclePlate != null &&
+                        route.vehiclePlate!.isNotEmpty)
                       _HeaderMetaPill(
                         icon: LucideIcons.truck,
-                        label: route.vehicleName != null && route.vehicleName!.isNotEmpty
+                        label:
+                            route.vehicleName != null &&
+                                route.vehicleName!.isNotEmpty
                             ? '${route.vehicleName} · ${route.vehiclePlate}'
                             : route.vehiclePlate!,
                       ),
@@ -343,13 +385,19 @@ class _RouteHeaderCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      color: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: colorScheme.outlineVariant),
                     ),
                     child: Row(
                       children: [
-                        Icon(LucideIcons.warehouse, size: 16, color: colorScheme.primary),
+                        Icon(
+                          LucideIcons.warehouse,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Column(
@@ -366,7 +414,9 @@ class _RouteHeaderCard extends StatelessWidget {
                               if (route.depotAddress != null)
                                 Text(
                                   route.depotAddress!,
-                                  style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
                             ],
@@ -386,7 +436,9 @@ class _RouteHeaderCard extends StatelessWidget {
                           value: progress,
                           minHeight: 6,
                           backgroundColor: colorScheme.surfaceContainerHighest,
-                          valueColor: AlwaysStoppedAnimation<Color>(colorScheme.primary),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            colorScheme.primary,
+                          ),
                         ),
                       ),
                     ),
@@ -433,7 +485,9 @@ class _PickupStopCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: done ? cs.outlineVariant : pickupColor.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: done ? cs.outlineVariant : pickupColor.withValues(alpha: 0.5),
+        ),
         boxShadow: AppTokens.shadowSm(brightness: theme.brightness),
       ),
       child: Padding(
@@ -450,12 +504,19 @@ class _PickupStopCard extends StatelessWidget {
                     color: pickupColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(LucideIcons.warehouse, size: 16, color: pickupColor),
+                  child: Icon(
+                    LucideIcons.warehouse,
+                    size: 16,
+                    color: pickupColor,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    AppLocalizations.of(context).route_load_parcels(parcelCount, stop.sourceDepotName ?? ''),
+                    AppLocalizations.of(context).route_load_parcels(
+                      parcelCount,
+                      stop.sourceDepotName ?? '',
+                    ),
                     style: theme.textTheme.labelLarge?.copyWith(
                       fontSize: 13,
                       fontWeight: AppTokens.fwBold,
@@ -472,55 +533,73 @@ class _PickupStopCard extends StatelessWidget {
             // misleads him once an order is split — only part of it is collected here.
             if (stop.pickupLoad.isNotEmpty) ...[
               const SizedBox(height: 10),
-              ...stop.pickupLoad.map((line) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '×${line.quantity ?? 1}',
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: pickupColor,
-                          ),
+              ...stop.pickupLoad.map(
+                (line) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '×${line.quantity ?? 1}',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: pickupColor,
                         ),
+                      ),
+                      const SizedBox(width: 6),
+                      Expanded(
+                        child: Text(
+                          line.label,
+                          style: TextStyle(fontSize: 11, color: cs.onSurface),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (line.orderRef != null &&
+                          line.orderRef!.isNotEmpty) ...[
                         const SizedBox(width: 6),
-                        Expanded(
-                          child: Text(
-                            line.label,
-                            style: TextStyle(fontSize: 11, color: cs.onSurface),
-                            overflow: TextOverflow.ellipsis,
+                        Text(
+                          line.orderRef!,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: cs.onSurfaceVariant,
                           ),
                         ),
-                        if (line.orderRef != null && line.orderRef!.isNotEmpty) ...[
-                          const SizedBox(width: 6),
-                          Text(
-                            line.orderRef!,
-                            style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
-                          ),
-                        ],
                       ],
-                    ),
-                  )),
+                    ],
+                  ),
+                ),
+              ),
             ] else if (pickList.isNotEmpty) ...[
               const SizedBox(height: 10),
-              ...pickList.map((d) => Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Row(
-                      children: [
-                        Icon(LucideIcons.dot, size: 14, color: cs.onSurfaceVariant),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            [d.orderRef, d.clientName].where((e) => e != null && e.isNotEmpty).join(' · '),
-                            style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
-                            overflow: TextOverflow.ellipsis,
+              ...pickList.map(
+                (d) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Icon(
+                        LucideIcons.dot,
+                        size: 14,
+                        color: cs.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          [
+                            d.orderRef,
+                            d.clientName,
+                          ].where((e) => e != null && e.isNotEmpty).join(' · '),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: cs.onSurfaceVariant,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ],
-                    ),
-                  )),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ],
         ),
@@ -560,8 +639,10 @@ class _StopListItem extends StatelessWidget {
       onTap: (depotPicked || isHandoffIncoming)
           ? () => onOpenDetails(stop.deliveryId)
           : () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(AppLocalizations.of(context).routeConfirmPickup)),
+              SnackBar(
+                content: Text(AppLocalizations.of(context).routeConfirmPickup),
               ),
+            ),
       behavior: HitTestBehavior.opaque,
       child: Card(
         clipBehavior: Clip.antiAlias,
@@ -569,7 +650,9 @@ class _StopListItem extends StatelessWidget {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: colorScheme.outlineVariant.withValues(alpha: depotPicked ? 0.6 : 0.3),
+            color: colorScheme.outlineVariant.withValues(
+              alpha: depotPicked ? 0.6 : 0.3,
+            ),
             width: 1,
           ),
         ),
@@ -592,15 +675,20 @@ class _StopListItem extends StatelessWidget {
                       child: Center(
                         child: Text(
                           '${stop.stopOrder}',
-                          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwBold),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: AppTokens.fwBold,
+                          ),
                         ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        stop.clientName ?? AppLocalizations.of(context).calendarClient,
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: AppTokens.fwBold),
+                        stop.clientName ??
+                            AppLocalizations.of(context).calendarClient,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: AppTokens.fwBold,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -613,16 +701,25 @@ class _StopListItem extends StatelessWidget {
                 if (isHandoffIncoming) ...[
                   const SizedBox(height: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: colorScheme.tertiary.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: colorScheme.tertiary.withValues(alpha: 0.35)),
+                      border: Border.all(
+                        color: colorScheme.tertiary.withValues(alpha: 0.35),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(LucideIcons.arrowLeftRight, size: 12, color: colorScheme.tertiary),
+                        Icon(
+                          LucideIcons.arrowLeftRight,
+                          size: 12,
+                          color: colorScheme.tertiary,
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           AppLocalizations.of(context).handoff_inbox_incoming,
@@ -640,12 +737,21 @@ class _StopListItem extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(LucideIcons.mapPin, size: 13, color: colorScheme.onSurfaceVariant),
+                      Icon(
+                        LucideIcons.mapPin,
+                        size: 13,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          [stop.address, stop.city].where((e) => e != null && e.isNotEmpty).join(', '),
-                          style: theme.textTheme.bodySmall?.copyWith(color: colorScheme.onSurfaceVariant),
+                          [
+                            stop.address,
+                            stop.city,
+                          ].where((e) => e != null && e.isNotEmpty).join(', '),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -676,11 +782,16 @@ class _StopListItem extends StatelessWidget {
                           ),
                         ),
                       if (stop.orderRef != null && stop.totalAmount != null)
-                        Text('  ·  ', style: TextStyle(color: colorScheme.onSurfaceVariant)),
+                        Text(
+                          '  ·  ',
+                          style: TextStyle(color: colorScheme.onSurfaceVariant),
+                        ),
                       if (stop.totalAmount != null)
                         Text(
                           '${stop.totalAmount!.toStringAsFixed(3)} TND',
-                          style: theme.textTheme.bodySmall?.copyWith(fontWeight: AppTokens.fwBold),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontWeight: AppTokens.fwBold,
+                          ),
                         ),
                     ],
                   ),
@@ -689,12 +800,21 @@ class _StopListItem extends StatelessWidget {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(LucideIcons.calendarClock, size: 12, color: colorScheme.onSurfaceVariant),
+                      Icon(
+                        LucideIcons.calendarClock,
+                        size: 12,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
                       const SizedBox(width: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                          color: colorScheme.surfaceContainerHighest.withValues(
+                            alpha: 0.5,
+                          ),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -714,7 +834,11 @@ class _StopListItem extends StatelessWidget {
                   Row(
                     children: [
                       if (stop.formattedEta != null) ...[
-                        Icon(LucideIcons.clock, size: 12, color: colorScheme.tertiary),
+                        Icon(
+                          LucideIcons.clock,
+                          size: 12,
+                          color: colorScheme.tertiary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'ETA ${stop.formattedEta}',
@@ -725,10 +849,15 @@ class _StopListItem extends StatelessWidget {
                           ),
                         ),
                       ],
-                      if (stop.formattedEta != null && stop.formattedSla != null)
+                      if (stop.formattedEta != null &&
+                          stop.formattedSla != null)
                         const SizedBox(width: 16),
                       if (stop.formattedSla != null) ...[
-                        Icon(LucideIcons.flag, size: 12, color: colorScheme.secondary),
+                        Icon(
+                          LucideIcons.flag,
+                          size: 12,
+                          color: colorScheme.secondary,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'SLA ${stop.formattedSla}',
@@ -753,15 +882,22 @@ class _StopListItem extends StatelessWidget {
                       icon: const Icon(LucideIcons.checkCircle2, size: 18),
                       label: Text(
                         AppLocalizations.of(context).routeConfirmDelivery,
-                        style: const TextStyle(fontWeight: AppTokens.fwBold, fontSize: 14),
+                        style: const TextStyle(
+                          fontWeight: AppTokens.fwBold,
+                          fontSize: 14,
+                        ),
                       ),
                       // Own height via the style (not a SizedBox) so the label is never
                       // clipped by the theme's 56px min-height + vertical padding.
                       style: FilledButton.styleFrom(
                         minimumSize: const Size.fromHeight(48),
-                        padding: const EdgeInsets.symmetric(vertical: AppTokens.space10),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppTokens.space10,
+                        ),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                          borderRadius: BorderRadius.circular(
+                            AppTokens.radiusMd,
+                          ),
                         ),
                       ),
                     ),
@@ -784,15 +920,15 @@ class _DeliveryStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColors = Theme.of(context).extension<StatusColors>()!;
     final color = switch (status) {
-      DeliveryStatus.unscheduled       => statusColors.unscheduled,
-      DeliveryStatus.scheduled         => statusColors.scheduled,
-      DeliveryStatus.pickedUp          => statusColors.pickedUp,
-      DeliveryStatus.inTransit         => statusColors.inTransit,
-      DeliveryStatus.delivered         => statusColors.delivered,
+      DeliveryStatus.unscheduled => statusColors.unscheduled,
+      DeliveryStatus.scheduled => statusColors.scheduled,
+      DeliveryStatus.pickedUp => statusColors.pickedUp,
+      DeliveryStatus.inTransit => statusColors.inTransit,
+      DeliveryStatus.delivered => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
-      DeliveryStatus.failed            => statusColors.failed,
-      DeliveryStatus.cancelled         => statusColors.cancelled,
-      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
+      DeliveryStatus.failed => statusColors.failed,
+      DeliveryStatus.cancelled => statusColors.cancelled,
+      DeliveryStatus.awaitingHandoff => statusColors.pickedUp,
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
@@ -803,14 +939,23 @@ class _DeliveryStatusBadge extends StatelessWidget {
       ),
       child: Text(
         deliveryStatusLabel(status, AppLocalizations.of(context)).toUpperCase(),
-        style: TextStyle(fontSize: 8.5, fontWeight: AppTokens.fwBold, color: color),
+        style: TextStyle(
+          fontSize: 8.5,
+          fontWeight: AppTokens.fwBold,
+          color: color,
+        ),
       ),
     );
   }
 }
 
 class _ActionButton extends StatelessWidget {
-  const _ActionButton({required this.label, required this.icon, required this.color, required this.onTap});
+  const _ActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
   final String label;
   final IconData icon;
   final Color color;
@@ -818,27 +963,31 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: AppTokens.fwBold,
+              color: color,
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 16, color: color),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: TextStyle(fontSize: 13, fontWeight: AppTokens.fwBold, color: color),
-              ),
-            ],
-          ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }
 
 class _OfflineBanner extends StatelessWidget {
@@ -860,7 +1009,11 @@ class _OfflineBanner extends StatelessWidget {
           SizedBox(width: 8),
           Text(
             AppLocalizations.of(context).routeOfflineBanner,
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
         ],
       ),
@@ -875,25 +1028,29 @@ class _InfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.2)),
+    width: double.infinity,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: color.withValues(alpha: 0.2)),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(LucideIcons.info, size: 14, color: color),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            color: color,
+            fontWeight: AppTokens.fwMedium,
+          ),
         ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(LucideIcons.info, size: 14, color: color),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(fontSize: 13, color: color, fontWeight: AppTokens.fwMedium),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }
 
 String _fmtTimeWindow(String? start, String? end, {AppLocalizations? l10n}) {
@@ -912,7 +1069,10 @@ class _HeaderMetaPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: AppTokens.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space8,
+        vertical: AppTokens.space4,
+      ),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -925,7 +1085,11 @@ class _HeaderMetaPill extends StatelessWidget {
           const SizedBox(width: AppTokens.space4),
           Text(
             label,
-            style: TextStyle(fontSize: 11, fontWeight: AppTokens.fwMedium, color: cs.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: AppTokens.fwMedium,
+              color: cs.onSurfaceVariant,
+            ),
           ),
         ],
       ),
@@ -938,8 +1102,8 @@ class MapPlaceholderLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: LoadingState(message: AppLocalizations.of(context).routeLoadingRoute),
-      );
+    body: LoadingState(message: AppLocalizations.of(context).routeLoadingRoute),
+  );
 }
 
 class MapError extends StatelessWidget {
@@ -948,11 +1112,11 @@ class MapError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: EmptyState(
-          icon: PhosphorIconsRegular.cloudSlash,
-          title: AppLocalizations.of(context).routeLoadError,
-          action: onRetry,
-          actionLabel: AppLocalizations.of(context).routeRetry,
-        ),
-      );
+    body: EmptyState(
+      icon: PhosphorIconsRegular.cloudSlash,
+      title: AppLocalizations.of(context).routeLoadError,
+      action: onRetry,
+      actionLabel: AppLocalizations.of(context).routeRetry,
+    ),
+  );
 }

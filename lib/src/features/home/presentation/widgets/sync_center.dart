@@ -22,9 +22,9 @@ Future<void> _retryWithFeedback(
   if (!context.mounted) return;
   if (!online) {
     final l10n = AppLocalizations.of(context);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.delivery_detail_offline_queue)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(l10n.delivery_detail_offline_queue)));
   }
 }
 
@@ -111,19 +111,29 @@ class _SyncCenterSheet extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 16, 12, 8),
               child: Row(
                 children: [
-                  Icon(PhosphorIconsBold.cloudArrowUp, size: 20, color: cs.primary),
+                  Icon(
+                    PhosphorIconsBold.cloudArrowUp,
+                    size: 20,
+                    color: cs.primary,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
                       l10n.syncCenterTitle,
                       style: GoogleFonts.inter(
-                          fontSize: 17, fontWeight: FontWeight.w800),
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                   if (hasFailed)
                     TextButton.icon(
-                      onPressed: () => _retryWithFeedback(context, ref, queue.retryAll),
-                      icon: const Icon(PhosphorIconsRegular.arrowClockwise, size: 16),
+                      onPressed: () =>
+                          _retryWithFeedback(context, ref, queue.retryAll),
+                      icon: const Icon(
+                        PhosphorIconsRegular.arrowClockwise,
+                        size: 16,
+                      ),
                       label: Text(l10n.syncRetryAll),
                     ),
                 ],
@@ -137,7 +147,8 @@ class _SyncCenterSheet extends ConsumerWidget {
                       controller: scrollController,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       itemCount: items.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1, indent: 16, endIndent: 16),
+                      separatorBuilder: (_, __) =>
+                          const Divider(height: 1, indent: 16, endIndent: 16),
                       itemBuilder: (context, i) => _QueueRow(item: items[i]),
                     ),
             ),
@@ -161,11 +172,18 @@ class _EmptyState extends StatelessWidget {
         children: [
           Icon(PhosphorIconsRegular.checkCircle, size: 44, color: cs.primary),
           const SizedBox(height: 12),
-          Text(l10n.syncUpToDate,
-              style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700)),
+          Text(
+            l10n.syncUpToDate,
+            style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w700),
+          ),
           const SizedBox(height: 4),
-          Text(l10n.syncEmpty,
-              style: GoogleFonts.inter(fontSize: 12.5, color: cs.onSurfaceVariant)),
+          Text(
+            l10n.syncEmpty,
+            style: GoogleFonts.inter(
+              fontSize: 12.5,
+              color: cs.onSurfaceVariant,
+            ),
+          ),
         ],
       ),
     );
@@ -187,8 +205,16 @@ class _QueueRow extends ConsumerWidget {
     // status palette already names, so they take its colours and follow the theme.
     final statusColors = Theme.of(context).extension<StatusColors>()!;
     final (Color badgeColor, String badgeText, IconData badgeIcon) = failed
-        ? (statusColors.failed, l10n.syncStatusFailed, PhosphorIconsBold.warning)
-        : (statusColors.onBreak, l10n.syncStatusPending, PhosphorIconsRegular.clock);
+        ? (
+            statusColors.failed,
+            l10n.syncStatusFailed,
+            PhosphorIconsBold.warning,
+          )
+        : (
+            statusColors.onBreak,
+            l10n.syncStatusPending,
+            PhosphorIconsRegular.clock,
+          );
 
     final ref0 = item.reference;
     final title = ref0 != null
@@ -205,8 +231,13 @@ class _QueueRow extends ConsumerWidget {
               Icon(badgeIcon, size: 16, color: badgeColor),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(title,
-                    style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w700)),
+                child: Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
@@ -214,9 +245,14 @@ class _QueueRow extends ConsumerWidget {
                   color: badgeColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(6),
                 ),
-                child: Text(badgeText,
-                    style: GoogleFonts.inter(
-                        fontSize: 11, fontWeight: FontWeight.w700, color: badgeColor)),
+                child: Text(
+                  badgeText,
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: badgeColor,
+                  ),
+                ),
               ),
             ],
           ),
@@ -227,7 +263,10 @@ class _QueueRow extends ConsumerWidget {
               failed
                   ? _errorText(l10n, item.lastError)
                   : l10n.syncEnqueuedAt(_hhmm(item.enqueuedAt)),
-              style: GoogleFonts.inter(fontSize: 12, color: cs.onSurfaceVariant),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: cs.onSurfaceVariant,
+              ),
             ),
           ),
           if (failed)
@@ -236,11 +275,19 @@ class _QueueRow extends ConsumerWidget {
               child: Row(
                 children: [
                   TextButton.icon(
-                    onPressed: () =>
-                        _retryWithFeedback(context, ref, () => queue.retryItem(item.key)),
-                    icon: const Icon(PhosphorIconsRegular.arrowClockwise, size: 15),
+                    onPressed: () => _retryWithFeedback(
+                      context,
+                      ref,
+                      () => queue.retryItem(item.key),
+                    ),
+                    icon: const Icon(
+                      PhosphorIconsRegular.arrowClockwise,
+                      size: 15,
+                    ),
                     label: Text(l10n.syncRetry),
-                    style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                   if (ref0 != null && item.path.contains('/deliveries/'))
                     TextButton(
@@ -257,7 +304,11 @@ class _QueueRow extends ConsumerWidget {
                   IconButton(
                     tooltip: l10n.syncDiscard,
                     onPressed: () => queue.discardItem(item.key),
-                    icon: Icon(PhosphorIconsRegular.trash, size: 18, color: cs.onSurfaceVariant),
+                    icon: Icon(
+                      PhosphorIconsRegular.trash,
+                      size: 18,
+                      color: cs.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),

@@ -10,10 +10,10 @@ import 'connectivity_service.dart';
 
 final offlineQueueProvider =
     StateNotifierProvider<OfflineQueueService, OfflineSyncState>((ref) {
-  final apiClient = ref.read(apiClientProvider);
-  final connectivity = ref.read(connectivityServiceProvider);
-  return OfflineQueueService(apiClient, connectivity);
-});
+      final apiClient = ref.read(apiClientProvider);
+      final connectivity = ref.read(connectivityServiceProvider);
+      return OfflineQueueService(apiClient, connectivity);
+    });
 
 /// Lifecycle of a queued write. An entry is only ever removed from disk once it
 /// has been accepted by the server (SYNCED). Everything else stays durable so
@@ -97,13 +97,12 @@ class OfflineSyncState {
     int? failed,
     bool? syncing,
     DateTime? lastSuccessAt,
-  }) =>
-      OfflineSyncState(
-        pending: pending ?? this.pending,
-        failed: failed ?? this.failed,
-        syncing: syncing ?? this.syncing,
-        lastSuccessAt: lastSuccessAt ?? this.lastSuccessAt,
-      );
+  }) => OfflineSyncState(
+    pending: pending ?? this.pending,
+    failed: failed ?? this.failed,
+    syncing: syncing ?? this.syncing,
+    lastSuccessAt: lastSuccessAt ?? this.lastSuccessAt,
+  );
 }
 
 class OfflineQueueService extends StateNotifier<OfflineSyncState> {
@@ -122,7 +121,7 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
   static const Duration _safetyNetInterval = Duration(seconds: 20);
 
   OfflineQueueService(this._apiClient, this._connectivityService)
-      : super(const OfflineSyncState()) {
+    : super(const OfflineSyncState()) {
     _init();
   }
 
@@ -130,7 +129,9 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
     _recomputeState();
     // Flush on the transition back online (connectivity_plus fires when the OS
     // reports "connected" but DNS / routing may not be ready yet, hence the delay).
-    _connectivitySub = _connectivityService.onlineStream.listen((isOnline) async {
+    _connectivitySub = _connectivityService.onlineStream.listen((
+      isOnline,
+    ) async {
       if (!isOnline || _pendingKeys().isEmpty) return;
       await Future.delayed(const Duration(seconds: 2));
       if (_pendingKeys().isNotEmpty) await processQueue();
@@ -164,14 +165,14 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
       Hive.box<Map<dynamic, dynamic>>(_boxName);
 
   List<dynamic> _pendingKeys() => _box.keys.where((k) {
-        final e = _box.get(k);
-        return e != null && _statusOf(e) == QueueItemStatus.pending;
-      }).toList();
+    final e = _box.get(k);
+    return e != null && _statusOf(e) == QueueItemStatus.pending;
+  }).toList();
 
   QueueItemStatus _statusOf(Map<dynamic, dynamic> e) =>
       (e['status'] as String?) == 'DEAD_LETTER'
-          ? QueueItemStatus.deadLetter
-          : QueueItemStatus.pending;
+      ? QueueItemStatus.deadLetter
+      : QueueItemStatus.pending;
 
   void _recomputeState({bool? syncing, DateTime? lastSuccessAt}) {
     var pending = 0;
@@ -197,19 +198,23 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
     for (final key in _box.keys) {
       final e = _box.get(key);
       if (e == null) continue;
-      list.add(OfflineQueueItem(
-        key: key,
-        path: (e['path'] as String?) ?? '',
-        method: (e['method'] as String?) ?? 'POST',
-        idempotencyKey: (e['idempotencyKey'] as String?) ?? '',
-        enqueuedAt: DateTime.tryParse((e['timestamp'] as String?) ?? ''),
-        retryCount: (e['retryCount'] as int?) ?? 0,
-        status: _statusOf(e),
-        lastError: e['lastError'] as String?,
-      ));
+      list.add(
+        OfflineQueueItem(
+          key: key,
+          path: (e['path'] as String?) ?? '',
+          method: (e['method'] as String?) ?? 'POST',
+          idempotencyKey: (e['idempotencyKey'] as String?) ?? '',
+          enqueuedAt: DateTime.tryParse((e['timestamp'] as String?) ?? ''),
+          retryCount: (e['retryCount'] as int?) ?? 0,
+          status: _statusOf(e),
+          lastError: e['lastError'] as String?,
+        ),
+      );
     }
-    list.sort((a, b) =>
-        (b.enqueuedAt ?? DateTime(0)).compareTo(a.enqueuedAt ?? DateTime(0)));
+    list.sort(
+      (a, b) =>
+          (b.enqueuedAt ?? DateTime(0)).compareTo(a.enqueuedAt ?? DateTime(0)),
+    );
     return list;
   }
 
@@ -246,17 +251,20 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
       'idempotencyKey': key,
       // P3: a single correlation id per logical operation, stable across every
       // retry, so a queued write can be traced end-to-end in the backend logs.
-      'correlationId': 'oq-${DateTime.now().millisecondsSinceEpoch}-${key.hashCode}',
+      'correlationId':
+          'oq-${DateTime.now().millisecondsSinceEpoch}-${key.hashCode}',
       'retryCount': 0,
       'status': 'PENDING',
       'lastError': null,
     };
     await _box.add(entry);
     _recomputeState();
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'offline_queue',
-      message: 'enqueued $method $path (pending=${state.pending})',
-    ));
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        category: 'offline_queue',
+        message: 'enqueued $method $path (pending=${state.pending})',
+      ),
+    );
   }
 
   /// Move a dead-lettered (or any) item back to PENDING and try again now.
@@ -297,8 +305,11 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
     _recomputeState();
   }
 
-  Future<void> _markDeadLetter(dynamic key, Map<dynamic, dynamic> entry,
-      String reason) async {
+  Future<void> _markDeadLetter(
+    dynamic key,
+    Map<dynamic, dynamic> entry,
+    String reason,
+  ) async {
     await _box.put(
       key,
       Map<dynamic, dynamic>.from(entry)
@@ -306,11 +317,13 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
         ..['lastError'] = reason
         ..['lastAttemptAt'] = DateTime.now().toIso8601String(),
     );
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'offline_queue',
-      level: SentryLevel.warning,
-      message: 'dead-letter ${entry['method']} ${entry['path']}: $reason',
-    ));
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        category: 'offline_queue',
+        level: SentryLevel.warning,
+        message: 'dead-letter ${entry['method']} ${entry['path']}: $reason',
+      ),
+    );
   }
 
   /// The moment the driver tapped, in UTC ISO-8601. Prefers the `clientTimestamp` the repository
@@ -320,7 +333,9 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
       final raw = entry['data'] as String?;
       if (raw != null) {
         final decoded = jsonDecode(raw);
-        final stamped = decoded is Map ? decoded['clientTimestamp'] as String? : null;
+        final stamped = decoded is Map
+            ? decoded['clientTimestamp'] as String?
+            : null;
         if (stamped != null && stamped.isNotEmpty) return stamped;
       }
     } catch (_) {}
@@ -333,10 +348,12 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
     if (_pendingKeys().isEmpty) return;
     _processing = true;
     _recomputeState(syncing: true);
-    Sentry.addBreadcrumb(Breadcrumb(
-      category: 'offline_queue',
-      message: 'flush start (pending=${state.pending})',
-    ));
+    Sentry.addBreadcrumb(
+      Breadcrumb(
+        category: 'offline_queue',
+        message: 'flush start (pending=${state.pending})',
+      ),
+    );
     var drainedSomething = false;
     try {
       for (final key in _box.keys.toList()) {
@@ -363,13 +380,16 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
         final correlationId = entry['correlationId'] as String?;
         final retryCount = (entry['retryCount'] as int?) ?? 0;
 
-        final options = Options(headers: {
-          if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
-          if (correlationId != null) 'X-Correlation-ID': correlationId,
-          // When the driver actually tapped. Without it the server timestamps the replay, so a
-          // parcel handed over in a basement at 14:10 was proven delivered at 17:53 in the van.
-          if (entry['timestamp'] != null) 'X-Client-Timestamp': _utcIso(entry),
-        });
+        final options = Options(
+          headers: {
+            if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
+            if (correlationId != null) 'X-Correlation-ID': correlationId,
+            // When the driver actually tapped. Without it the server timestamps the replay, so a
+            // parcel handed over in a basement at 14:10 was proven delivered at 17:53 in the van.
+            if (entry['timestamp'] != null)
+              'X-Client-Timestamp': _utcIso(entry),
+          },
+        );
 
         try {
           switch (method.toUpperCase()) {
@@ -406,7 +426,11 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
 
           // 5xx — transient server error. Retry a few times, then dead-letter.
           if (retryCount >= _maxRetries) {
-            await _markDeadLetter(key, entry, 'HTTP_${status ?? 500}_max_retries');
+            await _markDeadLetter(
+              key,
+              entry,
+              'HTTP_${status ?? 500}_max_retries',
+            );
             _recomputeState();
             continue;
           }
@@ -423,8 +447,9 @@ class OfflineQueueService extends StateNotifier<OfflineSyncState> {
       _processing = false;
       _recomputeState(
         syncing: false,
-        lastSuccessAt:
-            drainedSomething && _pendingKeys().isEmpty ? DateTime.now() : null,
+        lastSuccessAt: drainedSomething && _pendingKeys().isEmpty
+            ? DateTime.now()
+            : null,
       );
     }
   }

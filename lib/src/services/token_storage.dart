@@ -51,9 +51,7 @@ class TokenStorage {
 
   Future<void> _deleteSafe(String key) async {
     try {
-      await _secureStorage
-          .delete(key: key)
-          .timeout(const Duration(seconds: 3));
+      await _secureStorage.delete(key: key).timeout(const Duration(seconds: 3));
     } catch (e, stack) {
       debugPrint('[TokenStorage] Error deleting key $key: $e\n$stack');
     }
@@ -101,7 +99,8 @@ class TokenStorage {
   }
 
   Future<String?> readAccessToken() async => (await readTokens())?.accessToken;
-  Future<String?> readRefreshToken() async => (await readTokens())?.refreshToken;
+  Future<String?> readRefreshToken() async =>
+      (await readTokens())?.refreshToken;
   Future<String?> readIdToken() async => (await readTokens())?.idToken;
 
   Future<String?> readApiBaseUrl() async {
@@ -127,9 +126,10 @@ class TokenStorage {
       }
     }
     final random = Random.secure();
-    final freshKey = Uint8List.fromList(List<int>.generate(32, (_) => random.nextInt(256)));
+    final freshKey = Uint8List.fromList(
+      List<int>.generate(32, (_) => random.nextInt(256)),
+    );
     await _writeSafe(_kDbEncryptionKey, base64Encode(freshKey));
     return freshKey;
   }
 }
-

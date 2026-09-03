@@ -53,10 +53,12 @@ class AuthRepository {
 
       // We must fetch the driver profile with this access token
       // Because AppAuth just returned the tokens, but our AuthState expects a DriverIdentity.
-      final dio = Dio(BaseOptions(
-        baseUrl: _client.dio.options.baseUrl,
-        headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
-      ));
+      final dio = Dio(
+        BaseOptions(
+          baseUrl: _client.dio.options.baseUrl,
+          headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
+        ),
+      );
 
       final profileRes = await dio.get<Map<String, dynamic>>('/driver/profile');
       final driver = DriverIdentity.fromJson(profileRes.data ?? {});
@@ -80,7 +82,8 @@ class AuthRepository {
         'client_id': cfg.clientId,
         'username': email,
         'password': password,
-        'scope': 'openid profile email offline_access',   // see the AppAuth call above
+        'scope':
+            'openid profile email offline_access', // see the AppAuth call above
       },
     );
 
@@ -95,16 +98,24 @@ class AuthRepository {
       idToken: data['id_token'] as String?,
     );
 
-    final profileDio = Dio(BaseOptions(
-      baseUrl: _client.dio.options.baseUrl,
-      headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
-    ));
-    final profileRes = await profileDio.get<Map<String, dynamic>>('/driver/profile');
+    final profileDio = Dio(
+      BaseOptions(
+        baseUrl: _client.dio.options.baseUrl,
+        headers: {'Authorization': 'Bearer ${tokens.accessToken}'},
+      ),
+    );
+    final profileRes = await profileDio.get<Map<String, dynamic>>(
+      '/driver/profile',
+    );
     final driver = DriverIdentity.fromJson(profileRes.data ?? {});
     return AuthPayload(tokens: tokens, driver: driver);
   }
 
-  Future<AuthPayload> register({required String name, required String phone, required String password}) async {
+  Future<AuthPayload> register({
+    required String name,
+    required String phone,
+    required String password,
+  }) async {
     throw UnimplementedError('Registration is handled via admin invitation.');
   }
 

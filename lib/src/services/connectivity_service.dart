@@ -12,7 +12,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 /// cache so we don't probe on every call.
 class ConnectivityService {
   ConnectivityService({Future<bool> Function()? reachabilityProbe})
-      : _probe = reachabilityProbe;
+    : _probe = reachabilityProbe;
 
   final _conn = Connectivity();
   final Future<bool> Function()? _probe;
@@ -24,8 +24,9 @@ class ConnectivityService {
   /// Emits on every link-state change. Coarse (interface-level) by design — the
   /// stream is a *trigger* to re-check, not the source of truth for reachability.
   /// Used to *kick* a queue flush when the radio comes back.
-  Stream<bool> get onlineStream => _conn.onConnectivityChanged
-      .map((list) => list.any((r) => r != ConnectivityResult.none));
+  Stream<bool> get onlineStream => _conn.onConnectivityChanged.map(
+    (list) => list.any((r) => r != ConnectivityResult.none),
+  );
 
   /// The stream the UI should trust: reachability, not link state. Emits the real
   /// [isOnline] (probe-backed) on startup, on every interface change, and on a
@@ -57,8 +58,9 @@ class ConnectivityService {
   }
 
   Future<bool> get isOnline async {
-    final linkUp = (await _conn.checkConnectivity())
-        .any((r) => r != ConnectivityResult.none);
+    final linkUp = (await _conn.checkConnectivity()).any(
+      (r) => r != ConnectivityResult.none,
+    );
     if (!linkUp) return false;
     if (_probe == null) return true;
     return _reachable();

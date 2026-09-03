@@ -22,7 +22,9 @@ class ProfileRepository {
   /// The profile changes rarely, so a stale copy is far better than none.
   Future<DriverProfile> fetchProfile() async {
     try {
-      final response = await _client.dio.get<Map<String, dynamic>>('/driver/profile');
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/driver/profile',
+      );
       final body = response.data ?? <String, dynamic>{};
       try {
         await _box.put(_profileKey, jsonEncode(body));
@@ -40,7 +42,9 @@ class ProfileRepository {
 
   Future<DriverStats> fetchStats() async {
     try {
-      final response = await _client.dio.get<Map<String, dynamic>>('/driver/stats');
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/driver/stats',
+      );
       final body = response.data ?? <String, dynamic>{};
       try {
         await _box.put(_statsKey, jsonEncode(body));
@@ -74,7 +78,10 @@ class ProfileRepository {
   /// Posting to the silent one is why the customer's map only moved when the page was reloaded: the
   /// data was right, nobody was told about it.
   Future<void> updateLocation(double lat, double lng) async {
-    await _client.dio.post('/driver/deliveries/location', data: {'lat': lat, 'lng': lng});
+    await _client.dio.post(
+      '/driver/deliveries/location',
+      data: {'lat': lat, 'lng': lng},
+    );
   }
 
   /// Uploads the driver's profile photo (multipart). The backend re-encodes + stores it.

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:lucide_icons/lucide_icons.dart';
@@ -15,8 +14,8 @@ import '../support/pump.dart';
 
 /// 1x1 transparent PNG — a valid decodable image for the "captured" photo state.
 Uint8List _tinyPng() => base64Decode(
-      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/IjpAAAAAElFTkSuQmCC',
-    );
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M8AAAMBAQDJ/IjpAAAAAElFTkSuQmCC',
+);
 
 AppLocalizations _loc(String locale) {
   switch (locale) {
@@ -32,11 +31,11 @@ AppLocalizations _loc(String locale) {
 }
 
 Locale _flutterLocale(String locale) => switch (locale) {
-      'fr' => const Locale('fr'),
-      'en' => const Locale('en'),
-      'ar' => const Locale('ar'),
-      _ => throw ArgumentError('Unknown locale: $locale'),
-    };
+  'fr' => const Locale('fr'),
+  'en' => const Locale('en'),
+  'ar' => const Locale('ar'),
+  _ => throw ArgumentError('Unknown locale: $locale'),
+};
 
 class _FakeItem {
   final String name = 'Test Item';
@@ -124,7 +123,9 @@ void main() {
   });
 
   group('PodItemOutcomeRow', () {
-    testWidgets('renders item name + outcome chips, no exception (fr)', (tester) async {
+    testWidgets('renders item name + outcome chips, no exception (fr)', (
+      tester,
+    ) async {
       await pumpThemed(
         tester,
         // A line of 5 with one unit refused: 4 delivered, and the refusal carries its motif.

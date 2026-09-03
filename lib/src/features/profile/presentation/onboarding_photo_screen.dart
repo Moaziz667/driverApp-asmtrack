@@ -15,7 +15,8 @@ class OnboardingPhotoScreen extends ConsumerStatefulWidget {
   const OnboardingPhotoScreen({super.key});
 
   @override
-  ConsumerState<OnboardingPhotoScreen> createState() => _OnboardingPhotoScreenState();
+  ConsumerState<OnboardingPhotoScreen> createState() =>
+      _OnboardingPhotoScreenState();
 }
 
 class _OnboardingPhotoScreenState extends ConsumerState<OnboardingPhotoScreen> {
@@ -36,9 +37,9 @@ class _OnboardingPhotoScreenState extends ConsumerState<OnboardingPhotoScreen> {
     } catch (_) {
       if (mounted) {
         final loc = AppLocalizations.of(context);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(loc.profileUploadFailed),
-        ));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(loc.profileUploadFailed)));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -82,13 +83,18 @@ class _OnboardingPhotoScreenState extends ConsumerState<OnboardingPhotoScreen> {
                 const SizedBox(height: 24),
                 Text(
                   loc.profilePhotoRequired,
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: AppTokens.fwBold, color: cs.onSurface),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: AppTokens.fwBold,
+                    color: cs.onSurface,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 Text(
                   loc.profilePhotoRequiredSub,
-                  style: theme.textTheme.bodyMedium?.copyWith(color: cs.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: cs.onSurfaceVariant,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const Spacer(),
@@ -97,7 +103,11 @@ class _OnboardingPhotoScreenState extends ConsumerState<OnboardingPhotoScreen> {
                   child: FilledButton(
                     onPressed: (_picked == null || _busy) ? null : _submit,
                     child: _busy
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
                         : Text(loc.profilePhotoConfirm),
                   ),
                 ),

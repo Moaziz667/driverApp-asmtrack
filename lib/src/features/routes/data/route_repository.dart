@@ -8,7 +8,12 @@ import '../models/route_models.dart';
 import '../../../services/offline_queue_service.dart';
 
 class RouteRepository {
-  RouteRepository(this._client, this._cache, this._offlineQueue, this._connectivity);
+  RouteRepository(
+    this._client,
+    this._cache,
+    this._offlineQueue,
+    this._connectivity,
+  );
 
   final ApiClient _client;
   final RouteCacheService _cache;
@@ -17,7 +22,9 @@ class RouteRepository {
 
   Future<DriverRoute?> fetchToday() async {
     try {
-      final response = await _client.dio.get<Map<String, dynamic>>('/driver/routes/today');
+      final response = await _client.dio.get<Map<String, dynamic>>(
+        '/driver/routes/today',
+      );
       final data = response.data;
       if (data == null || data.isEmpty) {
         return null;
@@ -92,10 +99,12 @@ class RouteRepository {
 
     // See DeliveryRepository: the server reads the action time off the header, so the direct path
     // must send it too, not only the queued replay.
-    final options = Options(headers: {
-      if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
-      'X-Client-Timestamp': clientTimestamp,
-    });
+    final options = Options(
+      headers: {
+        if (idempotencyKey != null) 'X-Idempotency-Key': idempotencyKey,
+        'X-Client-Timestamp': clientTimestamp,
+      },
+    );
 
     try {
       final response = await _client.dio.post<Map<String, dynamic>>(
@@ -155,7 +164,8 @@ class RouteRepository {
         _eachStop(route, (stop) {
           if (stop['id'] != stopId) return;
           stop['status'] = 'COMPLETED';
-          for (final id in (stop['sourceDepotIds'] as List<dynamic>? ?? const [])) {
+          for (final id
+              in (stop['sourceDepotIds'] as List<dynamic>? ?? const [])) {
             depotIds.add(id.toString());
           }
           final single = stop['sourceDepotId'];
@@ -163,7 +173,8 @@ class RouteRepository {
         });
         _eachStop(route, (stop) {
           if ((stop['stopType'] as String?)?.toUpperCase() == 'PICKUP') return;
-          if (_stopDrawsFrom(stop, depotIds)) stop['deliveryStatus'] = 'PICKED_UP';
+          if (_stopDrawsFrom(stop, depotIds))
+            stop['deliveryStatus'] = 'PICKED_UP';
         });
         _recountCompleted(route);
       },
@@ -184,7 +195,9 @@ class RouteRepository {
   }
 
   static void _eachStop(
-      Map<String, dynamic> route, void Function(Map<String, dynamic>) fn) {
+    Map<String, dynamic> route,
+    void Function(Map<String, dynamic>) fn,
+  ) {
     for (final raw in (route['stops'] as List<dynamic>? ?? const [])) {
       if (raw is Map<String, dynamic>) fn(raw);
     }
@@ -193,9 +206,13 @@ class RouteRepository {
   /// Keep the progress header honest while offline; the server recomputes it on the next fetch.
   static void _recountCompleted(Map<String, dynamic> route) {
     final stops = (route['stops'] as List<dynamic>? ?? const []);
-    final done = stops.where((raw) =>
-        raw is Map<String, dynamic> &&
-        (raw['status'] as String?)?.toUpperCase() == 'COMPLETED').length;
+    final done = stops
+        .where(
+          (raw) =>
+              raw is Map<String, dynamic> &&
+              (raw['status'] as String?)?.toUpperCase() == 'COMPLETED',
+        )
+        .length;
     route['completedStops'] = done;
     if (stops.isNotEmpty) {
       route['progressPercent'] = (done / stops.length) * 100;

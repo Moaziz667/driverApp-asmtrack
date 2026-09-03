@@ -42,7 +42,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
   Future<void> _validateToken() async {
     final token = _tokenCtrl.text.trim();
     if (token.isEmpty) {
-      setState(() => _tokenError = AppLocalizations.of(context).setupEnterCodeHint);
+      setState(
+        () => _tokenError = AppLocalizations.of(context).setupEnterCodeHint,
+      );
       return;
     }
 
@@ -71,7 +73,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
         // Extract the error code from the response body, not from e.toString()
         // which only contains the HTTP status message without the JSON payload.
         final responseData = e is DioException ? e.response?.data : null;
-        final errorBody = responseData is Map ? responseData.toString().toUpperCase() : e.toString().toUpperCase();
+        final errorBody = responseData is Map
+            ? responseData.toString().toUpperCase()
+            : e.toString().toUpperCase();
         if (errorBody.contains('INVITE_NOT_FOUND')) {
           errorMsg = AppLocalizations.of(context).setupCodeNotFound;
         } else if (errorBody.contains('INVITE_EXPIRED')) {
@@ -80,7 +84,8 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
           errorMsg = AppLocalizations.of(context).setupCodeAlreadyUsed;
         } else if (errorBody.contains('INVALID_TOKEN_FORMAT')) {
           errorMsg = AppLocalizations.of(context).setupInvalidFormat;
-        } else if (errorBody.contains('CONNECTION_REFUSED') || errorBody.contains('CONNECTION TIMED OUT')) {
+        } else if (errorBody.contains('CONNECTION_REFUSED') ||
+            errorBody.contains('CONNECTION TIMED OUT')) {
           errorMsg = AppLocalizations.of(context).setupServerInaccessible;
         } else {
           errorMsg = AppLocalizations.of(context).setupInvalidOrExpired;
@@ -130,7 +135,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
         errorMsg = AppLocalizations.of(context).setupServerInaccessible;
       } else {
         final responseData = e is DioException ? e.response?.data : null;
-        final errorBody = responseData is Map ? responseData.toString().toUpperCase() : e.toString().toUpperCase();
+        final errorBody = responseData is Map
+            ? responseData.toString().toUpperCase()
+            : e.toString().toUpperCase();
         if (errorBody.contains('INVITE_NOT_FOUND')) {
           errorMsg = AppLocalizations.of(context).setupCodeNotFound;
         } else if (errorBody.contains('INVITE_EXPIRED')) {
@@ -171,10 +178,14 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         const AppLogo(size: 52, showBackground: false),
                         const Spacer(),
                         TextButton(
-                          onPressed: () => Navigator.of(context).pushReplacementNamed(LoginScreen.routeName),
+                          onPressed: () => Navigator.of(
+                            context,
+                          ).pushReplacementNamed(LoginScreen.routeName),
                           child: Text(
                             AppLocalizations.of(context).registerSignIn,
-                            style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant),
+                            style: theme.textTheme.labelMedium?.copyWith(
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
                         ),
                       ],
@@ -187,7 +198,9 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                     const SizedBox(height: 4),
                     Text(
                       AppLocalizations.of(context).setupActivationTitle,
-                      style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.primary),
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -207,25 +220,42 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: colorScheme.primaryContainer,
-                        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: colorScheme.primary.withValues(alpha: 0.3),
+                        ),
                         borderRadius: BorderRadius.circular(AppTokens.radiusLg),
                       ),
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(LucideIcons.info, size: 16, color: colorScheme.primary),
+                          Icon(
+                            LucideIcons.info,
+                            size: 16,
+                            color: colorScheme.primary,
+                          ),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              AppLocalizations.of(context).setupActivationSubtitle,
-                              style: TextStyle(fontSize: 13, color: colorScheme.onPrimaryContainer, height: 1.5),
+                              AppLocalizations.of(
+                                context,
+                              ).setupActivationSubtitle,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onPrimaryContainer,
+                                height: 1.5,
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
                     const SizedBox(height: 32),
-                    Text(AppLocalizations.of(context).setupActivationCode, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                    Text(
+                      AppLocalizations.of(context).setupActivationCode,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     // Field on its own line + button below — no Row/Expanded, which was the
                     // source of the "render box never laid out" hit-test failure.
@@ -237,7 +267,11 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         border: const OutlineInputBorder(),
                         errorText: _tokenError,
                         suffixIcon: _validatedName != null
-                            ? Icon(LucideIcons.checkCircle, size: 18, color: colorScheme.primary)
+                            ? Icon(
+                                LucideIcons.checkCircle,
+                                size: 18,
+                                color: colorScheme.primary,
+                              )
                             : null,
                       ),
                       enabled: _validatedName == null,
@@ -261,28 +295,51 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
-                              : Text(AppLocalizations.of(context).setupValidateCode),
+                              : Text(
+                                  AppLocalizations.of(
+                                    context,
+                                  ).setupValidateCode,
+                                ),
                         ),
                       ),
                     ],
                     if (_validatedName != null) ...[
                       const SizedBox(height: 12),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.primaryContainer,
-                          border: Border.all(color: colorScheme.primary.withValues(alpha: 0.3)),
-                          borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                          border: Border.all(
+                            color: colorScheme.primary.withValues(alpha: 0.3),
+                          ),
+                          borderRadius: BorderRadius.circular(
+                            AppTokens.radiusLg,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Icon(LucideIcons.userCheck, size: 16, color: colorScheme.primary),
+                            Icon(
+                              LucideIcons.userCheck,
+                              size: 16,
+                              color: colorScheme.primary,
+                            ),
                             const SizedBox(width: 8),
                             Text(
-                              AppLocalizations.of(context).setupWelcome(_validatedName!),
-                              style: TextStyle(fontSize: 13, color: colorScheme.onPrimaryContainer, fontWeight: FontWeight.w700),
+                              AppLocalizations.of(
+                                context,
+                              ).setupWelcome(_validatedName!),
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onPrimaryContainer,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ],
                         ),
@@ -290,46 +347,74 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                     ],
                     if (_validatedName != null) ...[
                       const SizedBox(height: 32),
-                      Text(AppLocalizations.of(context).setupPasswordLabel, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      Text(
+                        AppLocalizations.of(context).setupPasswordLabel,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _passwordCtrl,
                         obscureText: _obscurePassword,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context).setupPasswordMin,
+                          hintText: AppLocalizations.of(
+                            context,
+                          ).setupPasswordMin,
                           prefixIcon: const Icon(LucideIcons.lock, size: 20),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscurePassword ? LucideIcons.eye : LucideIcons.eyeOff,
+                              _obscurePassword
+                                  ? LucideIcons.eye
+                                  : LucideIcons.eyeOff,
                               size: 18,
                             ),
-                            onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                            onPressed: () => setState(
+                              () => _obscurePassword = !_obscurePassword,
+                            ),
                           ),
                         ),
                         validator: (v) {
-                          if (v == null || v.length < 6) return AppLocalizations.of(context).setupPasswordMin;
+                          if (v == null || v.length < 6)
+                            return AppLocalizations.of(
+                              context,
+                            ).setupPasswordMin;
                           return null;
                         },
                       ),
                       const SizedBox(height: 20),
-                      Text(AppLocalizations.of(context).setupConfirmPassword, style: theme.textTheme.labelMedium?.copyWith(color: colorScheme.onSurfaceVariant)),
+                      Text(
+                        AppLocalizations.of(context).setupConfirmPassword,
+                        style: theme.textTheme.labelMedium?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                      ),
                       const SizedBox(height: 12),
                       TextFormField(
                         controller: _confirmCtrl,
                         obscureText: _obscureConfirm,
                         decoration: InputDecoration(
-                          hintText: AppLocalizations.of(context).setupConfirmPasswordHint,
+                          hintText: AppLocalizations.of(
+                            context,
+                          ).setupConfirmPasswordHint,
                           prefixIcon: const Icon(LucideIcons.lock, size: 20),
                           suffixIcon: IconButton(
                             icon: Icon(
-                              _obscureConfirm ? LucideIcons.eye : LucideIcons.eyeOff,
+                              _obscureConfirm
+                                  ? LucideIcons.eye
+                                  : LucideIcons.eyeOff,
                               size: 18,
                             ),
-                            onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                            onPressed: () => setState(
+                              () => _obscureConfirm = !_obscureConfirm,
+                            ),
                           ),
                         ),
                         validator: (v) {
-                          if (v != _passwordCtrl.text) return AppLocalizations.of(context).setupPasswordMismatch;
+                          if (v != _passwordCtrl.text)
+                            return AppLocalizations.of(
+                              context,
+                            ).setupPasswordMismatch;
                           return null;
                         },
                       ),
@@ -340,9 +425,21 @@ class _SetupAccountScreenState extends ConsumerState<SetupAccountScreen> {
                         child: FilledButton.icon(
                           onPressed: _isLoading ? null : _onSubmit,
                           icon: _isLoading
-                              ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                              ? const SizedBox(
+                                  width: 18,
+                                  height: 18,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
+                                )
                               : const Icon(LucideIcons.shieldCheck),
-                          label: Text(_isLoading ? AppLocalizations.of(context).setupActivating : AppLocalizations.of(context).setupActivateAccount),
+                          label: Text(
+                            _isLoading
+                                ? AppLocalizations.of(context).setupActivating
+                                : AppLocalizations.of(
+                                    context,
+                                  ).setupActivateAccount,
+                          ),
                         ),
                       ),
                       if (_error != null) ...[
@@ -368,23 +465,23 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: colorScheme.error),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: colorScheme.errorContainer,
+      borderRadius: BorderRadius.circular(12),
+      border: Border.all(color: colorScheme.error),
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            message,
+            style: TextStyle(fontSize: 13, color: colorScheme.error),
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                message,
-                style: TextStyle(fontSize: 13, color: colorScheme.error),
-              ),
-            ),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }

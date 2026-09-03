@@ -54,8 +54,12 @@ class HandoffInboxScreen extends ConsumerWidget {
                   SizedBox(height: MediaQuery.of(context).size.height * 0.18),
                   EmptyState(
                     icon: LucideIcons.arrowLeftRight,
-                    title: AppLocalizations.of(context).handoff_inbox_empty_title,
-                    subtitle: AppLocalizations.of(context).handoff_inbox_empty_sub,
+                    title: AppLocalizations.of(
+                      context,
+                    ).handoff_inbox_empty_title,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    ).handoff_inbox_empty_sub,
                   ),
                 ],
               ),
@@ -68,48 +72,72 @@ class HandoffInboxScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
                 if (incoming.isNotEmpty) ...[
-                  _SectionHeader(label: AppLocalizations.of(context).handoff_inbox_incoming),
+                  _SectionHeader(
+                    label: AppLocalizations.of(context).handoff_inbox_incoming,
+                  ),
                   for (final h in incoming)
                     _HandoffCard(
                       handoff: h,
                       incoming: true,
                       onAction: () async {
                         final result = await Navigator.of(context).push<bool>(
-                          MaterialPageRoute(builder: (_) => const HandoffScannerScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const HandoffScannerScreen(),
+                          ),
                         );
                         if (result == true) await refresh();
                       },
-                      onManual: h.deliveryId == null ? null : () async {
-                        final code = await showDialog<String>(
-                          context: context,
-                          builder: (_) => const _ManualCodeDialog(),
-                        );
-                        if (code == null || code.trim().isEmpty) return;
-                        try {
-                          await ref.read(deliveryRepositoryProvider)
-                              .confirmHandoff(h.deliveryId!, code.trim().toUpperCase());
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(AppLocalizations.of(context).handoff_manual_success)),
-                            );
-                          }
-                          await refresh();
-                        } catch (_) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(AppLocalizations.of(context).handoff_manual_error),
-                                backgroundColor: Theme.of(context).colorScheme.error,
-                              ),
-                            );
-                          }
-                        }
-                      },
+                      onManual: h.deliveryId == null
+                          ? null
+                          : () async {
+                              final code = await showDialog<String>(
+                                context: context,
+                                builder: (_) => const _ManualCodeDialog(),
+                              );
+                              if (code == null || code.trim().isEmpty) return;
+                              try {
+                                await ref
+                                    .read(deliveryRepositoryProvider)
+                                    .confirmHandoff(
+                                      h.deliveryId!,
+                                      code.trim().toUpperCase(),
+                                    );
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).handoff_manual_success,
+                                      ),
+                                    ),
+                                  );
+                                }
+                                await refresh();
+                              } catch (_) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        AppLocalizations.of(
+                                          context,
+                                        ).handoff_manual_error,
+                                      ),
+                                      backgroundColor: Theme.of(
+                                        context,
+                                      ).colorScheme.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
                     ),
                 ],
                 if (outgoing.isNotEmpty) ...[
                   if (incoming.isNotEmpty) const SizedBox(height: 8),
-                  _SectionHeader(label: AppLocalizations.of(context).handoff_inbox_outgoing),
+                  _SectionHeader(
+                    label: AppLocalizations.of(context).handoff_inbox_outgoing,
+                  ),
                   for (final h in outgoing)
                     _HandoffCard(
                       handoff: h,
@@ -117,10 +145,11 @@ class HandoffInboxScreen extends ConsumerWidget {
                       onAction: h.deliveryId == null
                           ? null
                           : () => showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                builder: (_) => HandoffTokenSheet(deliveryId: h.deliveryId!),
-                              ),
+                              context: context,
+                              isScrollControlled: true,
+                              builder: (_) =>
+                                  HandoffTokenSheet(deliveryId: h.deliveryId!),
+                            ),
                     ),
                 ],
               ],
@@ -175,7 +204,9 @@ class _HandoffCard extends StatelessWidget {
     final counterpartLabel = incoming
         ? AppLocalizations.of(context).handoff_inbox_from
         : AppLocalizations.of(context).handoff_inbox_to;
-    final counterpartName = incoming ? handoff.fromDriverName : handoff.toDriverName;
+    final counterpartName = incoming
+        ? handoff.fromDriverName
+        : handoff.toDriverName;
     final subtitle = handoff.dropoffAddress ?? handoff.erpOrderId;
 
     return Container(
@@ -215,7 +246,9 @@ class _HandoffCard extends StatelessWidget {
                   children: [
                     Text(
                       handoff.clientName ?? '—',
-                      style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -223,7 +256,9 @@ class _HandoffCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         subtitle,
-                        style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                        ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -249,7 +284,10 @@ class _HandoffCard extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: onAction,
-                  icon: Icon(incoming ? LucideIcons.scanLine : LucideIcons.qrCode, size: 16),
+                  icon: Icon(
+                    incoming ? LucideIcons.scanLine : LucideIcons.qrCode,
+                    size: 16,
+                  ),
                   label: Text(
                     incoming
                         ? AppLocalizations.of(context).handoff_action_scan
@@ -311,7 +349,11 @@ class _ManualCodeDialogState extends State<_ManualCodeDialog> {
         textCapitalization: TextCapitalization.characters,
         maxLength: 6,
         textAlign: TextAlign.center,
-        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900, letterSpacing: 4),
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 4,
+        ),
         decoration: InputDecoration(
           hintText: AppLocalizations.of(context).handoff_manual_hint,
           counterText: '',

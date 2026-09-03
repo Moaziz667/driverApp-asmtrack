@@ -52,8 +52,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(AppLocalizations.of(context).loginServerCancel)),
-          FilledButton(onPressed: () => Navigator.pop(ctx, ctrl.text.trim()), child: Text(AppLocalizations.of(context).loginServerSave)),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(AppLocalizations.of(context).loginServerCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, ctrl.text.trim()),
+            child: Text(AppLocalizations.of(context).loginServerSave),
+          ),
         ],
       ),
     );
@@ -63,13 +69,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
-          ..showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).loginServerUrlInvalid)));
+          ..showSnackBar(
+            SnackBar(
+              content: Text(AppLocalizations.of(context).loginServerUrlInvalid),
+            ),
+          );
       }
       return;
     }
-    final normalized = entered.endsWith('/') ? entered.substring(0, entered.length - 1) : entered;
+    final normalized = entered.endsWith('/')
+        ? entered.substring(0, entered.length - 1)
+        : entered;
     await ref.read(tokenStorageProvider).saveApiBaseUrl(normalized);
-    ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(normalized);
+    ref.read(appConfigProvider.notifier).state = AppConfig.fromStorage(
+      normalized,
+    );
     if (mounted) {
       ScaffoldMessenger.of(context)
         ..clearSnackBars()
@@ -79,14 +93,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _onSubmit() async {
     try {
-      await ref.read(authControllerProvider.notifier).login(
+      await ref
+          .read(authControllerProvider.notifier)
+          .login(
             email: kIsWeb ? _emailCtrl.text.trim() : null,
             password: kIsWeb ? _passwordCtrl.text : null,
           );
       // Navigation on success is handled centrally by DriverApp's auth listener.
     } catch (_) {
       if (mounted) {
-        final message = ref.read(authControllerProvider).error ??
+        final message =
+            ref.read(authControllerProvider).error ??
             AppLocalizations.of(context).login_failed_error;
         ScaffoldMessenger.of(context)
           ..clearSnackBars()
@@ -119,10 +136,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 16.0,
+            ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: size.height - MediaQuery.of(context).padding.vertical - 32,
+                minHeight:
+                    size.height - MediaQuery.of(context).padding.vertical - 32,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -133,7 +154,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     alignment: Alignment.centerRight,
                     child: _LangSwitcher(
                       locale: locale,
-                      onPick: (l) => ref.read(localeProvider.notifier).setLocale(l),
+                      onPick: (l) =>
+                          ref.read(localeProvider.notifier).setLocale(l),
                     ),
                   ),
 
@@ -155,7 +177,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ),
                       const SizedBox(height: 6),
                       Text(
-                        AppLocalizations.of(context).login_secure_access.toUpperCase(),
+                        AppLocalizations.of(
+                          context,
+                        ).login_secure_access.toUpperCase(),
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: cs.primary,
                           fontWeight: FontWeight.w800,
@@ -168,11 +192,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // Auth card
                   Card(
                     elevation: theme.brightness == Brightness.dark ? 12 : 4,
-                    color: cs.surfaceContainerLow.withValues(alpha: theme.brightness == Brightness.dark ? 0.6 : 0.9),
+                    color: cs.surfaceContainerLow.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.6 : 0.9,
+                    ),
                     shadowColor: Colors.black.withValues(alpha: 0.2),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-                      side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.4), width: 1.5),
+                      side: BorderSide(
+                        color: cs.outlineVariant.withValues(alpha: 0.4),
+                        width: 1.5,
+                      ),
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(24.0),
@@ -181,10 +210,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         children: [
                           Row(
                             children: [
-                              Icon(LucideIcons.shieldCheck, size: 16, color: cs.primary),
+                              Icon(
+                                LucideIcons.shieldCheck,
+                                size: 16,
+                                color: cs.primary,
+                              ),
                               const SizedBox(width: 8),
                               Text(
-                                AppLocalizations.of(context).login_auth_header.toUpperCase(),
+                                AppLocalizations.of(
+                                  context,
+                                ).login_auth_header.toUpperCase(),
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   fontWeight: FontWeight.w800,
                                   color: cs.primary,
@@ -219,7 +254,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               controller: _passwordCtrl,
                               obscureText: true,
                               autofillHints: const [AutofillHints.password],
-                              onSubmitted: (_) => auth.isLoading ? null : _onSubmit(),
+                              onSubmitted: (_) =>
+                                  auth.isLoading ? null : _onSubmit(),
                               decoration: const InputDecoration(
                                 labelText: 'Mot de passe',
                                 prefixIcon: Icon(LucideIcons.lock, size: 18),
@@ -232,13 +268,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: FilledButton.icon(
                               onPressed: auth.isLoading ? null : _onSubmit,
                               icon: auth.isLoading
-                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: Colors.white,
+                                      ),
+                                    )
                                   : const Icon(LucideIcons.logIn, size: 18),
                               label: Text(
                                 auth.isLoading
-                                    ? AppLocalizations.of(context).login_action_connecting
-                                    : AppLocalizations.of(context).login_action_connect,
-                                style: const TextStyle(fontWeight: FontWeight.w800),
+                                    ? AppLocalizations.of(
+                                        context,
+                                      ).login_action_connecting
+                                    : AppLocalizations.of(
+                                        context,
+                                      ).login_action_connect,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
                           ),
@@ -249,7 +298,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(LucideIcons.lock, size: 13, color: cs.onSurfaceVariant),
+                                Icon(
+                                  LucideIcons.lock,
+                                  size: 13,
+                                  color: cs.onSurfaceVariant,
+                                ),
                                 const SizedBox(width: 6),
                                 Text(
                                   AppLocalizations.of(context).login_secure_sso,
@@ -276,8 +329,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       _ActionTile(
                         icon: LucideIcons.userPlus,
                         title: AppLocalizations.of(context).login_action_setup,
-                        subtitle: AppLocalizations.of(context).login_action_setup_sub,
-                        onTap: () => Navigator.of(context).pushNamed(SetupAccountScreen.routeName),
+                        subtitle: AppLocalizations.of(
+                          context,
+                        ).login_action_setup_sub,
+                        onTap: () => Navigator.of(
+                          context,
+                        ).pushNamed(SetupAccountScreen.routeName),
                       ),
                       const SizedBox(height: 16),
                       _VersionLabel(locale: locale),
@@ -285,12 +342,25 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // Backend switcher: lets one installed build target local vs dev without a rebuild.
                       TextButton.icon(
                         onPressed: _editServerUrl,
-                        icon: Icon(LucideIcons.server, size: 13, color: cs.onSurfaceVariant.withValues(alpha: 0.7)),
-                        label: Text(
-                          Uri.tryParse(ref.watch(appConfigProvider).apiBaseUrl)?.host ?? '—',
-                          style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant.withValues(alpha: 0.7), fontWeight: FontWeight.w600),
+                        icon: Icon(
+                          LucideIcons.server,
+                          size: 13,
+                          color: cs.onSurfaceVariant.withValues(alpha: 0.7),
                         ),
-                        style: TextButton.styleFrom(visualDensity: VisualDensity.compact),
+                        label: Text(
+                          Uri.tryParse(
+                                ref.watch(appConfigProvider).apiBaseUrl,
+                              )?.host ??
+                              '—',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: cs.onSurfaceVariant.withValues(alpha: 0.7),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                        ),
                       ),
                       const SizedBox(height: 8),
                     ],
@@ -360,7 +430,12 @@ class _LangSwitcher extends StatelessWidget {
 }
 
 class _ActionTile extends StatelessWidget {
-  const _ActionTile({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _ActionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
   final IconData icon;
   final String title;
   final String subtitle;
@@ -371,7 +446,9 @@ class _ActionTile extends StatelessWidget {
     final theme = Theme.of(context);
     final cs = theme.colorScheme;
     return Material(
-      color: cs.surfaceContainerLow.withValues(alpha: theme.brightness == Brightness.dark ? 0.5 : 0.8),
+      color: cs.surfaceContainerLow.withValues(
+        alpha: theme.brightness == Brightness.dark ? 0.5 : 0.8,
+      ),
       borderRadius: BorderRadius.circular(AppTokens.radiusLg),
       child: InkWell(
         onTap: onTap,
@@ -398,13 +475,28 @@ class _ActionTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800, color: cs.onSurface)),
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: cs.onSurface,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(color: cs.onSurfaceVariant)),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              Icon(LucideIcons.chevronRight, size: 18, color: cs.onSurfaceVariant),
+              Icon(
+                LucideIcons.chevronRight,
+                size: 18,
+                color: cs.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -446,18 +538,23 @@ class _ErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: colorScheme.errorContainer,
-          borderRadius: BorderRadius.circular(AppTokens.radiusMd),
-          border: Border.all(color: colorScheme.error),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+    decoration: BoxDecoration(
+      color: colorScheme.errorContainer,
+      borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+      border: Border.all(color: colorScheme.error),
+    ),
+    child: Row(
+      children: [
+        Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            message,
+            style: TextStyle(fontSize: 13, color: colorScheme.error),
+          ),
         ),
-        child: Row(
-          children: [
-            Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message, style: TextStyle(fontSize: 13, color: colorScheme.error))),
-          ],
-        ),
-      );
+      ],
+    ),
+  );
 }

@@ -84,6 +84,7 @@ class LocationService {
     if (permission == LocationPermission.deniedForever) {
       return false;
     }
-    return permission == LocationPermission.whileInUse || permission == LocationPermission.always;
+    return permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always;
   }
 }

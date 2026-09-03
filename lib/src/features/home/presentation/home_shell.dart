@@ -30,7 +30,8 @@ class HomeShell extends ConsumerStatefulWidget {
   ConsumerState<HomeShell> createState() => _HomeShellState();
 }
 
-class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserver {
+class _HomeShellState extends ConsumerState<HomeShell>
+    with WidgetsBindingObserver {
   Timer? _locationTimer;
   Timer? _assignmentRefreshTimer;
   bool _isTracking = false;
@@ -60,26 +61,30 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
   void _initFcmHandlers() {
     final store = ref.read(notificationStoreProvider.notifier);
-    ref.read(fcmServiceProvider).setHandlers(
-      onReceived: (title, body, type) {
-        store.add(title: title, body: body, type: type);
-        // A handoff opened while the app is in the foreground usually arrives here, as FCM, and not
-        // as a STOMP frame — and only the STOMP path refreshed the list. So the transfers button
-        // beside the bell stayed hidden (it hides itself at zero) until the app was restarted: the
-        // parcel was waiting to change hands and the driver had no way in.
-        if (type.startsWith('HANDOFF_')) {
-          ref.invalidate(handoffsProvider);
-        }
-      },
-      onTap: (type, deliveryId) {
-        if (type.startsWith('HANDOFF_') && deliveryId != null && deliveryId.isNotEmpty) {
-          _openHandoffDelivery(deliveryId);
-          return;
-        }
-        ref.read(homeTabIndexProvider.notifier).state = 0;
-        _showNotificationPanel();
-      },
-    );
+    ref
+        .read(fcmServiceProvider)
+        .setHandlers(
+          onReceived: (title, body, type) {
+            store.add(title: title, body: body, type: type);
+            // A handoff opened while the app is in the foreground usually arrives here, as FCM, and not
+            // as a STOMP frame — and only the STOMP path refreshed the list. So the transfers button
+            // beside the bell stayed hidden (it hides itself at zero) until the app was restarted: the
+            // parcel was waiting to change hands and the driver had no way in.
+            if (type.startsWith('HANDOFF_')) {
+              ref.invalidate(handoffsProvider);
+            }
+          },
+          onTap: (type, deliveryId) {
+            if (type.startsWith('HANDOFF_') &&
+                deliveryId != null &&
+                deliveryId.isNotEmpty) {
+              _openHandoffDelivery(deliveryId);
+              return;
+            }
+            ref.read(homeTabIndexProvider.notifier).state = 0;
+            _showNotificationPanel();
+          },
+        );
   }
 
   void _showNotificationPanel() {
@@ -134,7 +139,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
     final loc = AppLocalizations.of(context);
     final statusColors = Theme.of(context).extension<StatusColors>()!;
-    final routeStr = event.routeName.isNotEmpty ? '\u00ab${event.routeName}\u00bb' : loc.ws_generic_route;
+    final routeStr = event.routeName.isNotEmpty
+        ? '\u00ab${event.routeName}\u00bb'
+        : loc.ws_generic_route;
     final String message;
     IconData icon;
     Color color;
@@ -210,7 +217,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
         color = statusColors.scheduled;
         break;
       case 'pickup.overdue':
-        message = loc.ws_pickup_overdue(event.clientName ?? '', event.reason ?? '');
+        message = loc.ws_pickup_overdue(
+          event.clientName ?? '',
+          event.reason ?? '',
+        );
         icon = PhosphorIconsRegular.house;
         color = statusColors.failed;
         break;
@@ -225,7 +235,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
           children: [
             Icon(icon, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Expanded(child: Text(message, style: const TextStyle(color: Colors.white))),
+            Expanded(
+              child: Text(message, style: const TextStyle(color: Colors.white)),
+            ),
           ],
         ),
         backgroundColor: color,
@@ -245,15 +257,19 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     final refStr = (event.erpOrderId != null && event.erpOrderId!.isNotEmpty)
         ? '#${event.erpOrderId}'
         : (event.deliveryId != null && event.deliveryId!.length >= 8
-            ? '#${event.deliveryId!.substring(0, 8)}'
-            : '');
-    String displayName(String? name) => (name != null && name.isNotEmpty) ? name : loc.ws_handoff_other;
+              ? '#${event.deliveryId!.substring(0, 8)}'
+              : '');
+    String displayName(String? name) =>
+        (name != null && name.isNotEmpty) ? name : loc.ws_handoff_other;
 
     switch (event.event) {
       case 'handoff.incoming':
       case 'handoff.code_ready':
         _showHandoffBanner(
-          message: loc.ws_handoff_incoming(displayName(event.fromDriverName), refStr),
+          message: loc.ws_handoff_incoming(
+            displayName(event.fromDriverName),
+            refStr,
+          ),
           icon: PhosphorIconsRegular.qrCode,
           color: statusColors.scheduled,
           actionLabel: loc.handoff_action_scan,
@@ -263,7 +279,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
         break;
       case 'handoff.outgoing':
         _showHandoffBanner(
-          message: loc.ws_handoff_outgoing(displayName(event.toDriverName), refStr),
+          message: loc.ws_handoff_outgoing(
+            displayName(event.toDriverName),
+            refStr,
+          ),
           icon: PhosphorIconsRegular.arrowsLeftRight,
           color: statusColors.inTransit,
           actionLabel: loc.handoff_action_show,
@@ -273,11 +292,19 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
         break;
       case 'handoff.confirmed':
         ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-        _showHandoffSnack(loc.ws_handoff_confirmed(refStr), PhosphorIconsRegular.checkCircle, statusColors.delivered);
+        _showHandoffSnack(
+          loc.ws_handoff_confirmed(refStr),
+          PhosphorIconsRegular.checkCircle,
+          statusColors.delivered,
+        );
         break;
       case 'handoff.cancelled':
         ScaffoldMessenger.of(context).hideCurrentMaterialBanner();
-        _showHandoffSnack(loc.ws_handoff_cancelled(refStr), PhosphorIconsRegular.xCircle, statusColors.failed);
+        _showHandoffSnack(
+          loc.ws_handoff_cancelled(refStr),
+          PhosphorIconsRegular.xCircle,
+          statusColors.failed,
+        );
         break;
       default:
         return;
@@ -313,27 +340,34 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
       final theme = Theme.of(context);
       messenger.hideCurrentMaterialBanner();
       messenger.showMaterialBanner(
-      MaterialBanner(
-        backgroundColor: theme.colorScheme.surface,
-        dividerColor: theme.colorScheme.outlineVariant,
-        leading: Icon(icon, color: color),
-        content: Text(
-          message,
-          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface),
+        MaterialBanner(
+          backgroundColor: theme.colorScheme.surface,
+          dividerColor: theme.colorScheme.outlineVariant,
+          leading: Icon(icon, color: color),
+          content: Text(
+            message,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => messenger.hideCurrentMaterialBanner(),
+              child: Text(loc.cancel),
+            ),
+            TextButton(
+              onPressed: () {
+                messenger.hideCurrentMaterialBanner();
+                onAction();
+              },
+              style: TextButton.styleFrom(foregroundColor: color),
+              child: Text(actionLabel),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => messenger.hideCurrentMaterialBanner(),
-            child: Text(loc.cancel),
-          ),
-          TextButton(
-            onPressed: () { messenger.hideCurrentMaterialBanner(); onAction(); },
-            style: TextButton.styleFrom(foregroundColor: color),
-            child: Text(actionLabel),
-          ),
-        ],
-      ),
-    );
+      );
     });
   }
 
@@ -345,7 +379,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
           children: [
             Icon(icon, color: Colors.white, size: 18),
             const SizedBox(width: 8),
-            Expanded(child: Text(message, style: const TextStyle(color: Colors.white))),
+            Expanded(
+              child: Text(message, style: const TextStyle(color: Colors.white)),
+            ),
           ],
         ),
         backgroundColor: color,
@@ -389,7 +425,10 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     // TEMPORAIRE (demo suivi public) : 5 s au lieu de 20. A remettre a 20 avant toute mise en
     // service — quatre fois plus d'envois, c'est quatre fois plus de batterie sur une journee de
     // tournee, pour un gain qui se traite mieux en interpolant l'affichage cote carte.
-    _locationTimer = Timer.periodic(const Duration(seconds: 5), (_) => _pushLocation());
+    _locationTimer = Timer.periodic(
+      const Duration(seconds: 5),
+      (_) => _pushLocation(),
+    );
     _pushLocation();
   }
 
@@ -403,7 +442,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     try {
       final point = await LocationService().currentPosition();
       if (point == null) return;
-      await ref.read(profileRepositoryProvider).updateLocation(point.lat, point.lng);
+      await ref
+          .read(profileRepositoryProvider)
+          .updateLocation(point.lat, point.lng);
     } catch (_) {}
   }
 
@@ -442,7 +483,9 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
     });
 
     // First-login gate: block the home tabs until the driver has added a profile photo.
-    final needsPhoto = ref.watch(driverProfileProvider).maybeWhen(
+    final needsPhoto = ref
+        .watch(driverProfileProvider)
+        .maybeWhen(
           data: (p) => p.onboardingStatus != 'COMPLETE',
           orElse: () => false,
         );
@@ -452,16 +495,23 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
 
     final pages = [
       const RoutesScreen(),
-      CalendarScreen(onNavigateToRoute: () => ref.read(homeTabIndexProvider.notifier).state = 0),
+      CalendarScreen(
+        onNavigateToRoute: () =>
+            ref.read(homeTabIndexProvider.notifier).state = 0,
+      ),
       const SafeArea(child: ProfileScreen()),
     ];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: theme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
         systemNavigationBarColor: colorScheme.surface,
-        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness: theme.brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
       ),
       child: Scaffold(
         body: Column(
@@ -493,18 +543,23 @@ class _HomeShellState extends ConsumerState<HomeShell> with WidgetsBindingObserv
         ),
         bottomNavigationBar: ModernBottomNav(
           selectedIndex: activeIndex,
-          onTabSelected: (i) => ref.read(homeTabIndexProvider.notifier).state = i,
+          onTabSelected: (i) =>
+              ref.read(homeTabIndexProvider.notifier).state = i,
         ),
       ),
     );
   }
 
   bool _hasInTransit() {
-    return ref.read(activeDeliveriesProvider).value?.any((d) => d.status == DeliveryStatus.inTransit) ?? false;
+    return ref
+            .read(activeDeliveriesProvider)
+            .value
+            ?.any((d) => d.status == DeliveryStatus.inTransit) ??
+        false;
   }
 
   bool _isRouteInProgress() {
-    return ref.read(todayRouteProvider).value?.status == DriverRouteStatus.inProgress;
+    return ref.read(todayRouteProvider).value?.status ==
+        DriverRouteStatus.inProgress;
   }
 }
-

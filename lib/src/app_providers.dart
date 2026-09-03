@@ -23,7 +23,9 @@ import 'services/route_cache_service.dart';
 import 'services/offline_queue_service.dart';
 import 'services/token_storage.dart';
 
-final appConfigProvider = StateProvider<AppConfig>((ref) => AppConfig.fromEnvironment());
+final appConfigProvider = StateProvider<AppConfig>(
+  (ref) => AppConfig.fromEnvironment(),
+);
 
 final tokenStorageProvider = Provider<TokenStorage>((ref) => TokenStorage());
 
@@ -32,21 +34,22 @@ final connectivityServiceProvider = Provider<ConnectivityService>((ref) {
   // off a token refresh) that hits the API host. Any HTTP response — even a 404
   // — proves the server is reachable; a timeout / DNS failure means "Wi-Fi but
   // no internet", which we then treat as offline.
-  return ConnectivityService(reachabilityProbe: () async {
-    final baseUrl = ref.read(appConfigProvider).apiBaseUrlV1;
-    try {
-      final res = await Dio(BaseOptions(
-        connectTimeout: const Duration(seconds: 3),
-        receiveTimeout: const Duration(seconds: 3),
-      )).get<void>(
-        baseUrl,
-        options: Options(validateStatus: (_) => true),
-      );
-      return res.statusCode != null;
-    } catch (_) {
-      return false;
-    }
-  });
+  return ConnectivityService(
+    reachabilityProbe: () async {
+      final baseUrl = ref.read(appConfigProvider).apiBaseUrlV1;
+      try {
+        final res = await Dio(
+          BaseOptions(
+            connectTimeout: const Duration(seconds: 3),
+            receiveTimeout: const Duration(seconds: 3),
+          ),
+        ).get<void>(baseUrl, options: Options(validateStatus: (_) => true));
+        return res.statusCode != null;
+      } catch (_) {
+        return false;
+      }
+    },
+  );
 });
 
 final connectionStatusProvider = StreamProvider<bool>((ref) {
@@ -67,8 +70,9 @@ final apiClientProvider = Provider<ApiClient>((Ref ref) {
     tokenStorage: ref.read(tokenStorageProvider),
   );
   ref.listen<AppConfig>(appConfigProvider, (_, next) {
-    client.config = next;                          // OIDC endpoints (login) follow the new host
-    client.dio.options.baseUrl = next.apiBaseUrlV1;  // REST calls follow the new host
+    client.config = next; // OIDC endpoints (login) follow the new host
+    client.dio.options.baseUrl =
+        next.apiBaseUrlV1; // REST calls follow the new host
   });
   return client;
 });
@@ -78,8 +82,9 @@ final authRepositoryProvider = Provider<AuthRepository>((Ref ref) {
   return AuthRepository(client);
 });
 
-final authControllerProvider =
-    StateNotifierProvider<AuthController, AuthState>((Ref ref) {
+final authControllerProvider = StateNotifierProvider<AuthController, AuthState>((
+  Ref ref,
+) {
   final repo = ref.watch(authRepositoryProvider);
   final storage = ref.watch(tokenStorageProvider);
   final fcm = ref.watch(fcmServiceProvider);
@@ -97,17 +102,26 @@ final deliveryRepositoryProvider = Provider<DeliveryRepository>((Ref ref) {
   final client = ref.watch(apiClientProvider);
   final queue = ref.watch(offlineQueueProvider.notifier);
   final connectivity = ref.watch(connectivityServiceProvider);
-  return DeliveryRepository(client, queue, connectivity, ref.watch(deliveryNoteCacheProvider));
+  return DeliveryRepository(
+    client,
+    queue,
+    connectivity,
+    ref.watch(deliveryNoteCacheProvider),
+  );
 });
 
-final deliveryNoteCacheProvider = Provider<DeliveryNoteCache>((ref) => DeliveryNoteCache());
+final deliveryNoteCacheProvider = Provider<DeliveryNoteCache>(
+  (ref) => DeliveryNoteCache(),
+);
 
 final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   final client = ref.watch(apiClientProvider);
   return ProfileRepository(client);
 });
 
-final routeCacheServiceProvider = Provider<RouteCacheService>((ref) => RouteCacheService());
+final routeCacheServiceProvider = Provider<RouteCacheService>(
+  (ref) => RouteCacheService(),
+);
 
 final routeRepositoryProvider = Provider<RouteRepository>((ref) {
   final client = ref.watch(apiClientProvider);
@@ -127,7 +141,9 @@ final fcmServiceProvider = Provider<FcmService>((ref) {
   return FcmService(client);
 });
 
-final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((ref) async {
+final activeDeliveriesProvider = FutureProvider<List<DriverDelivery>>((
+  ref,
+) async {
   final repo = ref.watch(deliveryRepositoryProvider);
   final deliveries = await repo.fetchActive();
   // Warm the detail of everything the driver can actually see in his list. Prefetching only the
@@ -148,8 +164,8 @@ class HistoryState {
   });
   final List<DriverDelivery> items;
   final bool hasNext;
-  final bool loading;      // first page in flight
-  final bool loadingMore;  // appending a page
+  final bool loading; // first page in flight
+  final bool loadingMore; // appending a page
   final Object? error;
 
   HistoryState copyWith({
@@ -159,14 +175,13 @@ class HistoryState {
     bool? loadingMore,
     Object? error,
     bool clearError = false,
-  }) =>
-      HistoryState(
-        items: items ?? this.items,
-        hasNext: hasNext ?? this.hasNext,
-        loading: loading ?? this.loading,
-        loadingMore: loadingMore ?? this.loadingMore,
-        error: clearError ? null : (error ?? this.error),
-      );
+  }) => HistoryState(
+    items: items ?? this.items,
+    hasNext: hasNext ?? this.hasNext,
+    loading: loading ?? this.loading,
+    loadingMore: loadingMore ?? this.loadingMore,
+    error: clearError ? null : (error ?? this.error),
+  );
 }
 
 class DriverHistoryNotifier extends StateNotifier<HistoryState> {
@@ -206,9 +221,11 @@ class DriverHistoryNotifier extends StateNotifier<HistoryState> {
 }
 
 final driverHistoryProvider =
-    StateNotifierProvider.autoDispose<DriverHistoryNotifier, HistoryState>((ref) {
-  return DriverHistoryNotifier(ref.watch(deliveryRepositoryProvider));
-});
+    StateNotifierProvider.autoDispose<DriverHistoryNotifier, HistoryState>((
+      ref,
+    ) {
+      return DriverHistoryNotifier(ref.watch(deliveryRepositoryProvider));
+    });
 
 final driverProfileProvider = FutureProvider<DriverProfile>((ref) {
   final repo = ref.watch(profileRepositoryProvider);
@@ -238,7 +255,10 @@ final todayRouteProvider = FutureProvider<DriverRoute?>((ref) async {
   return route;
 });
 
-final deliveryDetailProvider = FutureProvider.family<DriverDelivery, String>((ref, id) {
+final deliveryDetailProvider = FutureProvider.family<DriverDelivery, String>((
+  ref,
+  id,
+) {
   final repo = ref.watch(deliveryRepositoryProvider);
   return repo.fetchById(id);
 });
@@ -252,7 +272,10 @@ final calendarWeekProvider = StateProvider<DateTime>((ref) {
 });
 
 /// Fetches all routes for a 7-day window starting from [weekStart].
-final weekRoutesProvider = FutureProvider.family<List<DriverRoute>, DateTime>((ref, weekStart) {
+final weekRoutesProvider = FutureProvider.family<List<DriverRoute>, DateTime>((
+  ref,
+  weekStart,
+) {
   final repo = ref.watch(routeRepositoryProvider);
   final weekEnd = weekStart.add(const Duration(days: 6));
   return repo.fetchRange(weekStart, weekEnd);

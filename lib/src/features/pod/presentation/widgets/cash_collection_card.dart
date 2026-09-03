@@ -10,10 +10,10 @@ enum CashMethod { cash, cheque, none }
 
 extension CashMethodX on CashMethod {
   String get api => switch (this) {
-        CashMethod.cash => 'CASH',
-        CashMethod.cheque => 'CHEQUE',
-        CashMethod.none => 'NONE',
-      };
+    CashMethod.cash => 'CASH',
+    CashMethod.cheque => 'CHEQUE',
+    CashMethod.none => 'NONE',
+  };
 }
 
 /// Everything the driver reported at the door, handed back to the form as one value.
@@ -35,17 +35,17 @@ class CashFormState {
   final String? reasonCode;
 
   CashEntry toEntry() => CashEntry(
-        amountCollected: amount,
-        method: method.api,
-        chequeNumber: chequeNumber,
-        chequeBank: chequeBank,
-        chequeDate: chequeDate != null
-            ? '${chequeDate!.year.toString().padLeft(4, '0')}-'
-                '${chequeDate!.month.toString().padLeft(2, '0')}-'
-                '${chequeDate!.day.toString().padLeft(2, '0')}'
-            : null,
-        reason: reasonCode,
-      );
+    amountCollected: amount,
+    method: method.api,
+    chequeNumber: chequeNumber,
+    chequeBank: chequeBank,
+    chequeDate: chequeDate != null
+        ? '${chequeDate!.year.toString().padLeft(4, '0')}-'
+              '${chequeDate!.month.toString().padLeft(2, '0')}-'
+              '${chequeDate!.day.toString().padLeft(2, '0')}'
+        : null,
+    reason: reasonCode,
+  );
 }
 
 /// Money collected at the door.
@@ -114,7 +114,10 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
   /// A Tunisian driver types on a keyboard whose decimal key is a comma, and a field that silently
   /// refuses it looks broken rather than strict.
   double get _amount {
-    final raw = _amountCtrl.text.trim().replaceAll(' ', '').replaceAll(',', '.');
+    final raw = _amountCtrl.text
+        .trim()
+        .replaceAll(' ', '')
+        .replaceAll(',', '.');
     if (raw.isEmpty) return 0;
     return double.tryParse(raw) ?? 0;
   }
@@ -126,20 +129,27 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
   bool get _reasonAvailable => widget.reasons.any((r) => r.coversPayment);
 
   bool get isValid {
-    if (_method == CashMethod.cheque && _chequeNumberCtrl.text.trim().isEmpty) return false;
+    if (_method == CashMethod.cheque && _chequeNumberCtrl.text.trim().isEmpty)
+      return false;
     if (_isShort && _reasonAvailable && _reasonCode == null) return false;
     return true;
   }
 
   void _emit() {
-    widget.onChanged(CashFormState(
-      method: _method,
-      amount: _method == CashMethod.none ? 0 : _amount,
-      chequeNumber: _method == CashMethod.cheque ? _chequeNumberCtrl.text.trim() : null,
-      chequeBank: _method == CashMethod.cheque ? _chequeBankCtrl.text.trim() : null,
-      chequeDate: _method == CashMethod.cheque ? _chequeDate : null,
-      reasonCode: _isShort ? _reasonCode : null,
-    ));
+    widget.onChanged(
+      CashFormState(
+        method: _method,
+        amount: _method == CashMethod.none ? 0 : _amount,
+        chequeNumber: _method == CashMethod.cheque
+            ? _chequeNumberCtrl.text.trim()
+            : null,
+        chequeBank: _method == CashMethod.cheque
+            ? _chequeBankCtrl.text.trim()
+            : null,
+        chequeDate: _method == CashMethod.cheque ? _chequeDate : null,
+        reasonCode: _isShort ? _reasonCode : null,
+      ),
+    );
   }
 
   bool get _ar => widget.locale == 'ar';
@@ -154,7 +164,9 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
       decoration: BoxDecoration(
         color: cs.surface,
         borderRadius: BorderRadius.circular(AppTokens.radiusXl),
-        border: Border.all(color: short ? AppTokens.warningAmber : cs.outlineVariant),
+        border: Border.all(
+          color: short ? AppTokens.warningAmber : cs.outlineVariant,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -169,7 +181,11 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
                   color: AppTokens.successGreen.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(AppTokens.radiusMd),
                 ),
-                child: const Icon(LucideIcons.banknote, size: 18, color: AppTokens.successGreen),
+                child: const Icon(
+                  LucideIcons.banknote,
+                  size: 18,
+                  color: AppTokens.successGreen,
+                ),
               ),
               const SizedBox(width: AppTokens.space12),
               Expanded(
@@ -258,8 +274,12 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
               controller: _amountCtrl,
               // Comma-friendly: the decimal key on a French/Arabic keyboard is a comma, and a
               // `number` keyboard that rejects it makes the field look broken.
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]'))],
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+              ],
               textAlign: TextAlign.end,
               style: const TextStyle(
                 fontSize: 18,
@@ -268,11 +288,18 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
               ),
               decoration: InputDecoration(
                 suffixText: widget.currency,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                ),
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.space12, vertical: AppTokens.space12),
+                  horizontal: AppTokens.space12,
+                  vertical: AppTokens.space12,
+                ),
               ),
-              onChanged: (_) { setState(() {}); _emit(); },
+              onChanged: (_) {
+                setState(() {});
+                _emit();
+              },
             ),
           ],
 
@@ -287,11 +314,18 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 hintText: '1234567',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(AppTokens.radiusMd),
+                ),
                 contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppTokens.space12, vertical: AppTokens.space10),
+                  horizontal: AppTokens.space12,
+                  vertical: AppTokens.space10,
+                ),
               ),
-              onChanged: (_) { setState(() {}); _emit(); },
+              onChanged: (_) {
+                setState(() {});
+                _emit();
+              },
             ),
             const SizedBox(height: AppTokens.space10),
             Row(
@@ -307,9 +341,14 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
                         decoration: InputDecoration(
                           hintText: 'BIAT',
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                            borderRadius: BorderRadius.circular(
+                              AppTokens.radiusMd,
+                            ),
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: AppTokens.space12, vertical: AppTokens.space10),
+                            horizontal: AppTokens.space12,
+                            vertical: AppTokens.space10,
+                          ),
                         ),
                         onChanged: (_) => _emit(),
                       ),
@@ -340,14 +379,17 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
                         style: OutlinedButton.styleFrom(
                           minimumSize: const Size.fromHeight(46),
                           shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppTokens.radiusMd)),
+                            borderRadius: BorderRadius.circular(
+                              AppTokens.radiusMd,
+                            ),
+                          ),
                         ),
                         child: Text(
                           _chequeDate == null
                               ? (_ar ? 'اختر' : 'Choisir')
                               : '${_chequeDate!.day.toString().padLeft(2, '0')}/'
-                                  '${_chequeDate!.month.toString().padLeft(2, '0')}/'
-                                  '${_chequeDate!.year}',
+                                    '${_chequeDate!.month.toString().padLeft(2, '0')}/'
+                                    '${_chequeDate!.year}',
                           style: const TextStyle(fontSize: 13),
                         ),
                       ),
@@ -369,15 +411,20 @@ class _CashCollectionCardState extends State<CashCollectionCard> {
               ),
               child: Row(
                 children: [
-                  const Icon(LucideIcons.alertTriangle, size: 15, color: AppTokens.warningAmber),
+                  const Icon(
+                    LucideIcons.alertTriangle,
+                    size: 15,
+                    color: AppTokens.warningAmber,
+                  ),
                   const SizedBox(width: AppTokens.space8),
                   Expanded(
                     child: Text(
                       _ar ? 'ناقص' : 'Manquant',
                       style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: AppTokens.fwMedium,
-                          color: cs.onSurfaceVariant),
+                        fontSize: 12,
+                        fontWeight: AppTokens.fwMedium,
+                        color: cs.onSurfaceVariant,
+                      ),
                     ),
                   ),
                   // The minus sign carries the meaning; the colour only reinforces it.
@@ -426,11 +473,11 @@ class _Label extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: AppTokens.fwMedium,
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        ),
-      );
+    text,
+    style: TextStyle(
+      fontSize: 12,
+      fontWeight: AppTokens.fwMedium,
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    ),
+  );
 }

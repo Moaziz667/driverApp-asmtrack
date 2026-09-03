@@ -12,7 +12,7 @@ final backgroundTrackingProvider = Provider<BackgroundTrackingService>((ref) {
 class BackgroundTrackingService {
   final ApiClient _apiClient;
   StreamSubscription<Position>? _positionSub;
-  
+
   BackgroundTrackingService(this._apiClient);
 
   void startTracking() {
@@ -33,14 +33,15 @@ class BackgroundTrackingService {
       ),
     );
 
-    _positionSub = Geolocator.getPositionStream(locationSettings: locationSettings).listen(
-      (Position position) {
-        _syncLocation(position);
-      },
-      onError: (e) {
-        // Handle background errors (e.g. GPS lost)
-      },
-    );
+    _positionSub =
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+          (Position position) {
+            _syncLocation(position);
+          },
+          onError: (e) {
+            // Handle background errors (e.g. GPS lost)
+          },
+        );
   }
 
   void stopTracking() {
@@ -50,12 +51,15 @@ class BackgroundTrackingService {
 
   Future<void> _syncLocation(Position pos) async {
     try {
-      await _apiClient.dio.post('/driver/deliveries/location', data: {
-        'lat': pos.latitude,
-        'lng': pos.longitude,
-        'accuracy': pos.accuracy,
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+      await _apiClient.dio.post(
+        '/driver/deliveries/location',
+        data: {
+          'lat': pos.latitude,
+          'lng': pos.longitude,
+          'accuracy': pos.accuracy,
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
     } catch (_) {
       // Location pings are intentionally NOT queued: a stale position is worse
       // than no position, and the next tick sends a fresh one within seconds.

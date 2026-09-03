@@ -25,7 +25,8 @@ class DeliveryDetailScreen extends ConsumerStatefulWidget {
   final DeliveryDetailArgs args;
 
   @override
-  ConsumerState<DeliveryDetailScreen> createState() => _DeliveryDetailScreenState();
+  ConsumerState<DeliveryDetailScreen> createState() =>
+      _DeliveryDetailScreenState();
 }
 
 class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
@@ -47,7 +48,11 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       if (mounted && !await ref.read(connectivityServiceProvider).isOnline) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).delivery_detail_offline_queue,
+              ),
+            ),
           );
         }
       }
@@ -55,13 +60,21 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       if (e == 'OFFLINE_QUEUED') {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(AppLocalizations.of(context).delivery_detail_offline_queue)),
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context).delivery_detail_offline_queue,
+              ),
+            ),
           );
         }
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${AppLocalizations.of(context).delivery_detail_error_prefix}: $e')),
+            SnackBar(
+              content: Text(
+                '${AppLocalizations.of(context).delivery_detail_error_prefix}: $e',
+              ),
+            ),
           );
         }
       }
@@ -73,7 +86,9 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final asyncDetail = ref.watch(deliveryDetailProvider(widget.args.deliveryId));
+    final asyncDetail = ref.watch(
+      deliveryDetailProvider(widget.args.deliveryId),
+    );
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
@@ -100,7 +115,8 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 ),
               HeroCard(delivery: delivery),
               const SizedBox(height: 16),
-              if (delivery.instructions != null && delivery.instructions!.isNotEmpty) ...[
+              if (delivery.instructions != null &&
+                  delivery.instructions!.isNotEmpty) ...[
                 InstructionsCard(text: delivery.instructions!),
                 const SizedBox(height: 16),
               ],
@@ -126,21 +142,30 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                 currentDriverId: ref.watch(driverProfileProvider).value?.id,
                 onScanHandoff: () async {
                   final result = await Navigator.of(context).push<bool>(
-                    MaterialPageRoute(builder: (_) => const HandoffScannerScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const HandoffScannerScreen(),
+                    ),
                   );
                   if (result == true) await _refresh();
                 },
-                onPickup: () => _perform(() => ref.read(deliveryRepositoryProvider).pickup(delivery.id)),
+                onPickup: () => _perform(
+                  () =>
+                      ref.read(deliveryRepositoryProvider).pickup(delivery.id),
+                ),
                 onTransit: () => _perform(() async {
                   final point = await _locationService.currentPosition();
-                  return ref.read(deliveryRepositoryProvider).startTransit(
+                  return ref
+                      .read(deliveryRepositoryProvider)
+                      .startTransit(
                         delivery.id,
                         lat: point?.lat,
                         lng: point?.lng,
                       );
                 }),
                 onFail: () async {
-                  final reasons = await ref.read(deliveryRepositoryProvider).fetchFailureReasons();
+                  final reasons = await ref
+                      .read(deliveryRepositoryProvider)
+                      .fetchFailureReasons();
                   if (!context.mounted) return;
                   // Full-visit failure: only motifs usable at the delivery scope (DELIVERY / BOTH).
                   final base = reasons.where((r) => r.coversDelivery).toList();
@@ -150,18 +175,26 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                   const returnCats = ['CLIENT_ABSENT', 'REFUSED', 'OTHER'];
                   List<FailureReasonOption> failureReasons = base;
                   if (delivery.isReturnPickup) {
-                    final filtered = base.where((r) => returnCats.contains(r.category)).toList();
+                    final filtered = base
+                        .where((r) => returnCats.contains(r.category))
+                        .toList();
                     failureReasons = filtered.isNotEmpty
                         ? filtered
-                        : FailureReasonOption.fallback.where((r) => returnCats.contains(r.category)).toList();
+                        : FailureReasonOption.fallback
+                              .where((r) => returnCats.contains(r.category))
+                              .toList();
                   }
                   final reason = await _showFailSheet(context, failureReasons);
                   if (reason == null) return;
-                  await _perform(() => ref.read(deliveryRepositoryProvider).fail(
-                        delivery.id,
-                        reasonCode: reason.$1,
-                        comment: reason.$2,
-                      ));
+                  await _perform(
+                    () => ref
+                        .read(deliveryRepositoryProvider)
+                        .fail(
+                          delivery.id,
+                          reasonCode: reason.$1,
+                          comment: reason.$2,
+                        ),
+                  );
                 },
                 onPod: () async {
                   final result = await Navigator.of(context).pushNamed(
@@ -174,12 +207,16 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
             ],
           ),
         ),
-        loading: () => LoadingState(message: AppLocalizations.of(context).delivery_detail_loading),
+        loading: () => LoadingState(
+          message: AppLocalizations.of(context).delivery_detail_loading,
+        ),
         error: (error, _) {
-          final isUnauthorized = error.toString().contains('403') || error.toString().contains('unauthorized');
+          final isUnauthorized =
+              error.toString().contains('403') ||
+              error.toString().contains('unauthorized');
           return EmptyState(
             icon: PhosphorIconsRegular.warningCircle,
-            title: isUnauthorized 
+            title: isUnauthorized
                 ? AppLocalizations.of(context).delivery_detail_unauthorized_link
                 : AppLocalizations.of(context).delivery_detail_load_failed,
             action: _refresh,
@@ -190,12 +227,15 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
     );
   }
 
-  Future<(String, String?)?> _showFailSheet(BuildContext context, List<FailureReasonOption> reasons) async {
+  Future<(String, String?)?> _showFailSheet(
+    BuildContext context,
+    List<FailureReasonOption> reasons,
+  ) async {
     final cs = Theme.of(context).colorScheme;
     final options = reasons.isNotEmpty ? reasons : FailureReasonOption.fallback;
     FailureReasonOption selected = options.first;
     final commentCtrl = TextEditingController();
-    
+
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
@@ -207,7 +247,12 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
         return StatefulBuilder(
           builder: (context, setModal) {
             return Padding(
-              padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 24),
+              padding: EdgeInsets.fromLTRB(
+                24,
+                24,
+                24,
+                MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -217,22 +262,22 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: cs.outlineVariant, 
+                        color: cs.outlineVariant,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    AppLocalizations.of(context).delivery_detail_fail_report, 
+                    AppLocalizations.of(context).delivery_detail_fail_report,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w700, 
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    AppLocalizations.of(context).delivery_detail_fail_select, 
+                    AppLocalizations.of(context).delivery_detail_fail_select,
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                   const SizedBox(height: 16),
@@ -254,19 +299,30 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                             onTap: () => setModal(() => selected = reason),
                             borderRadius: BorderRadius.circular(12),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 14,
+                              ),
                               decoration: BoxDecoration(
-                                color: isSelected ? cs.errorContainer : cs.surfaceContainerLow,
+                                color: isSelected
+                                    ? cs.errorContainer
+                                    : cs.surfaceContainerLow,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: isSelected ? cs.error.withValues(alpha: 0.4) : cs.outlineVariant,
+                                  color: isSelected
+                                      ? cs.error.withValues(alpha: 0.4)
+                                      : cs.outlineVariant,
                                 ),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
-                                    isSelected ? PhosphorIconsFill.radioButton : PhosphorIconsRegular.circle,
-                                    color: isSelected ? cs.error : cs.onSurfaceVariant,
+                                    isSelected
+                                        ? PhosphorIconsFill.radioButton
+                                        : PhosphorIconsRegular.circle,
+                                    color: isSelected
+                                        ? cs.error
+                                        : cs.onSurfaceVariant,
                                     size: 18,
                                   ),
                                   const SizedBox(width: 12),
@@ -274,8 +330,12 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                                     child: Text(
                                       reason.label,
                                       style: TextStyle(
-                                        color: isSelected ? cs.onSurface : cs.onSurfaceVariant,
-                                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                                        color: isSelected
+                                            ? cs.onSurface
+                                            : cs.onSurfaceVariant,
+                                        fontWeight: isSelected
+                                            ? FontWeight.w600
+                                            : FontWeight.w400,
                                         fontSize: 14,
                                       ),
                                     ),
@@ -293,8 +353,13 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                     controller: commentCtrl,
                     style: TextStyle(color: cs.onSurface),
                     decoration: InputDecoration(
-                      hintText: AppLocalizations.of(context).delivery_detail_comment_hint,
-                      prefixIcon: const Icon(PhosphorIconsRegular.notePencil, size: 18),
+                      hintText: AppLocalizations.of(
+                        context,
+                      ).delivery_detail_comment_hint,
+                      prefixIcon: const Icon(
+                        PhosphorIconsRegular.notePencil,
+                        size: 18,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -305,8 +370,13 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
                       onPressed: () => Navigator.pop(context, true),
                       icon: const Icon(PhosphorIconsBold.flagPennant),
                       label: Text(
-                        AppLocalizations.of(context).delivery_detail_fail_submit,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        AppLocalizations.of(
+                          context,
+                        ).delivery_detail_fail_submit,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
                       ),
                       style: FilledButton.styleFrom(
                         backgroundColor: cs.error,
@@ -325,12 +395,14 @@ class _DeliveryDetailScreenState extends ConsumerState<DeliveryDetailScreen> {
       },
     );
     if (confirmed == true) {
-      return (selected.code, commentCtrl.text.trim().isEmpty ? null : commentCtrl.text.trim());
+      return (
+        selected.code,
+        commentCtrl.text.trim().isEmpty ? null : commentCtrl.text.trim(),
+      );
     }
     return null;
   }
 }
-
 
 /// Small banner shown when the driver is viewing a delivery offline, so a cached
 /// (possibly stale) fiche is never mistaken for live data. Shows when the cache
@@ -349,7 +421,11 @@ class _OfflineDataBanner extends StatelessWidget {
     final amber = Theme.of(context).extension<StatusColors>()!.onBreak;
     // Pulled towards the page's own text colour so it stays readable on the tinted background —
     // darker in the light theme, lighter in the dark one, instead of one fixed brown.
-    final amberInk = Color.lerp(amber, Theme.of(context).colorScheme.onSurface, 0.45)!;
+    final amberInk = Color.lerp(
+      amber,
+      Theme.of(context).colorScheme.onSurface,
+      0.45,
+    )!;
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

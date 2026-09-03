@@ -85,7 +85,9 @@ class SplashScreen extends ConsumerWidget {
 class _GridPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = const Color(0xFF9CA3AF)..strokeWidth = 1;
+    final paint = Paint()
+      ..color = const Color(0xFF9CA3AF)
+      ..strokeWidth = 1;
     const step = 40.0;
     for (double x = 0; x < size.width; x += step) {
       canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
@@ -94,6 +96,7 @@ class _GridPainter extends CustomPainter {
       canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
     }
   }
+
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

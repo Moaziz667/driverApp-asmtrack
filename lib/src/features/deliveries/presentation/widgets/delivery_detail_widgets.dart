@@ -27,15 +27,15 @@ class HeroCard extends ConsumerWidget {
     final statusColors = Theme.of(context).extension<StatusColors>()!;
 
     final Color statusColor = switch (delivery.status) {
-      DeliveryStatus.unscheduled       => statusColors.unscheduled,
-      DeliveryStatus.scheduled         => statusColors.scheduled,
-      DeliveryStatus.pickedUp          => statusColors.pickedUp,
-      DeliveryStatus.inTransit         => statusColors.inTransit,
-      DeliveryStatus.awaitingHandoff   => statusColors.pickedUp,
-      DeliveryStatus.delivered         => statusColors.delivered,
+      DeliveryStatus.unscheduled => statusColors.unscheduled,
+      DeliveryStatus.scheduled => statusColors.scheduled,
+      DeliveryStatus.pickedUp => statusColors.pickedUp,
+      DeliveryStatus.inTransit => statusColors.inTransit,
+      DeliveryStatus.awaitingHandoff => statusColors.pickedUp,
+      DeliveryStatus.delivered => statusColors.delivered,
       DeliveryStatus.partially_delivered => statusColors.partiallyDelivered,
-      DeliveryStatus.failed            => statusColors.failed,
-      DeliveryStatus.cancelled         => statusColors.cancelled,
+      DeliveryStatus.failed => statusColors.failed,
+      DeliveryStatus.cancelled => statusColors.cancelled,
     };
 
     return Card(
@@ -43,15 +43,15 @@ class HeroCard extends ConsumerWidget {
       elevation: theme.brightness == Brightness.dark ? 8 : 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.5), width: 1.5),
+        side: BorderSide(
+          color: cs.outlineVariant.withValues(alpha: 0.5),
+          width: 1.5,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            height: 6,
-            color: statusColor,
-          ),
+          Container(height: 6, color: statusColor),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -60,14 +60,24 @@ class HeroCard extends ConsumerWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: statusColor.withValues(alpha: 0.2), width: 1.0),
+                        border: Border.all(
+                          color: statusColor.withValues(alpha: 0.2),
+                          width: 1.0,
+                        ),
                       ),
                       child: Text(
-                        deliveryStatusLabel(delivery.status, AppLocalizations.of(context), isReturn: delivery.isReturnPickup).toUpperCase(),
+                        deliveryStatusLabel(
+                          delivery.status,
+                          AppLocalizations.of(context),
+                          isReturn: delivery.isReturnPickup,
+                        ).toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,
@@ -79,7 +89,10 @@ class HeroCard extends ConsumerWidget {
                     const Spacer(),
                     if (delivery.orderRef != null)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: cs.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(6),
@@ -88,10 +101,10 @@ class HeroCard extends ConsumerWidget {
                         child: Text(
                           delivery.orderRef!,
                           style: theme.textTheme.labelLarge?.copyWith(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w800,
-                                color: cs.onSurfaceVariant,
-                              ),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
                   ],
@@ -101,23 +114,27 @@ class HeroCard extends ConsumerWidget {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      Icon(PhosphorIconsRegular.arrowUUpLeft, size: 14, color: cs.tertiary),
+                      Icon(
+                        PhosphorIconsRegular.arrowUUpLeft,
+                        size: 14,
+                        color: cs.tertiary,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         AppLocalizations.of(context).return_pickup_title,
                         style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: cs.tertiary,
-                            ),
+                          fontWeight: FontWeight.w800,
+                          color: cs.tertiary,
+                        ),
                       ),
                       if (delivery.rmaNumber != null) ...[
                         const SizedBox(width: 8),
                         Text(
                           delivery.rmaNumber!,
                           style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: cs.onSurfaceVariant,
-                              ),
+                            fontWeight: FontWeight.w700,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ],
@@ -136,8 +153,8 @@ class HeroCard extends ConsumerWidget {
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
-                          PhosphorIconsFill.user, 
-                          size: 20, 
+                          PhosphorIconsFill.user,
+                          size: 20,
                           color: cs.primary,
                         ),
                       ),
@@ -158,8 +175,8 @@ class HeroCard extends ConsumerWidget {
                               Row(
                                 children: [
                                   Icon(
-                                    PhosphorIconsRegular.mapPin, 
-                                    size: 14, 
+                                    PhosphorIconsRegular.mapPin,
+                                    size: 14,
                                     color: cs.onSurfaceVariant,
                                   ),
                                   const SizedBox(width: 4),
@@ -183,14 +200,15 @@ class HeroCard extends ConsumerWidget {
                           shape: const CircleBorder(),
                           elevation: 2,
                           child: InkWell(
-                            onTap: () => launchUrlString('tel:${delivery.clientPhone}'),
+                            onTap: () =>
+                                launchUrlString('tel:${delivery.clientPhone}'),
                             customBorder: const CircleBorder(),
                             child: const SizedBox(
                               width: 40,
                               height: 40,
                               child: Icon(
-                                PhosphorIconsFill.phone, 
-                                size: 20, 
+                                PhosphorIconsFill.phone,
+                                size: 20,
                                 color: Colors.white,
                               ),
                             ),
@@ -201,27 +219,35 @@ class HeroCard extends ConsumerWidget {
                   const SizedBox(height: 16),
                 ],
                 Text(
-                  delivery.address ?? AppLocalizations.of(context).deliveryNoAddress,
+                  delivery.address ??
+                      AppLocalizations.of(context).deliveryNoAddress,
                   style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 20,
-                        color: cs.onSurface,
-                        letterSpacing: -0.5,
-                      ),
+                    fontWeight: FontWeight.w900,
+                    fontSize: 20,
+                    color: cs.onSurface,
+                    letterSpacing: -0.5,
+                  ),
                 ),
                 const SizedBox(height: 18),
-                Divider(color: cs.outlineVariant.withValues(alpha: 0.5), height: 1),
+                Divider(
+                  color: cs.outlineVariant.withValues(alpha: 0.5),
+                  height: 1,
+                ),
                 const SizedBox(height: 18),
                 Row(
                   children: [
                     _StatBox(
-                      label: AppLocalizations.of(context).delivery_detail_articles,
+                      label: AppLocalizations.of(
+                        context,
+                      ).delivery_detail_articles,
                       value: '${delivery.items.length}',
                     ),
                     if (delivery.scheduledAt != null) ...[
                       const SizedBox(width: 12),
                       _StatBox(
-                        label: AppLocalizations.of(context).delivery_detail_scheduled,
+                        label: AppLocalizations.of(
+                          context,
+                        ).delivery_detail_scheduled,
                         value: _fmtDate(delivery.scheduledAt!),
                       ),
                     ],
@@ -261,13 +287,22 @@ class _StatBox extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              label.toUpperCase(), 
-              style: TextStyle(fontSize: 9, color: cs.onSurfaceVariant, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+              label.toUpperCase(),
+              style: TextStyle(
+                fontSize: 9,
+                color: cs.onSurfaceVariant,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
             ),
             const SizedBox(height: 4),
             Text(
-              value, 
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: cs.onSurface),
+              value,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: cs.onSurface,
+              ),
             ),
           ],
         ),
@@ -298,8 +333,12 @@ class InstructionsCard extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              text, 
-              style: TextStyle(fontSize: 14, color: cs.onSurfaceVariant, height: 1.5),
+              text,
+              style: TextStyle(
+                fontSize: 14,
+                color: cs.onSurfaceVariant,
+                height: 1.5,
+              ),
             ),
           ),
         ],
@@ -317,7 +356,12 @@ class ItemsCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
     final locale = ref.watch(localeProvider);
-    final countText = '${items.length} ${locale == 'ar' ? 'سلعة' : locale == 'en' ? 'item${items.length != 1 ? 's' : ''}' : 'article${items.length != 1 ? 's' : ''}'}';
+    final countText =
+        '${items.length} ${locale == 'ar'
+            ? 'سلعة'
+            : locale == 'en'
+            ? 'item${items.length != 1 ? 's' : ''}'
+            : 'article${items.length != 1 ? 's' : ''}'}';
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -325,7 +369,7 @@ class ItemsCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             SectionHeader(
-              title: AppLocalizations.of(context).delivery_detail_content, 
+              title: AppLocalizations.of(context).delivery_detail_content,
               subtitle: countText,
             ),
             const SizedBox(height: 14),
@@ -344,7 +388,11 @@ class ItemsCard extends ConsumerWidget {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: cs.outlineVariant),
                         ),
-                        child: Icon(PhosphorIconsRegular.package, size: 14, color: cs.onSurfaceVariant),
+                        child: Icon(
+                          PhosphorIconsRegular.package,
+                          size: 14,
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -352,46 +400,67 @@ class ItemsCard extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.name, 
-                              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
+                              item.name,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                                color: cs.onSurface,
+                              ),
                             ),
                             // Per-unit breakdown (WMS): one row per non-delivered disposition, so a
                             // mixed line (e.g. refused 1 + damaged 1) is shown in full, not collapsed.
                             if (item.shortSegments.isNotEmpty) ...[
                               const SizedBox(height: 3),
-                              ...item.shortSegments.map((seg) => Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Row(
-                                      children: [
-                                        _OutcomeBadge(outcome: seg.disposition),
+                              ...item.shortSegments.map(
+                                (seg) => Padding(
+                                  padding: const EdgeInsets.only(top: 2),
+                                  child: Row(
+                                    children: [
+                                      _OutcomeBadge(outcome: seg.disposition),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '×${seg.quantity}',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: cs.onSurfaceVariant,
+                                        ),
+                                      ),
+                                      if (seg.reasonLabel != null &&
+                                          seg.reasonLabel!.isNotEmpty) ...[
                                         const SizedBox(width: 6),
-                                        Text('×${seg.quantity}',
-                                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: cs.onSurfaceVariant)),
-                                        if (seg.reasonLabel != null && seg.reasonLabel!.isNotEmpty) ...[
-                                          const SizedBox(width: 6),
-                                          Expanded(
-                                            child: Text(
-                                              seg.reasonLabel!,
-                                              style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
+                                        Expanded(
+                                          child: Text(
+                                            seg.reasonLabel!,
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: cs.onSurfaceVariant,
                                             ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
-                                        ],
+                                        ),
                                       ],
-                                    ),
-                                  )),
-                            ] else if (item.hasOutcome && item.outcome!.toUpperCase() != 'DELIVERED') ...[
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ] else if (item.hasOutcome &&
+                                item.outcome!.toUpperCase() != 'DELIVERED') ...[
                               const SizedBox(height: 3),
                               Row(
                                 children: [
                                   _OutcomeBadge(outcome: item.outcome!),
-                                  if (item.reasonLabel != null && item.reasonLabel!.isNotEmpty) ...[
+                                  if (item.reasonLabel != null &&
+                                      item.reasonLabel!.isNotEmpty) ...[
                                     const SizedBox(width: 6),
                                     Flexible(
                                       child: Text(
                                         item.reasonLabel!,
-                                        style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: cs.onSurfaceVariant,
+                                        ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
@@ -399,11 +468,16 @@ class ItemsCard extends ConsumerWidget {
                                   ],
                                 ],
                               ),
-                            ] else if (item.isPartial && item.reasonLabel != null && item.reasonLabel!.isNotEmpty) ...[
+                            ] else if (item.isPartial &&
+                                item.reasonLabel != null &&
+                                item.reasonLabel!.isNotEmpty) ...[
                               const SizedBox(height: 3),
                               Text(
                                 item.reasonLabel!,
-                                style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: cs.onSurfaceVariant,
+                                ),
                               ),
                             ],
                           ],
@@ -418,27 +492,42 @@ class ItemsCard extends ConsumerWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w700,
-                                color: item.isPartial ? Colors.orange : cs.primary,
+                                color: item.isPartial
+                                    ? Colors.orange
+                                    : cs.primary,
                               ),
                             )
                           else
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: cs.primary.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: cs.primary.withValues(alpha: 0.1)),
+                                border: Border.all(
+                                  color: cs.primary.withValues(alpha: 0.1),
+                                ),
                               ),
                               child: Text(
                                 'x${item.quantity}',
-                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: cs.primary),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: cs.primary,
+                                ),
                               ),
                             ),
-                          if (item.comment != null && item.comment!.isNotEmpty) ...[
+                          if (item.comment != null &&
+                              item.comment!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               item.comment!,
-                              style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant),
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: cs.onSurfaceVariant,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -470,11 +559,20 @@ class _OutcomeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final (label, color) = switch (outcome.toUpperCase()) {
-      'DELIVERED' => (AppLocalizations.of(context).statusHistoryDelivered, Colors.green),
-      'REFUSED'   => (AppLocalizations.of(context).podOutcomeRefused, cs.error),
-      'DAMAGED'   => (AppLocalizations.of(context).podOutcomeDamaged, Colors.orange),
-      'MISSING'   => (AppLocalizations.of(context).podOutcomeMissing, Colors.orange),
-      _           => (outcome, cs.onSurfaceVariant),
+      'DELIVERED' => (
+        AppLocalizations.of(context).statusHistoryDelivered,
+        Colors.green,
+      ),
+      'REFUSED' => (AppLocalizations.of(context).podOutcomeRefused, cs.error),
+      'DAMAGED' => (
+        AppLocalizations.of(context).podOutcomeDamaged,
+        Colors.orange,
+      ),
+      'MISSING' => (
+        AppLocalizations.of(context).podOutcomeMissing,
+        Colors.orange,
+      ),
+      _ => (outcome, cs.onSurfaceVariant),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
@@ -484,7 +582,11 @@ class _OutcomeBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: color),
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
       ),
     );
   }
@@ -498,11 +600,12 @@ class TimestampCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cs = Theme.of(context).colorScheme;
-    final entries = delivery.timestamps.entries
-        .where((e) => e.value != null)
-        .map((e) => (label: _keyLabel(e.key, context), time: e.value!))
-        .toList()
-      ..sort((a, b) => a.time.compareTo(b.time));
+    final entries =
+        delivery.timestamps.entries
+            .where((e) => e.value != null)
+            .map((e) => (label: _keyLabel(e.key, context), time: e.value!))
+            .toList()
+          ..sort((a, b) => a.time.compareTo(b.time));
 
     if (entries.isEmpty) return const SizedBox.shrink();
 
@@ -512,7 +615,9 @@ class TimestampCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(title: AppLocalizations.of(context).delivery_detail_timeline),
+            SectionHeader(
+              title: AppLocalizations.of(context).delivery_detail_timeline,
+            ),
             const SizedBox(height: 18),
             ...entries.asMap().entries.map((entry) {
               final idx = entry.key;
@@ -530,7 +635,11 @@ class TimestampCard extends ConsumerWidget {
                           color: cs.primary,
                           shape: BoxShape.circle,
                           boxShadow: [
-                            BoxShadow(color: cs.primary.withValues(alpha: 0.4), blurRadius: 4, spreadRadius: 1),
+                            BoxShadow(
+                              color: cs.primary.withValues(alpha: 0.4),
+                              blurRadius: 4,
+                              spreadRadius: 1,
+                            ),
                           ],
                         ),
                       ),
@@ -550,14 +659,17 @@ class TimestampCard extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            e.label, 
-                            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                            e.label,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                           Text(
                             _fmtTs(e.time),
                             style: TextStyle(
-                              fontSize: 11, 
-                              color: cs.onSurfaceVariant, 
+                              fontSize: 11,
+                              color: cs.onSurfaceVariant,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -576,14 +688,22 @@ class TimestampCard extends ConsumerWidget {
 
   String _keyLabel(String key, BuildContext context) {
     switch (key) {
-      case 'scheduledAt': return AppLocalizations.of(context).delivery_detail_ts_scheduled;
-      case 'pickedUpAt': return AppLocalizations.of(context).delivery_detail_ts_picked_up;
-      case 'inTransitAt': return AppLocalizations.of(context).delivery_detail_ts_in_transit;
-      case 'completedAt': return AppLocalizations.of(context).delivery_detail_ts_delivered;
-      case 'failedAt': return AppLocalizations.of(context).delivery_detail_ts_failed;
-      case 'cancelledAt': return AppLocalizations.of(context).delivery_detail_ts_cancelled;
-      case 'createdAt': return AppLocalizations.of(context).delivery_detail_ts_created;
-      default: return key;
+      case 'scheduledAt':
+        return AppLocalizations.of(context).delivery_detail_ts_scheduled;
+      case 'pickedUpAt':
+        return AppLocalizations.of(context).delivery_detail_ts_picked_up;
+      case 'inTransitAt':
+        return AppLocalizations.of(context).delivery_detail_ts_in_transit;
+      case 'completedAt':
+        return AppLocalizations.of(context).delivery_detail_ts_delivered;
+      case 'failedAt':
+        return AppLocalizations.of(context).delivery_detail_ts_failed;
+      case 'cancelledAt':
+        return AppLocalizations.of(context).delivery_detail_ts_cancelled;
+      case 'createdAt':
+        return AppLocalizations.of(context).delivery_detail_ts_created;
+      default:
+        return key;
     }
   }
 
@@ -595,7 +715,8 @@ class TimestampCard extends ConsumerWidget {
 
 // ─── Action Panel ─────────────────────────────────────────────────────────────
 class ActionPanel extends ConsumerWidget {
-  const ActionPanel({super.key, 
+  const ActionPanel({
+    super.key,
     required this.delivery,
     required this.isWorking,
     required this.onPickup,
@@ -622,7 +743,8 @@ class ActionPanel extends ConsumerWidget {
     // Handoff: the receiver (handoffToDriverId) is invited to scan the sender's QR,
     // but this is non-blocking — they can keep working their current stop. We surface
     // it as a banner above the normal actions instead of replacing them.
-    final bool showHandoffBanner = delivery.requiresHandoff &&
+    final bool showHandoffBanner =
+        delivery.requiresHandoff &&
         delivery.handoffConfirmedAt == null &&
         currentDriverId != null &&
         delivery.handoffToDriverId == currentDriverId;
@@ -633,7 +755,8 @@ class ActionPanel extends ConsumerWidget {
       final lat = delivery.lat;
       final lng = delivery.lng;
       if (lat == null || lng == null) return;
-      final googleUrl = 'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
+      final googleUrl =
+          'https://www.google.com/maps/dir/?api=1&destination=$lat,$lng';
       try {
         await launchUrlString(googleUrl, mode: LaunchMode.externalApplication);
       } catch (_) {
@@ -659,16 +782,22 @@ class ActionPanel extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsRegular.info, size: 16, color: cs.onSurfaceVariant),
+                  Icon(
+                    PhosphorIconsRegular.info,
+                    size: 16,
+                    color: cs.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    AppLocalizations.of(context).delivery_detail_pending_dispatch,
+                    AppLocalizations.of(
+                      context,
+                    ).delivery_detail_pending_dispatch,
                     style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
                   ),
                 ],
               ),
             ),
-          )
+          ),
         );
         break;
       case DeliveryStatus.scheduled:
@@ -695,7 +824,9 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
+              label: Text(
+                AppLocalizations.of(context).delivery_detail_fail_report,
+              ),
             ),
           ),
         );
@@ -708,7 +839,9 @@ class ActionPanel extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: launchNav,
                 icon: const Icon(PhosphorIconsBold.navigationArrow),
-                label: Text(AppLocalizations.of(context).delivery_detail_navigate),
+                label: Text(
+                  AppLocalizations.of(context).delivery_detail_navigate,
+                ),
               ),
             ),
           );
@@ -727,10 +860,13 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
+              label: Text(
+                AppLocalizations.of(context).delivery_detail_fail_report,
+              ),
             ),
           ),
-          if (delivery.requiresHandoff && delivery.handoffConfirmedAt == null) ...[
+          if (delivery.requiresHandoff &&
+              delivery.handoffConfirmedAt == null) ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
@@ -741,7 +877,9 @@ class ActionPanel extends ConsumerWidget {
                   builder: (_) => HandoffTokenSheet(deliveryId: delivery.id),
                 ),
                 icon: const Icon(PhosphorIconsBold.qrCode),
-                label: Text(AppLocalizations.of(context).delivery_detail_generate_handoff),
+                label: Text(
+                  AppLocalizations.of(context).delivery_detail_generate_handoff,
+                ),
               ),
             ),
           ],
@@ -755,7 +893,9 @@ class ActionPanel extends ConsumerWidget {
               child: OutlinedButton.icon(
                 onPressed: launchNav,
                 icon: const Icon(PhosphorIconsBold.navigationArrow),
-                label: Text(AppLocalizations.of(context).delivery_detail_navigate),
+                label: Text(
+                  AppLocalizations.of(context).delivery_detail_navigate,
+                ),
               ),
             ),
           );
@@ -764,7 +904,9 @@ class ActionPanel extends ConsumerWidget {
         buttons.addAll([
           SwipeButton(
             label: delivery.isReturnPickup
-                ? AppLocalizations.of(context).delivery_detail_confirm_collection
+                ? AppLocalizations.of(
+                    context,
+                  ).delivery_detail_confirm_collection
                 : AppLocalizations.of(context).delivery_detail_submit_pod,
             onSwipe: isWorking ? null : onPod,
             isWorking: isWorking,
@@ -776,11 +918,14 @@ class ActionPanel extends ConsumerWidget {
             child: TextButton.icon(
               onPressed: isWorking ? null : onFail,
               icon: const Icon(PhosphorIconsBold.flagPennant),
-              label: Text(AppLocalizations.of(context).delivery_detail_fail_report),
+              label: Text(
+                AppLocalizations.of(context).delivery_detail_fail_report,
+              ),
               style: TextButton.styleFrom(foregroundColor: cs.error),
             ),
           ),
-          if (delivery.requiresHandoff && delivery.handoffConfirmedAt == null) ...[
+          if (delivery.requiresHandoff &&
+              delivery.handoffConfirmedAt == null) ...[
             const SizedBox(height: 10),
             SizedBox(
               width: double.infinity,
@@ -791,7 +936,9 @@ class ActionPanel extends ConsumerWidget {
                   builder: (_) => HandoffTokenSheet(deliveryId: delivery.id),
                 ),
                 icon: const Icon(PhosphorIconsBold.qrCode),
-                label: Text(AppLocalizations.of(context).delivery_detail_generate_handoff),
+                label: Text(
+                  AppLocalizations.of(context).delivery_detail_generate_handoff,
+                ),
               ),
             ),
           ],
@@ -808,7 +955,11 @@ class ActionPanel extends ConsumerWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(PhosphorIconsFill.lock, size: 16, color: cs.onSurfaceVariant),
+                  Icon(
+                    PhosphorIconsFill.lock,
+                    size: 16,
+                    color: cs.onSurfaceVariant,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     AppLocalizations.of(context).delivery_detail_locked,
@@ -817,7 +968,7 @@ class ActionPanel extends ConsumerWidget {
                 ],
               ),
             ),
-          )
+          ),
         );
         break;
     }
@@ -869,7 +1020,9 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
       }
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).bonLivraisonOffline)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).bonLivraisonOffline),
+          ),
         );
       }
       return;
@@ -877,13 +1030,17 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
 
     setState(() => _loading = true);
     try {
-      final ok = await ref.read(pdfServiceProvider).downloadAndOpen(
-        '/driver/deliveries/${widget.deliveryId}/bon-livraison',
-        fileName: fileName,
-      );
+      final ok = await ref
+          .read(pdfServiceProvider)
+          .downloadAndOpen(
+            '/driver/deliveries/${widget.deliveryId}/bon-livraison',
+            fileName: fileName,
+          );
       if (!ok && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context).pod_pdf_open_error)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context).pod_pdf_open_error),
+          ),
         );
       }
     } catch (e) {
@@ -894,7 +1051,10 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
             ? e.message
             : AppLocalizations.of(context).pod_pdf_download_error;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message), duration: const Duration(seconds: 6)),
+          SnackBar(
+            content: Text(message),
+            duration: const Duration(seconds: 6),
+          ),
         );
       }
     } finally {
@@ -917,7 +1077,11 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
                 color: cs.tertiary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(PhosphorIconsRegular.filePdf, color: cs.tertiary, size: 20),
+              child: Icon(
+                PhosphorIconsRegular.filePdf,
+                color: cs.tertiary,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -927,9 +1091,9 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
                   Text(
                     AppLocalizations.of(context).pod_view_print_bl,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: cs.onSurface,
-                        ),
+                      fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -937,7 +1101,11 @@ class _BonLivraisonCardState extends ConsumerState<BonLivraisonCard> {
             TextButton(
               onPressed: _loading ? null : _open,
               child: _loading
-                  ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                  ? const SizedBox(
+                      width: 16,
+                      height: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
                   : Text(AppLocalizations.of(context).bonLivraisonOpen),
             ),
           ],
@@ -959,10 +1127,19 @@ class SectionHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleMedium?.copyWith(color: cs.onSurface, fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            color: cs.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         if (subtitle != null) ...[
           const SizedBox(height: 2),
-          Text(subtitle!, style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant)),
+          Text(
+            subtitle!,
+            style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant),
+          ),
         ],
       ],
     );
@@ -1003,15 +1180,19 @@ class _HandoffBanner extends ConsumerWidget {
                     Text(
                       AppLocalizations.of(context).handoffTransferredToYou,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w800,
-                            color: cs.secondary,
-                          ),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: cs.secondary,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       AppLocalizations.of(context).handoffScanInstructions,
-                      style: TextStyle(fontSize: 12, color: cs.onSurfaceVariant, height: 1.4),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: cs.onSurfaceVariant,
+                        height: 1.4,
+                      ),
                     ),
                   ],
                 ),
@@ -1024,9 +1205,7 @@ class _HandoffBanner extends ConsumerWidget {
             child: OutlinedButton.icon(
               onPressed: onScan,
               icon: const Icon(PhosphorIconsBold.qrCode, size: 18),
-              label: Text(
-                AppLocalizations.of(context).handoffScanSenderQr,
-              ),
+              label: Text(AppLocalizations.of(context).handoffScanSenderQr),
             ),
           ),
         ],
@@ -1095,7 +1274,10 @@ class PodImagesCard extends StatelessWidget {
                           width: 120,
                           height: 120,
                           color: cs.surfaceContainerHighest,
-                          child: Icon(PhosphorIconsRegular.image, color: cs.onSurfaceVariant),
+                          child: Icon(
+                            PhosphorIconsRegular.image,
+                            color: cs.onSurfaceVariant,
+                          ),
                         ),
                       ),
                     ),
@@ -1109,10 +1291,17 @@ class PodImagesCard extends StatelessWidget {
     );
   }
 
-  void _openFullScreen(BuildContext context, List<String> urls, int initialIndex) {
-    Navigator.of(context).push(MaterialPageRoute(
-      builder: (_) => _FullScreenGallery(urls: urls, initialIndex: initialIndex),
-    ));
+  void _openFullScreen(
+    BuildContext context,
+    List<String> urls,
+    int initialIndex,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) =>
+            _FullScreenGallery(urls: urls, initialIndex: initialIndex),
+      ),
+    );
   }
 }
 
@@ -1144,7 +1333,10 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text('${_currentIndex + 1}/${widget.urls.length}', style: const TextStyle(fontSize: 16)),
+        title: Text(
+          '${_currentIndex + 1}/${widget.urls.length}',
+          style: const TextStyle(fontSize: 16),
+        ),
       ),
       body: PageView.builder(
         controller: _controller,
@@ -1157,7 +1349,11 @@ class _FullScreenGalleryState extends State<_FullScreenGallery> {
             child: Image.network(
               widget.urls[i],
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(PhosphorIconsRegular.image, color: cs.onSurfaceVariant, size: 48),
+              errorBuilder: (_, __, ___) => Icon(
+                PhosphorIconsRegular.image,
+                color: cs.onSurfaceVariant,
+                size: 48,
+              ),
             ),
           ),
         ),
@@ -1177,8 +1373,8 @@ class FailureReasonCard extends StatelessWidget {
     final reason = delivery.status == DeliveryStatus.failed
         ? delivery.failReason
         : delivery.status == DeliveryStatus.cancelled
-            ? delivery.cancelReason
-            : null;
+        ? delivery.cancelReason
+        : null;
     if (reason == null || reason.isEmpty) return const SizedBox.shrink();
 
     final isFailed = delivery.status == DeliveryStatus.failed;
@@ -1200,7 +1396,9 @@ class FailureReasonCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(
-                isFailed ? PhosphorIconsRegular.warningCircle : PhosphorIconsRegular.xCircle,
+                isFailed
+                    ? PhosphorIconsRegular.warningCircle
+                    : PhosphorIconsRegular.xCircle,
                 size: 18,
                 color: color,
               ),
@@ -1212,12 +1410,20 @@ class FailureReasonCard extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: color),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     reason,
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: cs.onSurface),
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: cs.onSurface,
+                    ),
                   ),
                 ],
               ),
@@ -1246,7 +1452,9 @@ class StatusHistoryCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SectionHeader(title: AppLocalizations.of(context).delivery_detail_history_title),
+            SectionHeader(
+              title: AppLocalizations.of(context).delivery_detail_history_title,
+            ),
             const SizedBox(height: 12),
             ...history.asMap().entries.map((entry) {
               final item = entry.value;
@@ -1264,11 +1472,18 @@ class StatusHistoryCard extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           color: color,
-                          border: Border.all(color: color.withValues(alpha: 0.3), width: 2),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.3),
+                            width: 2,
+                          ),
                         ),
                       ),
                       if (!isLast)
-                        Container(width: 1, height: 28, color: cs.outlineVariant.withValues(alpha: 0.5)),
+                        Container(
+                          width: 1,
+                          height: 28,
+                          color: cs.outlineVariant.withValues(alpha: 0.5),
+                        ),
                     ],
                   ),
                   const SizedBox(width: 12),
@@ -1278,12 +1493,19 @@ class StatusHistoryCard extends StatelessWidget {
                       children: [
                         Text(
                           _statusLabel(item.status, context),
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: cs.onSurface),
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: cs.onSurface,
+                          ),
                         ),
                         if (item.changedAt != null)
                           Text(
                             '${item.changedAt!.day.toString().padLeft(2, '0')}/${item.changedAt!.month.toString().padLeft(2, '0')} ${item.changedAt!.hour.toString().padLeft(2, '0')}:${item.changedAt!.minute.toString().padLeft(2, '0')}',
-                            style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: cs.onSurfaceVariant,
+                            ),
                           ),
                       ],
                     ),
@@ -1299,31 +1521,31 @@ class StatusHistoryCard extends StatelessWidget {
 
   static Color _statusColor(ColorScheme cs, String? status) {
     return switch (status) {
-      'DELIVERED'            => Colors.green,
-      'PARTIALLY_DELIVERED'  => Colors.orange,
-      'FAILED'               => cs.error,
-      'CANCELLED'            => cs.onSurfaceVariant,
-      'IN_TRANSIT'           => cs.primary,
-      'PICKED_UP'            => cs.tertiary,
-      'UNSCHEDULED'          => cs.outline,
-      'AWAITING_HANDOFF'     => Colors.orange,
-      _                      => cs.outline,
+      'DELIVERED' => Colors.green,
+      'PARTIALLY_DELIVERED' => Colors.orange,
+      'FAILED' => cs.error,
+      'CANCELLED' => cs.onSurfaceVariant,
+      'IN_TRANSIT' => cs.primary,
+      'PICKED_UP' => cs.tertiary,
+      'UNSCHEDULED' => cs.outline,
+      'AWAITING_HANDOFF' => Colors.orange,
+      _ => cs.outline,
     };
   }
 
   static String _statusLabel(String? status, BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return switch (status) {
-      'DELIVERED'            => l10n.statusHistoryDelivered,
-      'PARTIALLY_DELIVERED'  => l10n.statusHistoryPartial,
-      'FAILED'               => l10n.statusHistoryFailed,
-      'CANCELLED'            => l10n.statusHistoryCancelled,
-      'IN_TRANSIT'           => l10n.statusHistoryInTransit,
-      'PICKED_UP'            => l10n.statusHistoryPickedUp,
-      'SCHEDULED'            => l10n.statusHistoryScheduled,
-      'UNSCHEDULED'          => l10n.statusHistoryUnscheduled,
-      'AWAITING_HANDOFF'     => l10n.statusHistoryAwaitingHandoff,
-      _                      => l10n.statusHistoryUnknown,
+      'DELIVERED' => l10n.statusHistoryDelivered,
+      'PARTIALLY_DELIVERED' => l10n.statusHistoryPartial,
+      'FAILED' => l10n.statusHistoryFailed,
+      'CANCELLED' => l10n.statusHistoryCancelled,
+      'IN_TRANSIT' => l10n.statusHistoryInTransit,
+      'PICKED_UP' => l10n.statusHistoryPickedUp,
+      'SCHEDULED' => l10n.statusHistoryScheduled,
+      'UNSCHEDULED' => l10n.statusHistoryUnscheduled,
+      'AWAITING_HANDOFF' => l10n.statusHistoryAwaitingHandoff,
+      _ => l10n.statusHistoryUnknown,
     };
   }
 }

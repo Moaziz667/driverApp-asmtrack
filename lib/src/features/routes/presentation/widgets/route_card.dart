@@ -8,11 +8,7 @@ import '../../../deliveries/models/status_labels.dart';
 import 'package:driver_app/generated/l10n/app_localizations.dart';
 
 class RouteCard extends ConsumerWidget {
-  const RouteCard({
-    super.key,
-    required this.route,
-    required this.onTap,
-  });
+  const RouteCard({super.key, required this.route, required this.onTap});
 
   final DriverRoute route;
   final VoidCallback onTap;
@@ -25,7 +21,8 @@ class RouteCard extends ConsumerWidget {
     final total = route.totalStops ?? route.stops.length;
     final done = route.completedStops ?? 0;
     final progress = total == 0 ? 0.0 : done / total;
-    final showProgress = route.status == DriverRouteStatus.inProgress ||
+    final showProgress =
+        route.status == DriverRouteStatus.inProgress ||
         route.status == DriverRouteStatus.closed;
 
     final routeStatusColor = _routeStatusColor(cs, route.status);
@@ -73,9 +70,15 @@ class RouteCard extends ConsumerWidget {
                         height: 36,
                         decoration: BoxDecoration(
                           color: routeStatusColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(AppTokens.radiusSm),
+                          borderRadius: BorderRadius.circular(
+                            AppTokens.radiusSm,
+                          ),
                         ),
-                        child: Icon(routeStatusIcon, size: 18, color: routeStatusColor),
+                        child: Icon(
+                          routeStatusIcon,
+                          size: 18,
+                          color: routeStatusColor,
+                        ),
                       ),
                       const SizedBox(width: AppTokens.space10),
                       Expanded(
@@ -90,7 +93,10 @@ class RouteCard extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(width: AppTokens.space8),
-                      _StatusBadge(status: route.status, color: routeStatusColor),
+                      _StatusBadge(
+                        status: route.status,
+                        color: routeStatusColor,
+                      ),
                     ],
                   ),
 
@@ -101,10 +107,15 @@ class RouteCard extends ConsumerWidget {
                     spacing: AppTokens.space6,
                     runSpacing: AppTokens.space6,
                     children: [
-                      if (route.plannedStart != null || route.plannedEnd != null)
+                      if (route.plannedStart != null ||
+                          route.plannedEnd != null)
                         _MetaPill(
                           icon: PhosphorIconsRegular.clock,
-                          label: _formatTimeWindow(route.plannedStart, route.plannedEnd, l10n: AppLocalizations.of(context)),
+                          label: _formatTimeWindow(
+                            route.plannedStart,
+                            route.plannedEnd,
+                            l10n: AppLocalizations.of(context),
+                          ),
                         ),
                       if (route.zone != null && route.zone!.isNotEmpty)
                         _MetaPill(
@@ -118,7 +129,13 @@ class RouteCard extends ConsumerWidget {
                         ),
                       _MetaPill(
                         icon: PhosphorIconsRegular.package,
-                        label: total > 1 ? AppLocalizations.of(context).routeStopCount(total.toString()) : AppLocalizations.of(context).routeStopCountSingular(total.toString()),
+                        label: total > 1
+                            ? AppLocalizations.of(
+                                context,
+                              ).routeStopCount(total.toString())
+                            : AppLocalizations.of(
+                                context,
+                              ).routeStopCountSingular(total.toString()),
                       ),
                     ],
                   ),
@@ -130,12 +147,16 @@ class RouteCard extends ConsumerWidget {
                       children: [
                         Expanded(
                           child: ClipRRect(
-                            borderRadius: BorderRadius.circular(AppTokens.radiusFull),
+                            borderRadius: BorderRadius.circular(
+                              AppTokens.radiusFull,
+                            ),
                             child: LinearProgressIndicator(
                               value: progress,
                               minHeight: 4,
                               backgroundColor: cs.surfaceContainerHighest,
-                              valueColor: AlwaysStoppedAnimation(routeStatusColor),
+                              valueColor: AlwaysStoppedAnimation(
+                                routeStatusColor,
+                              ),
                             ),
                           ),
                         ),
@@ -153,7 +174,8 @@ class RouteCard extends ConsumerWidget {
                   ],
 
                   // Depot info (multi-depot)
-                  if (route.depotName != null && route.depotName!.isNotEmpty) ...[
+                  if (route.depotName != null &&
+                      route.depotName!.isNotEmpty) ...[
                     const SizedBox(height: AppTokens.space8),
                     Row(
                       children: [
@@ -175,7 +197,8 @@ class RouteCard extends ConsumerWidget {
                   ],
 
                   // Vehicle info
-                  if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty) ...[
+                  if (route.vehiclePlate != null &&
+                      route.vehiclePlate!.isNotEmpty) ...[
                     const SizedBox(height: AppTokens.space8),
                     Row(
                       children: [
@@ -204,7 +227,11 @@ class RouteCard extends ConsumerWidget {
     );
   }
 
-  static String _formatTimeWindow(String? start, String? end, {AppLocalizations? l10n}) {
+  static String _formatTimeWindow(
+    String? start,
+    String? end, {
+    AppLocalizations? l10n,
+  }) {
     if (start != null && end != null) return '$start – $end';
     if (start != null) return l10n?.routeTimeFrom(start) ?? 'Dès $start';
     if (end != null) return l10n?.routeTimeBefore(end) ?? 'Avant $end';
@@ -213,21 +240,31 @@ class RouteCard extends ConsumerWidget {
 
   static Color _routeStatusColor(ColorScheme cs, DriverRouteStatus s) {
     switch (s) {
-      case DriverRouteStatus.draft:       return cs.onSurfaceVariant;
-      case DriverRouteStatus.validated:   return cs.tertiary;
-      case DriverRouteStatus.inProgress:  return cs.primary;
-      case DriverRouteStatus.closed:      return cs.tertiary;
-      case DriverRouteStatus.cancelled:   return cs.error;
+      case DriverRouteStatus.draft:
+        return cs.onSurfaceVariant;
+      case DriverRouteStatus.validated:
+        return cs.tertiary;
+      case DriverRouteStatus.inProgress:
+        return cs.primary;
+      case DriverRouteStatus.closed:
+        return cs.tertiary;
+      case DriverRouteStatus.cancelled:
+        return cs.error;
     }
   }
 
   static IconData _routeStatusIcon(DriverRouteStatus s) {
     switch (s) {
-      case DriverRouteStatus.draft:       return PhosphorIconsRegular.pencilSimple;
-      case DriverRouteStatus.validated:   return PhosphorIconsRegular.checkCircle;
-      case DriverRouteStatus.inProgress:  return PhosphorIconsFill.path;
-      case DriverRouteStatus.closed:      return PhosphorIconsFill.checkCircle;
-      case DriverRouteStatus.cancelled:   return PhosphorIconsRegular.xCircle;
+      case DriverRouteStatus.draft:
+        return PhosphorIconsRegular.pencilSimple;
+      case DriverRouteStatus.validated:
+        return PhosphorIconsRegular.checkCircle;
+      case DriverRouteStatus.inProgress:
+        return PhosphorIconsFill.path;
+      case DriverRouteStatus.closed:
+        return PhosphorIconsFill.checkCircle;
+      case DriverRouteStatus.cancelled:
+        return PhosphorIconsRegular.xCircle;
     }
   }
 }
@@ -240,7 +277,10 @@ class _StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: AppTokens.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space8,
+        vertical: AppTokens.space4,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -268,7 +308,10 @@ class _MetaPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: AppTokens.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space8,
+        vertical: AppTokens.space4,
+      ),
       decoration: BoxDecoration(
         color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),
@@ -302,14 +345,27 @@ class StatusChip extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     final Color color;
     switch (status) {
-      case DriverRouteStatus.draft:       color = cs.onSurfaceVariant; break;
-      case DriverRouteStatus.validated:   color = cs.tertiary; break;
-      case DriverRouteStatus.inProgress:  color = cs.primary; break;
-      case DriverRouteStatus.closed:      color = cs.tertiary; break;
-      case DriverRouteStatus.cancelled:   color = cs.error; break;
+      case DriverRouteStatus.draft:
+        color = cs.onSurfaceVariant;
+        break;
+      case DriverRouteStatus.validated:
+        color = cs.tertiary;
+        break;
+      case DriverRouteStatus.inProgress:
+        color = cs.primary;
+        break;
+      case DriverRouteStatus.closed:
+        color = cs.tertiary;
+        break;
+      case DriverRouteStatus.cancelled:
+        color = cs.error;
+        break;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.space8, vertical: AppTokens.space4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppTokens.space8,
+        vertical: AppTokens.space4,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppTokens.radiusSm),

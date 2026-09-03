@@ -26,8 +26,11 @@ class RouteDetailSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final total = route.totalStops ?? route.stops.length;
-    final done = route.completedStops ??
-        route.stops.where((s) => s.status != DriverRouteStopStatus.pending).length;
+    final done =
+        route.completedStops ??
+        route.stops
+            .where((s) => s.status != DriverRouteStopStatus.pending)
+            .length;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.55,
@@ -39,7 +42,11 @@ class RouteDetailSheet extends StatelessWidget {
           color: cs.surfaceContainerLow,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           boxShadow: [
-            const BoxShadow(color: Color(0x1A0F172A), blurRadius: 24, offset: Offset(0, -4)),
+            const BoxShadow(
+              color: Color(0x1A0F172A),
+              blurRadius: 24,
+              offset: Offset(0, -4),
+            ),
           ],
         ),
         child: ListView(
@@ -99,7 +106,10 @@ class RouteDetailSheet extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(6),
@@ -127,10 +137,12 @@ class RouteDetailSheet extends StatelessWidget {
                 ),
               )
             else
-              ...route.stops.map((stop) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: _ReadOnlyStopRow(stop: stop),
-                  )),
+              ...route.stops.map(
+                (stop) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _ReadOnlyStopRow(stop: stop),
+                ),
+              ),
           ],
         ),
       ),
@@ -140,7 +152,11 @@ class RouteDetailSheet extends StatelessWidget {
 
 // ─── Info grid ────────────────────────────────────────────────────────────────
 class _InfoGrid extends StatelessWidget {
-  const _InfoGrid({required this.route, required this.total, required this.done});
+  const _InfoGrid({
+    required this.route,
+    required this.total,
+    required this.done,
+  });
   final DriverRoute route;
   final int total;
   final int done;
@@ -150,55 +166,82 @@ class _InfoGrid extends StatelessWidget {
     final items = <_InfoItem>[];
 
     if (route.date != null) {
-      const months = ['JAN', 'FÉV', 'MAR', 'AVR', 'MAI', 'JUIN', 'JUIL', 'AOÛT', 'SEP', 'OCT', 'NOV', 'DÉC'];
+      const months = [
+        'JAN',
+        'FÉV',
+        'MAR',
+        'AVR',
+        'MAI',
+        'JUIN',
+        'JUIL',
+        'AOÛT',
+        'SEP',
+        'OCT',
+        'NOV',
+        'DÉC',
+      ];
       final d = route.date!;
-      items.add(_InfoItem(
-        icon: PhosphorIconsRegular.calendarBlank,
-        label: AppLocalizations.of(context).routeInfoDate,
-        value: '${d.day} ${months[d.month - 1]} ${d.year}',
-      ));
+      items.add(
+        _InfoItem(
+          icon: PhosphorIconsRegular.calendarBlank,
+          label: AppLocalizations.of(context).routeInfoDate,
+          value: '${d.day} ${months[d.month - 1]} ${d.year}',
+        ),
+      );
     }
 
     if (route.plannedStart != null || route.plannedEnd != null) {
-      final label = [route.plannedStart, route.plannedEnd]
-          .where((e) => e != null)
-          .join(' – ');
-      items.add(_InfoItem(
-        icon: PhosphorIconsRegular.clock,
-        label: AppLocalizations.of(context).routeInfoSchedule,
-        value: label,
-      ));
+      final label = [
+        route.plannedStart,
+        route.plannedEnd,
+      ].where((e) => e != null).join(' – ');
+      items.add(
+        _InfoItem(
+          icon: PhosphorIconsRegular.clock,
+          label: AppLocalizations.of(context).routeInfoSchedule,
+          value: label,
+        ),
+      );
     }
 
     if (route.zone != null && route.zone!.isNotEmpty) {
-      items.add(_InfoItem(
-        icon: PhosphorIconsRegular.mapPin,
-        label: AppLocalizations.of(context).routeInfoZone,
-        value: route.zone!,
-      ));
+      items.add(
+        _InfoItem(
+          icon: PhosphorIconsRegular.mapPin,
+          label: AppLocalizations.of(context).routeInfoZone,
+          value: route.zone!,
+        ),
+      );
     } else if (route.city != null && route.city!.isNotEmpty) {
-      items.add(_InfoItem(
-        icon: PhosphorIconsRegular.mapPin,
-        label: AppLocalizations.of(context).routeInfoCity,
-        value: route.city!,
-      ));
+      items.add(
+        _InfoItem(
+          icon: PhosphorIconsRegular.mapPin,
+          label: AppLocalizations.of(context).routeInfoCity,
+          value: route.city!,
+        ),
+      );
     }
 
-    items.add(_InfoItem(
-      icon: PhosphorIconsRegular.package,
-      label: AppLocalizations.of(context).routeInfoStops,
-      value: route.status == DriverRouteStatus.closed ||
-              route.status == DriverRouteStatus.inProgress
-          ? '$done / $total'
-          : '$total',
-    ));
+    items.add(
+      _InfoItem(
+        icon: PhosphorIconsRegular.package,
+        label: AppLocalizations.of(context).routeInfoStops,
+        value:
+            route.status == DriverRouteStatus.closed ||
+                route.status == DriverRouteStatus.inProgress
+            ? '$done / $total'
+            : '$total',
+      ),
+    );
 
     if (route.vehiclePlate != null && route.vehiclePlate!.isNotEmpty) {
-      items.add(_InfoItem(
-        icon: PhosphorIconsRegular.car,
-        label: AppLocalizations.of(context).routeInfoVehicle,
-        value: '${route.vehicleName ?? ''} · ${route.vehiclePlate!}',
-      ));
+      items.add(
+        _InfoItem(
+          icon: PhosphorIconsRegular.car,
+          label: AppLocalizations.of(context).routeInfoVehicle,
+          value: '${route.vehicleName ?? ''} · ${route.vehiclePlate!}',
+        ),
+      );
     }
 
     return Wrap(
@@ -210,7 +253,11 @@ class _InfoGrid extends StatelessWidget {
 }
 
 class _InfoItem {
-  const _InfoItem({required this.icon, required this.label, required this.value});
+  const _InfoItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
   final IconData icon;
   final String label;
   final String value;
@@ -240,7 +287,11 @@ class _InfoTile extends StatelessWidget {
             children: [
               Text(
                 item.label,
-                style: TextStyle(fontSize: 10, color: cs.onSurfaceVariant, fontWeight: FontWeight.w500),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: cs.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               Text(
                 item.value,
@@ -281,14 +332,27 @@ class _ReadOnlyStopRow extends StatelessWidget {
             Container(
               width: 28,
               height: 28,
-              decoration: BoxDecoration(color: pickup.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(7)),
-              child: const Icon(Icons.warehouse_outlined, size: 15, color: pickup),
+              decoration: BoxDecoration(
+                color: pickup.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(7),
+              ),
+              child: const Icon(
+                Icons.warehouse_outlined,
+                size: 15,
+                color: pickup,
+              ),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                AppLocalizations.of(context).routePickupLabel(stop.sourceDepotName ?? ''),
-                style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w700, color: pickup),
+                AppLocalizations.of(
+                  context,
+                ).routePickupLabel(stop.sourceDepotName ?? ''),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: pickup,
+                ),
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -302,11 +366,14 @@ class _ReadOnlyStopRow extends StatelessWidget {
       case DriverRouteStopStatus.arrived:
       case DriverRouteStopStatus.completed:
       case DriverRouteStopStatus.partial:
-        dotColor = cs.tertiary; break;
+        dotColor = cs.tertiary;
+        break;
       case DriverRouteStopStatus.failed:
-        dotColor = cs.error; break;
+        dotColor = cs.error;
+        break;
       case DriverRouteStopStatus.pending:
-        dotColor = cs.onSurfaceVariant; break;
+        dotColor = cs.onSurfaceVariant;
+        break;
     }
 
     return Container(
@@ -356,7 +423,10 @@ class _ReadOnlyStopRow extends StatelessWidget {
                   ),
                 if (stop.address != null || stop.city != null)
                   Text(
-                    [stop.address, stop.city].where((e) => e != null && e.isNotEmpty).join(', '),
+                    [
+                      stop.address,
+                      stop.city,
+                    ].where((e) => e != null && e.isNotEmpty).join(', '),
                     style: TextStyle(fontSize: 11, color: cs.onSurfaceVariant),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -364,14 +434,23 @@ class _ReadOnlyStopRow extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
-                        color: cs.surfaceContainerHighest.withValues(alpha: 0.5),
+                        color: cs.surfaceContainerHighest.withValues(
+                          alpha: 0.5,
+                        ),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         stop.formattedTimeWindow!,
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: cs.onSurfaceVariant),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ),

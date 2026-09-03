@@ -32,7 +32,9 @@ class _DriverAppState extends ConsumerState<DriverApp> {
   @override
   void initState() {
     super.initState();
-    Future.microtask(() => ref.read(authControllerProvider.notifier).bootstrap());
+    Future.microtask(
+      () => ref.read(authControllerProvider.notifier).bootstrap(),
+    );
   }
 
   @override
@@ -41,10 +43,14 @@ class _DriverAppState extends ConsumerState<DriverApp> {
     // logout, token expiry, or an admin suspending the account — route to the
     // right screen from a single place instead of each screen doing it ad hoc.
     ref.listen<AuthState>(authControllerProvider, (prev, next) {
-      debugPrint('[ROUTE] status ${prev?.status} -> ${next.status} (loading=${next.isLoading})');
+      debugPrint(
+        '[ROUTE] status ${prev?.status} -> ${next.status} (loading=${next.isLoading})',
+      );
       if (prev?.status == next.status || next.isLoading) return;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        debugPrint('[NAV] navigateToHome ctx=${rootNavigatorKey.currentContext != null} status=${next.status}');
+        debugPrint(
+          '[NAV] navigateToHome ctx=${rootNavigatorKey.currentContext != null} status=${next.status}',
+        );
         navigateToHome(rootNavigatorKey.currentContext, next.status);
       });
     });
@@ -62,11 +68,7 @@ class _DriverAppState extends ConsumerState<DriverApp> {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      supportedLocales: const [
-        Locale('fr'),
-        Locale('en'),
-        Locale('ar'),
-      ],
+      supportedLocales: const [Locale('fr'), Locale('en'), Locale('ar')],
       theme: buildLightTheme(),
       darkTheme: buildDarkTheme(),
       themeMode: ThemeMode.system,
@@ -104,8 +106,12 @@ class _DriverAppState extends ConsumerState<DriverApp> {
 void navigateToHome(BuildContext? context, AuthStatus status) {
   if (context == null) return;
   if (status == AuthStatus.authenticated) {
-    Navigator.of(context).pushNamedAndRemoveUntil(HomeShell.routeName, (route) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(HomeShell.routeName, (route) => false);
   } else {
-    Navigator.of(context).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
+    Navigator.of(
+      context,
+    ).pushNamedAndRemoveUntil(LoginScreen.routeName, (route) => false);
   }
 }

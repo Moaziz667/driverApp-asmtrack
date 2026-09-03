@@ -11,7 +11,8 @@ void main() {
   const tunis = 'depot-tunis';
   const sousse = 'depot-sousse';
 
-  DriverRouteStop pickup(String depotId, DriverRouteStopStatus status) => DriverRouteStop(
+  DriverRouteStop pickup(String depotId, DriverRouteStopStatus status) =>
+      DriverRouteStop(
         id: 'pickup-$depotId',
         deliveryId: '',
         stopOrder: 1,
@@ -21,7 +22,8 @@ void main() {
         sourceDepotIds: [depotId],
       );
 
-  DriverRouteStop delivery({required List<String> from, String? header}) => DriverRouteStop(
+  DriverRouteStop delivery({required List<String> from, String? header}) =>
+      DriverRouteStop(
         id: 'delivery-1',
         deliveryId: 'delivery-1',
         stopOrder: 2,
@@ -30,14 +32,22 @@ void main() {
         sourceDepotIds: from,
       );
 
-  DriverRoute route(List<DriverRouteStop> stops) =>
-      DriverRoute(id: 'r', name: 'R001', status: DriverRouteStatus.inProgress, stops: stops);
+  DriverRoute route(List<DriverRouteStop> stops) => DriverRoute(
+    id: 'r',
+    name: 'R001',
+    status: DriverRouteStatus.inProgress,
+    stops: stops,
+  );
 
   group('multi-depot', () {
     test('a two-warehouse delivery counts at both depots', () {
       final sousseStop = pickup(sousse, DriverRouteStopStatus.pending);
       final tunisStop = pickup(tunis, DriverRouteStopStatus.pending);
-      final r = route([tunisStop, sousseStop, delivery(from: [tunis, sousse], header: tunis)]);
+      final r = route([
+        tunisStop,
+        sousseStop,
+        delivery(from: [tunis, sousse], header: tunis),
+      ]);
 
       expect(r.pickupParcelCount(sousseStop), 1);
       expect(r.pickupParcelCount(tunisStop), 1);
@@ -72,7 +82,9 @@ void main() {
     });
 
     test('a home-depot delivery needs no pickup', () {
-      final r = route([delivery(from: [tunis], header: tunis)]);
+      final r = route([
+        delivery(from: [tunis], header: tunis),
+      ]);
 
       expect(r.isDepotPicked(r.stops.last), isTrue);
     });
