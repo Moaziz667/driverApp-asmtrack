@@ -6,10 +6,14 @@
 #
 # Ce dépôt n'avait pas de chaîne d'intégration : ses tests ne s'exécutaient que sur le poste du
 # développeur, donc uniquement quand il y pensait.
+#
+# Les étapes suivent le coût croissant : ce qui peut échouer en quelques secondes passe avant ce qui
+# demande une compilation complète.
 
 stages:
   - build
   - test
+  - package
 
 variables:
   # Le cache des paquets doit vivre dans le répertoire du projet pour que GitLab puisse le conserver
@@ -52,11 +56,78 @@ test:
   <<: *flutter
   stage: test
   script:
-    - flutter test --no-pub --coverage
-  # Pas de clé `coverage:` : elle attend un pourcentage dans la sortie du job, que `flutter test`
-  # n'imprime pas. Le lcov est conservé en artefact, à lire avec un outil de couverture.
+    # `--machine` remplace la sortie lisible par un flux JSON, que tojunit traduit en XML. Sans lui,
+    # l'onglet « Tests » de la pipeline reste vide alors que les tests tournent : GitLab ne sait lire
+    # que le format JUnit, et Flutter ne le produit pas.
+    - flutter pub global activate junitreport
+    - export PATH="$PATH:$PUB_CACHE/bin"
+    # set -o pipefail : sans lui, le code de sortie serait celui de tojunit, qui réussit à traduire
+    # un rapport plein d'échecs. Le job passerait au vert avec des tests rouges dedans.
+    - set -o pipefail
+    - flutter test --no-pub --coverage --machine | tojunit -o report.xml
   artifacts:
     when: always
+    reports:
+      junit: report.xml
     paths:
       - coverage/lcov.info
+      - report.xml
     expire_in: 1 week
+
+# lcov dit ligne par ligne ce qu'un test a exécuté, mais GitLab ne lit pas ce format. Traduit en
+# Cobertura, il devient une pastille verte ou rouge sur chaque ligne de la merge request : une
+# branche que personne ne teste se voit sans ouvrir de rapport.
+#
+# Job séparé plutôt qu'une étape du précédent : la traduction est un travail Python, et l'installer
+# dans l'image Flutter la rendrait plus lente à chaque exécution pour un besoin qui n'est pas le sien.
+coverage:
+  stage: test
+  image: python:3.12-slim
+  tags: [docker]
+  needs: ["test"]
+  before_script:
+    - pip install --no-cache-dir lcov_cobertura
+  script:
+    - lcov_cobertura coverage/lcov.info --output coverage.xml
+    - |
+      python - <<'PY'
+      import xml.etree.ElementTree as ET
+      root = ET.parse("coverage.xml").getroot()
+      print(f"TOTAL_COVERAGE={float(root.get('line-rate')) * 100:.2f}")
+      PY
+  # Le pourcentage affiché sur la pipeline est extrait de la ligne imprimée ci-dessus. Elle est dans
+  # `script` et non dans `after_script` : ce dernier s'exécute même quand le job a échoué, et
+  # publierait alors un taux calculé sur un rapport incomplet.
+  coverage: '/^TOTAL_COVERAGE=(\d+\.\d+)$/'
+  artifacts:
+    when: always
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    expire_in: 1 week
+
+# Les tests ne compilent pas l'application : ils s'exécutent sur la machine hôte, pas sur Android.
+# Un projet peut donc avoir tous ses tests au vert et un build Android cassé. Ce job est ce qui le
+# détecte, et il produit au passage l'APK d'un commit précis, installable sans recompiler.
+#
+# Signé avec la clé de débogage : la configuration de release y renvoie déjà (android/app/
+# build.gradle.kts). Un APK de magasin exigerait un keystore en variable protégée, ce que ce projet
+# n'a pas à faire.
+build-apk:
+  <<: *flutter
+  stage: package
+  script:
+    - flutter build apk --no-pub --release
+  artifacts:
+    name: "driverapp-$CI_COMMIT_SHORT_SHA"
+    paths:
+      - build/app/outputs/flutter-apk/app-release.apk
+    expire_in: 1 month
+  rules:
+    # Compiler à chaque commit de branche coûte des minutes pour un artefact que personne n'installe.
+    # Sur la branche par défaut et sur les tags, l'APK est ce qu'on donne à tester.
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - when: manual
+      allow_failure: true
