@@ -1,0 +1,62 @@
+# ASM Track — application chauffeur, pipeline CI (GitLab auto-hébergé, git.asmtechtn.com).
+#
+# Tourne sur le runner à exécuteur Docker (tag : docker), comme le dépôt principal. L'image Flutter
+# est épinglée sur la version utilisée en développement : une image « latest » ferait basculer le
+# SDK sous les tests sans qu'aucun commit ne le demande.
+#
+# Ce dépôt n'avait pas de chaîne d'intégration : ses tests ne s'exécutaient que sur le poste du
+# développeur, donc uniquement quand il y pensait.
+
+stages:
+  - build
+  - test
+
+variables:
+  # Le cache des paquets doit vivre dans le répertoire du projet pour que GitLab puisse le conserver
+  # d'un job à l'autre ; hors de ce répertoire, il est perdu à chaque exécution.
+  PUB_CACHE: "$CI_PROJECT_DIR/.pub-cache"
+
+.flutter: &flutter
+  image: ghcr.io/cirruslabs/flutter:3.32.6
+  tags: [docker]
+  cache:
+    key: pub-driverapp
+    paths:
+      - .pub-cache
+      - .dart_tool
+  before_script:
+    - flutter --version
+    - flutter pub get
+
+analyze:
+  <<: *flutter
+  stage: build
+  script:
+    # `flutter analyze` sort en échec dès la première remarque, y compris de niveau « info ». Le
+    # projet en compte une quarantaine, toutes connues : des imports superflus et des API dépréciées
+    # qui n'empêchent rien de fonctionner. Bloquer dessus rendrait le job rouge en permanence, donc
+    # illisible. Seules les erreurs et les avertissements arrêtent la chaîne.
+    - flutter analyze --no-pub | tee analyze.txt || true
+    - |
+      if grep -qE '^\s+(error|warning) -' analyze.txt; then
+        echo "Erreurs ou avertissements d'analyse — voir ci-dessus."
+        exit 1
+      fi
+  artifacts:
+    when: always
+    paths:
+      - analyze.txt
+    expire_in: 1 week
+
+test:
+  <<: *flutter
+  stage: test
+  script:
+    - flutter test --no-pub --coverage
+  # Pas de clé `coverage:` : elle attend un pourcentage dans la sortie du job, que `flutter test`
+  # n'imprime pas. Le lcov est conservé en artefact, à lire avec un outil de couverture.
+  artifacts:
+    when: always
+    paths:
+      - coverage/lcov.info
+    expire_in: 1 week
