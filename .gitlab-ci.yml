@@ -32,6 +32,15 @@ variables:
     - flutter --version
     - flutter pub get
 
+format:
+  <<: *flutter
+  stage: build
+  script:
+    # Bloquant, contrairement à l'analyse : le format n'a pas de dette à tolérer, puisque le dépôt a
+    # été remis d'aplomb d'un coup. Une seule convention évite les diffs ou la moitié des lignes
+    # n'a bougé que d'une indentation, et masque la ligne qui compte.
+    - dart format --output=none --set-exit-if-changed lib test
+
 analyze:
   <<: *flutter
   stage: build
